@@ -13,6 +13,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "GestOne — Controle Financeiro Pessoal",
   description: "Aplicação moderna, rápida e segura para controle financeiro pessoal.",
+  manifest: "/manifest.json",
 };
 
 export default function RootLayout({
