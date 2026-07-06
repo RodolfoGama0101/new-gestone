@@ -6,23 +6,24 @@ import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
-import { Loader2, PiggyBank, ArrowLeft } from 'lucide-react'
+import { Loader2, TrendingUp, ArrowLeft, Mail } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { ThemeToggle } from '@/components/shared/theme-toggle'
 import { forgotPasswordSchema, type ForgotPasswordInput } from '@/lib/validations/auth.schema'
 import { sendPasswordReset } from '@/lib/firebase/auth'
 
 export default function ForgotPasswordPage() {
   const [isLoading, setIsLoading] = React.useState(false)
+  const [sent, setSent] = React.useState(false)
   const router = useRouter()
 
   const {
     register,
     handleSubmit,
+    getValues,
     formState: { errors },
   } = useForm<ForgotPasswordInput>({
     resolver: zodResolver(forgotPasswordSchema),
@@ -35,8 +36,8 @@ export default function ForgotPasswordPage() {
     setIsLoading(true)
     try {
       await sendPasswordReset(data.email)
+      setSent(true)
       toast.success('E-mail de recuperação enviado com sucesso! Verifique sua caixa de entrada.')
-      router.push('/login')
     } catch (error) {
       const authError = error as { code?: string }
       console.error('Password Reset Error:', error)
@@ -56,66 +57,139 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="relative min-h-screen flex flex-col items-center justify-center p-4 bg-background text-foreground transition-colors duration-200">
-      <div className="absolute top-4 right-4">
-        <ThemeToggle />
-      </div>
-      <div className="w-full max-w-md space-y-6">
-        <div className="flex flex-col items-center gap-2">
-          <div className="p-3 bg-primary/10 rounded-2xl text-primary shadow-inner">
-            <PiggyBank className="size-8" />
-          </div>
-          <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-indigo-500 bg-clip-text text-transparent">
-            GestOne
-          </h1>
+    <div className="relative min-h-screen flex">
+      {/* Painel Esquerdo — Branding */}
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-primary flex-col items-center justify-center p-12 text-primary-foreground">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-32 -left-32 size-96 rounded-full bg-white/5 blur-3xl" />
+          <div className="absolute -bottom-32 -right-32 size-96 rounded-full bg-white/5 blur-3xl" />
+          <svg className="absolute inset-0 size-full opacity-10" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="dots-fp" x="0" y="0" width="24" height="24" patternUnits="userSpaceOnUse">
+                <circle cx="2" cy="2" r="1" fill="currentColor" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#dots-fp)" />
+          </svg>
         </div>
 
-        <Card className="shadow-xl border-border bg-card">
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold text-center">Recuperar Senha</CardTitle>
-            <CardDescription className="text-center">
-              Digite seu e-mail e enviaremos um link para redefinir sua senha
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <div className="relative z-10 flex flex-col items-start gap-10 max-w-sm w-full">
+          <div className="flex items-center gap-3">
+            <div className="size-11 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg">
+              <TrendingUp className="size-6 text-white" />
+            </div>
+            <span className="text-2xl font-extrabold tracking-tight text-white">GestOne</span>
+          </div>
+
+          <div className="space-y-4">
+            <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-white">
+              Recupere o<br />
+              acesso à<br />
+              <span className="text-white/70">sua conta</span>
+            </h1>
+            <p className="text-base text-white/70 leading-relaxed">
+              Enviaremos um link seguro para o e-mail cadastrado para você redefinir sua senha.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Painel Direito — Formulário */}
+      <div className="flex-1 flex flex-col items-center justify-center p-6 bg-background relative">
+        <div className="absolute top-4 right-4">
+          <ThemeToggle />
+        </div>
+
+        {/* Logo mobile */}
+        <div className="lg:hidden flex items-center gap-2 mb-8">
+          <div className="size-9 rounded-xl bg-primary flex items-center justify-center">
+            <TrendingUp className="size-5 text-primary-foreground" />
+          </div>
+          <span className="text-xl font-extrabold tracking-tight text-foreground">GestOne</span>
+        </div>
+
+        <div className="w-full max-w-sm">
+          {sent ? (
+            /* Estado de sucesso */
+            <div className="space-y-6 text-center">
+              <div className="size-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+                <Mail className="size-8 text-primary" />
+              </div>
               <div className="space-y-2">
-                <Label htmlFor="email">E-mail</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="exemplo@dominio.com"
-                  disabled={isLoading}
-                  className={errors.email ? 'border-destructive focus-visible:ring-destructive' : ''}
-                  {...register('email')}
-                />
-                {errors.email && (
-                  <p className="text-xs font-medium text-destructive">{errors.email.message}</p>
-                )}
+                <h2 className="text-2xl font-extrabold tracking-tight text-foreground">
+                  E-mail enviado!
+                </h2>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Enviamos um link de recuperação para{' '}
+                  <span className="font-semibold text-foreground">{getValues('email')}</span>.
+                  Verifique sua caixa de entrada e o spam.
+                </p>
+              </div>
+              <Button
+                className="w-full h-11 font-bold cursor-pointer"
+                onClick={() => router.push('/login')}
+              >
+                Voltar ao login
+              </Button>
+            </div>
+          ) : (
+            /* Formulário de recuperação */
+            <>
+              <div className="mb-8 space-y-1">
+                <h2 className="text-2xl font-extrabold tracking-tight text-foreground">
+                  Recuperar senha
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  Digite seu e-mail para receber o link de recuperação
+                </p>
               </div>
 
-              <Button type="submit" className="w-full font-semibold" disabled={isLoading}>
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 size-4 animate-spin" />
-                    Enviando link...
-                  </>
-                ) : (
-                  'Enviar Link de Recuperação'
-                )}
-              </Button>
-            </form>
-          </CardContent>
-          <CardFooter>
-            <Link
-              href="/login"
-              className="flex items-center justify-center gap-2 text-sm text-primary hover:underline hover:text-primary/90 mx-auto font-medium"
-            >
-              <ArrowLeft className="size-4" />
-              Voltar para o login
-            </Link>
-          </CardFooter>
-        </Card>
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="email" className="text-sm font-semibold text-foreground">
+                    E-mail
+                  </Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="exemplo@dominio.com"
+                    disabled={isLoading}
+                    className={`h-11 ${errors.email ? 'border-destructive focus-visible:ring-destructive' : ''}`}
+                    {...register('email')}
+                  />
+                  {errors.email && (
+                    <p className="text-xs font-medium text-destructive">{errors.email.message}</p>
+                  )}
+                </div>
+
+                <Button
+                  type="submit"
+                  className="w-full h-11 font-bold text-sm cursor-pointer"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 size-4 animate-spin" />
+                      Enviando link...
+                    </>
+                  ) : (
+                    'Enviar link de recuperação'
+                  )}
+                </Button>
+              </form>
+
+              <div className="mt-6 text-center">
+                <Link
+                  href="/login"
+                  className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <ArrowLeft className="size-4" />
+                  Voltar ao login
+                </Link>
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </div>
   )

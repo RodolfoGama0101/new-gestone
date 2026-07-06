@@ -11,7 +11,6 @@ import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { GoogleAuthButton } from './google-auth-button'
 import { loginSchema, type LoginInput } from '@/lib/validations/auth.schema'
@@ -64,84 +63,76 @@ export function LoginForm() {
   }
 
   return (
-    <Card className="w-full max-w-md mx-auto shadow-xl border-border bg-card">
-      <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl font-bold text-center">Entrar no GestOne</CardTitle>
-        <CardDescription className="text-center">
-          Digite seu e-mail e senha para acessar sua conta
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">E-mail</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="exemplo@dominio.com"
-              disabled={isLoading}
-              className={errors.email ? 'border-destructive focus-visible:ring-destructive' : ''}
-              {...register('email')}
-            />
-            {errors.email && (
-              <p className="text-xs font-medium text-destructive">{errors.email.message}</p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="password">Senha</Label>
-              <Link
-                href="/forgot-password"
-                className="text-xs text-primary hover:underline hover:text-primary/90"
-              >
-                Esqueceu a senha?
-              </Link>
-            </div>
-            <Input
-              id="password"
-              type="password"
-              placeholder="••••••••"
-              disabled={isLoading}
-              className={errors.password ? 'border-destructive focus-visible:ring-destructive' : ''}
-              {...register('password')}
-            />
-            {errors.password && (
-              <p className="text-xs font-medium text-destructive">{errors.password.message}</p>
-            )}
-          </div>
-
-          <Button type="submit" className="w-full font-semibold" disabled={isLoading}>
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 size-4 animate-spin" />
-                Entrando...
-              </>
-            ) : (
-              'Entrar'
-            )}
-          </Button>
-        </form>
-
-        <div className="relative my-6">
-          <div className="absolute inset-0 flex items-center">
-            <Separator className="w-full" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-card px-2 text-muted-foreground">Ou continuar com</span>
-          </div>
+    <div className="space-y-5">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <div className="space-y-1.5">
+          <Label htmlFor="email" className="text-sm font-semibold text-foreground">
+            E-mail
+          </Label>
+          <Input
+            id="email"
+            type="email"
+            placeholder="exemplo@dominio.com"
+            disabled={isLoading}
+            className={`h-11 ${errors.email ? 'border-destructive focus-visible:ring-destructive' : ''}`}
+            {...register('email')}
+          />
+          {errors.email && (
+            <p className="text-xs font-medium text-destructive">{errors.email.message}</p>
+          )}
         </div>
 
-        <GoogleAuthButton />
-      </CardContent>
-      <CardFooter className="flex flex-col space-y-2">
-        <p className="text-sm text-center text-muted-foreground w-full">
-          Não tem uma conta?{' '}
-          <Link href="/register" className="text-primary hover:underline font-medium">
-            Criar conta
-          </Link>
-        </p>
-      </CardFooter>
-    </Card>
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="password" className="text-sm font-semibold text-foreground">
+              Senha
+            </Label>
+            <Link
+              href="/forgot-password"
+              className="text-xs font-medium text-primary hover:underline"
+            >
+              Esqueceu a senha?
+            </Link>
+          </div>
+          <Input
+            id="password"
+            type="password"
+            placeholder="••••••••"
+            disabled={isLoading}
+            className={`h-11 ${errors.password ? 'border-destructive focus-visible:ring-destructive' : ''}`}
+            {...register('password')}
+          />
+          {errors.password && (
+            <p className="text-xs font-medium text-destructive">{errors.password.message}</p>
+          )}
+        </div>
+
+        <Button
+          type="submit"
+          className="w-full h-11 font-bold text-sm cursor-pointer"
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 size-4 animate-spin" />
+              Entrando...
+            </>
+          ) : (
+            'Entrar na conta'
+          )}
+        </Button>
+      </form>
+
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <Separator className="w-full" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-background px-3 text-muted-foreground font-medium">Ou continuar com</span>
+        </div>
+      </div>
+
+      <GoogleAuthButton />
+    </div>
   )
 }
