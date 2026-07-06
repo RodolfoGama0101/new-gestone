@@ -16,6 +16,7 @@ import { Separator } from '@/components/ui/separator'
 import { GoogleAuthButton } from './google-auth-button'
 import { registerSchema, type RegisterInput } from '@/lib/validations/auth.schema'
 import { signUpWithEmail } from '@/lib/firebase/auth'
+import { CategoryService } from '@/services/category.service'
 
 export function RegisterForm() {
   const [isLoading, setIsLoading] = React.useState(false)
@@ -37,7 +38,10 @@ export function RegisterForm() {
   const onSubmit = async (data: RegisterInput) => {
     setIsLoading(true)
     try {
-      await signUpWithEmail(data.email, data.password)
+      const user = await signUpWithEmail(data.email, data.password)
+      if (user) {
+        await CategoryService.seedDefaultCategories(user.uid)
+      }
       toast.success('Conta criada com sucesso! Bem-vindo(a).')
       router.push('/')
       router.refresh()
