@@ -1,0 +1,45 @@
+name: GestOne Quality & CI Pipeline
+
+on:
+  push:
+    branches: [ master, main, develop ]
+  pull_request:
+    branches: [ master, main, develop ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint and type checks
+        run: |
+          npm run lint
+          npx tsc --noEmit
+
+      - name: Run unit tests
+        run: npm run test
+
+      - name: Build Next.js app
+        run: npm run build
+        env:
+          NEXT_PUBLIC_FIREBASE_API_KEY: "mock_api_key"
+          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: "mock_auth_domain"
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID: "mock_project_id"
+          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: "mock_storage_bucket"
+          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: "mock_sender_id"
+          NEXT_PUBLIC_FIREBASE_APP_ID: "mock_app_id"
+          FIREBASE_PROJECT_ID: "mock_project_id"
+          FIREBASE_CLIENT_EMAIL: "mock_client_email@mock.iam.gserviceaccount.com"
+          FIREBASE_PRIVATE_KEY: "mock_private_key"

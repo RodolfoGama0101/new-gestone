@@ -19,7 +19,7 @@ export interface MonthlySummary {
 
 function parseToDate(dateVal: unknown): Date {
   if (!dateVal) return new Date()
-  if (dateVal instanceof Date) return dateVal
+  if (dateVal instanceof Date || (dateVal && typeof dateVal === 'object' && 'getTime' in dateVal)) return dateVal as Date
   if (dateVal instanceof Timestamp) return dateVal.toDate()
   const record = dateVal as { seconds?: number }
   if (record && typeof record.seconds === 'number') {
