@@ -1,101 +1,159 @@
-import Image from "next/image";
+import { ThemeToggle } from '@/components/shared/theme-toggle'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { 
+  TrendingUp, 
+  TrendingDown, 
+  Wallet, 
+  ArrowRight, 
+  PiggyBank, 
+  LineChart, 
+  ShieldCheck, 
+  Smartphone,
+  CheckCircle2
+} from 'lucide-react'
 
 export default function Home() {
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="flex min-h-screen flex-col bg-background text-foreground transition-colors duration-200">
+      {/* Top Navbar */}
+      <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-md">
+        <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-2">
+            <PiggyBank className="size-6 text-primary" />
+            <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-primary to-indigo-500 bg-clip-text text-transparent">
+              GestOne
+            </span>
+          </div>
+          <div className="flex items-center gap-4">
+            <ThemeToggle />
+            <Button size="sm">Entrar</Button>
+          </div>
         </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="flex-1">
+        {/* Hero Section */}
+        <section className="relative px-4 py-16 text-center sm:px-6 sm:py-24 lg:px-8">
+          <div className="mx-auto max-w-3xl">
+            <Badge variant="secondary" className="mb-4 text-xs font-semibold px-3 py-1">
+              ✨ GestOne v1.0 — Em Desenvolvimento
+            </Badge>
+            <h1 className="text-4xl font-extrabold tracking-tight sm:text-6xl text-foreground">
+              Simplifique sua vida financeira com o{' '}
+              <span className="bg-gradient-to-r from-primary to-indigo-500 bg-clip-text text-transparent">
+                GestOne
+              </span>
+            </h1>
+            <p className="mx-auto mt-6 max-w-xl text-lg text-muted-foreground sm:text-xl">
+              Uma aplicação moderna, mobile-first, 100% gratuita no plano Firebase Spark para organizar receitas, despesas, e otimizar suas economias.
+            </p>
+            <div className="mt-8 flex justify-center gap-4">
+              <Button size="lg" className="gap-2">
+                Começar Agora <ArrowRight className="size-4" />
+              </Button>
+              <Button size="lg" variant="outline">
+                Ver Recursos
+              </Button>
+            </div>
+          </div>
+        </section>
+
+        {/* Demo Cards Section (Testing CSS Colors & Theme) */}
+        <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 border-t border-border">
+          <div className="mb-8 text-center sm:text-left">
+            <h2 className="text-2xl font-bold tracking-tight">Fundação e Tokens Visuais</h2>
+            <p className="text-muted-foreground">Demonstração das cores e tema configurados na Etapa 1.</p>
+          </div>
+
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {/* Balance Card Mockup */}
+            <Card className="shadow-lg border-border">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Saldo Geral</CardTitle>
+                <Wallet className="size-4 text-primary" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-extrabold">R$ 5.240,50</div>
+                <p className="text-xs text-muted-foreground mt-1">Atualizado em tempo real</p>
+              </CardContent>
+            </Card>
+
+            {/* Income Card Mockup */}
+            <Card className="shadow-lg border-border">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Receitas Mensais</CardTitle>
+                <TrendingUp className="size-4 text-income" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-extrabold text-income">R$ 8.000,00</div>
+                <div className="mt-2 flex items-center gap-1.5 text-xs text-income bg-income/10 px-2 py-0.5 rounded-full w-fit">
+                  <CheckCircle2 className="size-3.5" />
+                  +12.4% em relação ao mês anterior
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Expense Card Mockup */}
+            <Card className="shadow-lg border-border">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Despesas Mensais</CardTitle>
+                <TrendingDown className="size-4 text-expense" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-extrabold text-expense">R$ 2.759,50</div>
+                <div className="mt-2 flex items-center gap-1.5 text-xs text-expense bg-expense/10 px-2 py-0.5 rounded-full w-fit">
+                  <TrendingDown className="size-3.5" />
+                  Consumo controlado dentro do limite
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+
+        {/* Feature Highlights */}
+        <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 border-t border-border">
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="flex flex-col items-center text-center p-6 bg-card rounded-xl border border-border shadow-sm">
+              <div className="p-3 bg-primary/10 rounded-lg text-primary mb-4">
+                <Smartphone className="size-6" />
+              </div>
+              <h3 className="font-semibold text-lg">PWA Mobile-First</h3>
+              <p className="text-sm text-muted-foreground mt-2">Design feito para celulares com possibilidade de instalar como app nativo.</p>
+            </div>
+            <div className="flex flex-col items-center text-center p-6 bg-card rounded-xl border border-border shadow-sm">
+              <div className="p-3 bg-primary/10 rounded-lg text-primary mb-4">
+                <LineChart className="size-6" />
+              </div>
+              <h3 className="font-semibold text-lg">Gráficos Avançados</h3>
+              <p className="text-sm text-muted-foreground mt-2">Visão integrada das receitas, despesas e evolução patrimonial com Recharts.</p>
+            </div>
+            <div className="flex flex-col items-center text-center p-6 bg-card rounded-xl border border-border shadow-sm">
+              <div className="p-3 bg-primary/10 rounded-lg text-primary mb-4">
+                <ShieldCheck className="size-6" />
+              </div>
+              <h3 className="font-semibold text-lg">Segurança de Ponta</h3>
+              <p className="text-sm text-muted-foreground mt-2">Dados isolados por usuário com Firebase Security Rules robustas.</p>
+            </div>
+            <div className="flex flex-col items-center text-center p-6 bg-card rounded-xl border border-border shadow-sm">
+              <div className="p-3 bg-primary/10 rounded-lg text-primary mb-4">
+                <Wallet className="size-6" />
+              </div>
+              <h3 className="font-semibold text-lg">Sem Custos Extras</h3>
+              <p className="text-sm text-muted-foreground mt-2">Hospedado na Vercel e Firebase no plano 100% gratuito (Spark).</p>
+            </div>
+          </div>
+        </section>
       </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+
+      {/* Footer */}
+      <footer className="border-t border-border py-8 bg-muted/40">
+        <div className="mx-auto max-w-7xl px-4 text-center text-sm text-muted-foreground sm:px-6 lg:px-8">
+          <p>© {new Date().getFullYear()} GestOne. Desenvolvido sob alta fidelidade de design system.</p>
+        </div>
       </footer>
     </div>
-  );
+  )
 }
