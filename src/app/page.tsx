@@ -1,3 +1,8 @@
+'use client'
+
+import Link from 'next/link'
+import { useAuth } from '@/contexts/auth-context'
+import { signOutUser } from '@/lib/firebase/auth'
 import { ThemeToggle } from '@/components/shared/theme-toggle'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -11,10 +16,13 @@ import {
   LineChart, 
   ShieldCheck, 
   Smartphone,
-  CheckCircle2
+  CheckCircle2,
+  LogOut
 } from 'lucide-react'
 
 export default function Home() {
+  const { user } = useAuth()
+
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground transition-colors duration-200">
       {/* Top Navbar */}
@@ -28,7 +36,21 @@ export default function Home() {
           </div>
           <div className="flex items-center gap-4">
             <ThemeToggle />
-            <Button size="sm">Entrar</Button>
+            {user ? (
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-medium text-muted-foreground hidden sm:inline">
+                  {user.email}
+                </span>
+                <Button size="sm" variant="outline" className="gap-1.5" onClick={signOutUser}>
+                  <LogOut className="size-3.5" />
+                  Sair
+                </Button>
+              </div>
+            ) : (
+              <Link href="/login">
+                <Button size="sm">Entrar</Button>
+              </Link>
+            )}
           </div>
         </div>
       </header>
