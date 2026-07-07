@@ -16,6 +16,8 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
 };
 
+import { QueryProvider } from "@/providers/query-provider";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -35,9 +37,11 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange={false}
         >
-          <AuthProvider>
-            {children}
-          </AuthProvider>
+          <QueryProvider>
+            <AuthProvider>
+              {children}
+            </AuthProvider>
+          </QueryProvider>
         </ThemeProvider>
       </body>
     </html>

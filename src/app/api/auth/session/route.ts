@@ -1,6 +1,5 @@
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
-import { adminAuth } from '@/lib/firebase/admin'
 
 export async function POST(request: Request) {
   try {
@@ -9,12 +8,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Token é obrigatório' }, { status: 400 })
     }
 
-    // Define expiração da sessão para 5 dias (em milissegundos)
-    const expiresIn = 60 * 60 * 24 * 5 * 1000
-    const sessionCookie = await adminAuth.createSessionCookie(token, { expiresIn })
+    // Define expiração da sessão para 5 dias (em segundos)
+    const expiresIn: number = 60 * 60 * 24 * 5;
 
-    cookies().set('session', sessionCookie, {
-      maxAge: expiresIn / 1000, // em segundos para o cookies().set
+    // Apenas armazenamos o token para a middleware verificar se a sessão existe.
+    // O Firebase Client SDK manterá a sessão real autenticada.
+    (await cookies()).set('session', token, {
+      maxAge: expiresIn,
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
@@ -29,7 +29,7 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE() {
-  cookies().set('session', '', {
+  ;(await cookies()).set('session', '', {
     maxAge: 0,
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',

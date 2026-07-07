@@ -66,7 +66,7 @@ export function RegisterForm() {
 
   return (
     <div className="space-y-5">
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
         <div className="space-y-1.5">
           <Label htmlFor="email" className="text-sm font-semibold text-foreground">
             E-mail
@@ -91,7 +91,7 @@ export function RegisterForm() {
           <Input
             id="password"
             type="password"
-            placeholder="Mínimo 6 caracteres"
+            placeholder="Ex: MinhaSenh@1"
             disabled={isLoading}
             className={`h-11 ${errors.password ? 'border-destructive focus-visible:ring-destructive' : ''}`}
             {...register('password')}
