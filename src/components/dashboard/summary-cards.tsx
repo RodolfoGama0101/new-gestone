@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ArrowUpRight, ArrowDownRight, Loader2 } from 'lucide-react'
+import { ArrowUpRight, ArrowDownRight, Loader2, ArrowUpCircle, ArrowDownCircle } from 'lucide-react'
 
 interface SummaryCardsProps {
   income: number // em centavos (ex: 1000 = R$ 10,00)
@@ -31,11 +31,11 @@ export function SummaryCards({
 
   if (isLoading) {
     return (
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Card className="shadow-sm border-border bg-card flex h-[110px] items-center justify-center">
+      <div className="grid gap-5 sm:grid-cols-2">
+        <Card className="shadow-xs border-border bg-card flex h-[130px] items-center justify-center">
           <Loader2 className="size-6 animate-spin text-muted-foreground" />
         </Card>
-        <Card className="shadow-sm border-border bg-card flex h-[110px] items-center justify-center">
+        <Card className="shadow-xs border-border bg-card flex h-[130px] items-center justify-center">
           <Loader2 className="size-6 animate-spin text-muted-foreground" />
         </Card>
       </div>
@@ -43,15 +43,16 @@ export function SummaryCards({
   }
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2">
+    <div className="grid gap-5 sm:grid-cols-2">
       {/* Card de Receitas */}
-      <Card className="shadow-sm border-border bg-card">
-        <CardHeader className="pb-2">
+      <Card className="shadow-xs border-border bg-card hover:shadow-md transition-all duration-300">
+        <CardHeader className="pb-3 pt-6 px-6 flex flex-row items-center justify-between space-y-0">
           <CardTitle className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
             Receitas Totais
           </CardTitle>
+          <ArrowUpCircle className="size-5 text-income opacity-80" />
         </CardHeader>
-        <CardContent className="space-y-1 pb-4">
+        <CardContent className="space-y-2 pb-6 px-6">
           <div className="flex items-baseline justify-between">
             <span className="text-xl sm:text-2xl font-extrabold tracking-tight text-income">
               {formatBRL(income)}
@@ -63,20 +64,21 @@ export function SummaryCards({
               {isIncomeTrendPositive ? '+' : ''}{incomeChange}%
             </span>
           </div>
-          <p className="text-[10px] text-muted-foreground font-medium">
+          <p className="text-[10px] text-muted-foreground font-semibold">
             Em relação ao mês anterior
           </p>
         </CardContent>
       </Card>
 
       {/* Card de Despesas */}
-      <Card className="shadow-sm border-border bg-card">
-        <CardHeader className="pb-2">
+      <Card className="shadow-xs border-border bg-card hover:shadow-md transition-all duration-300">
+        <CardHeader className="pb-3 pt-6 px-6 flex flex-row items-center justify-between space-y-0">
           <CardTitle className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
             Despesas Totais
           </CardTitle>
+          <ArrowDownCircle className="size-5 text-expense opacity-80" />
         </CardHeader>
-        <CardContent className="space-y-1 pb-4">
+        <CardContent className="space-y-2 pb-6 px-6">
           <div className="flex items-baseline justify-between">
             <span className="text-xl sm:text-2xl font-extrabold tracking-tight text-expense">
               {formatBRL(expense)}
@@ -88,7 +90,7 @@ export function SummaryCards({
               {isExpenseTrendPositive ? '+' : ''}{expenseChange}%
             </span>
           </div>
-          <p className="text-[10px] text-muted-foreground font-medium">
+          <p className="text-[10px] text-muted-foreground font-semibold">
             Em relação ao mês anterior
           </p>
         </CardContent>

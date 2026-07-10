@@ -82,25 +82,25 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 animate-in fade-in duration-300">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight">Relatórios</h1>
-          <p className="text-muted-foreground text-sm sm:text-base">
+          <p className="text-muted-foreground text-sm sm:text-base font-medium">
             Analise seu fluxo de caixa e distribuição de despesas.
           </p>
         </div>
 
         {/* Seletor de Intervalo */}
-        <div className="flex items-center gap-1 bg-card border border-border p-1 rounded-lg shadow-sm self-start sm:self-auto">
+        <div className="flex items-center gap-1.5 bg-card border border-border p-1.5 rounded-xl shadow-xs self-start sm:self-auto">
           {[3, 6, 12].map((count) => (
             <Button
               key={count}
               variant={monthsCount === count ? 'default' : 'ghost'}
               size="sm"
               onClick={() => setMonthsCount(count)}
-              className="text-xs font-semibold px-3 h-8 cursor-pointer"
+              className="text-xs font-semibold px-3.5 h-8 cursor-pointer rounded-lg transition-all"
             >
               {count} Meses
             </Button>
@@ -116,7 +116,7 @@ export default function AnalyticsPage() {
           icon={BarChart3}
         />
       ) : (
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-8 md:grid-cols-2">
           {/* Gráfico de Barras: Fluxo de Caixa */}
           <div className="md:col-span-2">
             <CashFlowBarChart data={monthlyHistory} />

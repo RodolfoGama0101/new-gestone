@@ -85,22 +85,24 @@ export default function ExpensesPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 animate-in fade-in duration-300">
       {/* Top Header */}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight text-expense">Despesas</h1>
-          <p className="text-muted-foreground text-sm sm:text-base">
+          <p className="text-muted-foreground text-sm sm:text-base font-medium">
             Visualize e cadastre seus gastos (saídas financeiras).
           </p>
         </div>
         
         {/* Modal de Adicionar Lançamento */}
         <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-          <DialogTrigger className="inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding text-sm font-semibold whitespace-nowrap transition-all outline-none select-none active:translate-y-px disabled:pointer-events-none disabled:opacity-50 h-8 gap-1.5 px-2.5 shadow-sm bg-expense hover:bg-expense/90 text-white cursor-pointer">
-            <Plus className="size-4" />
-            Nova Despesa
-          </DialogTrigger>
+          <DialogTrigger render={
+            <Button className="bg-expense hover:bg-expense/90 text-white font-bold h-10 px-4 gap-1.5 shadow-xs transition-all active:scale-95 duration-150 cursor-pointer">
+              <Plus className="size-4" />
+              Nova Despesa
+            </Button>
+          } />
           <DialogContent className="sm:max-w-[450px]">
             <DialogHeader>
               <DialogTitle>Nova Despesa</DialogTitle>
@@ -122,18 +124,18 @@ export default function ExpensesPage() {
         />
       ) : (
         <div className="space-y-4">
-          <Card className="shadow-sm border-border bg-card">
-            <CardHeader className="pb-3">
+          <Card className="shadow-xs border-border bg-card hover:shadow-md transition-all duration-300">
+            <CardHeader className="pb-4 pt-6 px-6">
               <CardTitle className="text-lg font-bold">Histórico de Saídas</CardTitle>
-              <CardDescription>Lista cronológica de despesas cadastradas</CardDescription>
+              <CardDescription className="text-xs">Lista cronológica de despesas cadastradas</CardDescription>
             </CardHeader>
-            <CardContent className="divide-y divide-border/40">
+            <CardContent className="divide-y divide-border/40 px-6 pb-6">
               {transactions.map((tx) => {
                 const cat = getCategoryDetails(tx.categoryId)
                 return (
                   <div 
                     key={tx.id} 
-                    className="flex flex-col sm:flex-row sm:items-center justify-between py-4 gap-4 last:pb-0 first:pt-0"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between py-4 px-3 gap-4 last:pb-0 first:pt-0 hover:bg-muted/15 rounded-xl transition-all duration-200 -mx-3"
                   >
                     <div className="space-y-1 flex-1">
                       <div className="flex items-center gap-2">
@@ -150,13 +152,13 @@ export default function ExpensesPage() {
                           </Badge>
                         )}
                       </div>
-                      <div className="flex items-center gap-3 text-xs text-muted-foreground font-medium">
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground font-semibold">
                         <span className="flex items-center gap-1">
                           <Calendar className="size-3.5" />
                           {formatDate(tx.date)}
                         </span>
                         {tx.notes && (
-                          <span className="truncate max-w-[200px] text-muted-foreground/80 italic">
+                          <span className="truncate max-w-[200px] text-muted-foreground/80 italic font-normal">
                             • {tx.notes}
                           </span>
                         )}
@@ -172,7 +174,7 @@ export default function ExpensesPage() {
                         <Button 
                           variant="ghost" 
                           size="icon" 
-                          className="size-8 text-muted-foreground hover:text-foreground cursor-pointer"
+                          className="size-8 text-muted-foreground hover:text-foreground cursor-pointer rounded-lg"
                           onClick={() => setEditingTx(tx)}
                         >
                           <Pencil className="size-3.5" />
@@ -180,7 +182,7 @@ export default function ExpensesPage() {
                         <Button 
                           variant="ghost" 
                           size="icon" 
-                          className="size-8 text-muted-foreground hover:text-destructive cursor-pointer"
+                          className="size-8 text-muted-foreground hover:text-destructive cursor-pointer rounded-lg"
                           onClick={() => setDeletingId(tx.id)}
                         >
                           <Trash2 className="size-3.5" />

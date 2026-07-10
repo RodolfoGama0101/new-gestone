@@ -40,12 +40,12 @@ export default function DashboardLayout({
       <Sidebar />
 
       {/* Área de conteúdo principal */}
-      <div className="flex flex-col md:pl-60 min-h-screen pb-16 md:pb-0">
+      <div className="flex flex-col md:pl-60 min-h-screen pb-20 md:pb-0">
         {/* Top Header */}
         <Header />
 
         {/* Conteúdo da Rota */}
-        <main className="flex-1 p-4 sm:p-6 max-w-7xl mx-auto w-full">
+        <main className="flex-1 p-5 sm:p-8 max-w-7xl mx-auto w-full">
           {children}
         </main>
       </div>

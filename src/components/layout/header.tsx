@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/auth-context'
 import { signOutUser } from '@/lib/firebase/auth'
 import { ThemeToggle } from '@/components/shared/theme-toggle'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Logo } from '@/components/shared/logo'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,7 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { LogOut, PiggyBank } from 'lucide-react'
+import { LogOut } from 'lucide-react'
 
 export function Header() {
   const pathname = usePathname()
@@ -44,17 +45,14 @@ export function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b border-border bg-background/80 backdrop-blur-md px-4 sm:px-6">
+    <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-border bg-background/80 backdrop-blur-md px-5 sm:px-8 shadow-xs">
       {/* Page Title for Desktop & Brand logo for Mobile */}
       <div className="flex items-center gap-2">
         <div className="flex items-center gap-1.5 md:hidden">
-          <PiggyBank className="size-5 text-primary" />
-          <span className="font-bold text-base bg-gradient-to-r from-primary to-indigo-500 bg-clip-text text-transparent mr-2">
-            GestOne
-          </span>
+          <Logo variant="full" size="sm" className="mr-1" />
           <span className="text-muted-foreground text-xs mr-1">•</span>
         </div>
-        <h2 className="text-sm font-bold md:text-base tracking-tight">{getPageTitle()}</h2>
+        <h2 className="text-base font-bold md:text-lg tracking-tight text-foreground">{getPageTitle()}</h2>
       </div>
 
       {/* Right Section containing controls and user menu */}

@@ -65,7 +65,7 @@ const PRESET_COLORS = [
   '#2563eb', // Azul
   '#7c3aed', // Violeta
   '#db2777', // Rosa
-  '#db2777', // Fuchsia
+  '#a855f7', // Fuchsia
   '#4b5563', // Cinza
 ]
 
@@ -174,25 +174,25 @@ export default function CategoriesPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 animate-in fade-in duration-300">
       {/* Header */}
       <div>
         <h1 className="text-3xl font-extrabold tracking-tight">Categorias</h1>
-        <p className="text-muted-foreground text-sm sm:text-base">
+        <p className="text-muted-foreground text-sm sm:text-base font-medium">
           Crie e gerencie as categorias para classificar suas despesas e receitas.
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-5 items-start">
+      <div className="grid gap-8 md:grid-cols-5 items-start">
         {/* Formulário de Criação/Edição */}
-        <Card className="shadow-sm border-border bg-card md:col-span-2">
-          <CardHeader>
+        <Card className="shadow-xs border-border bg-card md:col-span-2 hover:shadow-md transition-all duration-300">
+          <CardHeader className="pb-3 pt-6 px-6">
             <CardTitle>{editingId ? 'Editar Categoria' : 'Nova Categoria'}</CardTitle>
-            <CardDescription>
+            <CardDescription className="text-xs">
               {editingId ? 'Altere as propriedades da categoria selecionada' : 'Adicione uma categoria personalizada'}
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-6 pb-6">
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Nome da Categoria</Label>
@@ -227,13 +227,13 @@ export default function CategoriesPage() {
               {/* Seletor de Cores */}
               <div className="space-y-2">
                 <Label>Cor de Destaque</Label>
-                <div className="grid grid-cols-5 gap-2">
+                <div className="grid grid-cols-5 gap-2.5">
                   {PRESET_COLORS.map((color) => (
                     <button
                       key={color}
                       type="button"
                       onClick={() => setSelectedColor(color)}
-                      className="size-8 rounded-full border border-border flex items-center justify-center cursor-pointer transition-transform hover:scale-105 active:scale-95"
+                      className="size-9 rounded-full border border-border flex items-center justify-center cursor-pointer transition-transform hover:scale-105 active:scale-95"
                       style={{ backgroundColor: color }}
                     >
                       {selectedColor === color && (
@@ -247,7 +247,7 @@ export default function CategoriesPage() {
               {/* Seletor de Ícones */}
               <div className="space-y-2">
                 <Label>Ícone</Label>
-                <div className="grid grid-cols-4 gap-2 border border-border rounded-lg p-2 max-h-[140px] overflow-y-auto">
+                <div className="grid grid-cols-4 gap-2 border border-border rounded-xl p-3 max-h-[150px] overflow-y-auto">
                   {AVAILABLE_ICONS.map((item) => {
                     const isSelected = selectedIcon === item.name
                     return (
@@ -299,27 +299,27 @@ export default function CategoriesPage() {
           ) : (
             <>
               {/* Receitas */}
-              <Card className="shadow-sm border-border bg-card">
-                <CardHeader className="pb-3">
+              <Card className="shadow-xs border-border bg-card hover:shadow-md transition-all duration-300">
+                <CardHeader className="pb-3 pt-6 px-6">
                   <CardTitle className="text-lg font-bold text-income">Receitas</CardTitle>
-                  <CardDescription>Categorias aplicadas a entradas financeiras</CardDescription>
+                  <CardDescription className="text-xs">Categorias aplicadas a entradas financeiras</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-3">
+                <CardContent className="space-y-3 px-6 pb-6">
                   {incomes.length === 0 ? (
                     <p className="text-sm text-muted-foreground py-2">Nenhuma categoria de receita cadastrada.</p>
                   ) : (
-                    <div className="grid gap-2 sm:grid-cols-2">
+                    <div className="grid gap-3 sm:grid-cols-2">
                       {incomes.map((cat) => (
                         <div
                           key={cat.id}
-                          className="flex items-center justify-between p-3 rounded-lg border border-border bg-muted/10"
+                          className="flex items-center justify-between p-3 rounded-xl border border-border bg-muted/10 hover:bg-muted/20 hover:border-border/80 transition-all duration-200"
                         >
                           <div className="flex items-center gap-3">
                             <div 
-                              className="size-8 rounded-lg flex items-center justify-center text-white"
+                              className="size-8.5 rounded-lg flex items-center justify-center text-white shadow-xs"
                               style={{ backgroundColor: cat.color }}
                             >
-                              <DynamicIcon name={cat.icon} className="size-4" />
+                              <DynamicIcon name={cat.icon} className="size-4.5" />
                             </div>
                             <span className="text-sm font-semibold">{cat.name}</span>
                           </div>
@@ -327,7 +327,7 @@ export default function CategoriesPage() {
                             <Button 
                               variant="ghost" 
                               size="icon" 
-                              className="size-8 text-muted-foreground hover:text-foreground cursor-pointer"
+                              className="size-8 text-muted-foreground hover:text-foreground cursor-pointer rounded-lg hover:bg-muted"
                               onClick={() => handleEditClick(cat)}
                             >
                               <Pencil className="size-3.5" />
@@ -336,7 +336,7 @@ export default function CategoriesPage() {
                               <Button 
                                 variant="ghost" 
                                 size="icon" 
-                                className="size-8 text-muted-foreground hover:text-destructive cursor-pointer"
+                                className="size-8 text-muted-foreground hover:text-destructive cursor-pointer rounded-lg hover:bg-muted"
                                 onClick={() => setDeletingId(cat.id)}
                               >
                                 <Trash2 className="size-3.5" />
@@ -351,27 +351,27 @@ export default function CategoriesPage() {
               </Card>
 
               {/* Despesas */}
-              <Card className="shadow-sm border-border bg-card">
-                <CardHeader className="pb-3">
+              <Card className="shadow-xs border-border bg-card hover:shadow-md transition-all duration-300">
+                <CardHeader className="pb-3 pt-6 px-6">
                   <CardTitle className="text-lg font-bold text-expense">Despesas</CardTitle>
-                  <CardDescription>Categorias aplicadas a saídas financeiras</CardDescription>
+                  <CardDescription className="text-xs">Categorias aplicadas a saídas financeiras</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-3">
+                <CardContent className="space-y-3 px-6 pb-6">
                   {expenses.length === 0 ? (
                     <p className="text-sm text-muted-foreground py-2">Nenhuma categoria de despesa cadastrada.</p>
                   ) : (
-                    <div className="grid gap-2 sm:grid-cols-2">
+                    <div className="grid gap-3 sm:grid-cols-2">
                       {expenses.map((cat) => (
                         <div
                           key={cat.id}
-                          className="flex items-center justify-between p-3 rounded-lg border border-border bg-muted/10"
+                          className="flex items-center justify-between p-3 rounded-xl border border-border bg-muted/10 hover:bg-muted/20 hover:border-border/80 transition-all duration-200"
                         >
                           <div className="flex items-center gap-3">
                             <div 
-                              className="size-8 rounded-lg flex items-center justify-center text-white"
+                              className="size-8.5 rounded-lg flex items-center justify-center text-white shadow-xs"
                               style={{ backgroundColor: cat.color }}
                             >
-                              <DynamicIcon name={cat.icon} className="size-4" />
+                              <DynamicIcon name={cat.icon} className="size-4.5" />
                             </div>
                             <span className="text-sm font-semibold">{cat.name}</span>
                           </div>
@@ -379,7 +379,7 @@ export default function CategoriesPage() {
                             <Button 
                               variant="ghost" 
                               size="icon" 
-                              className="size-8 text-muted-foreground hover:text-foreground cursor-pointer"
+                              className="size-8 text-muted-foreground hover:text-foreground cursor-pointer rounded-lg hover:bg-muted"
                               onClick={() => handleEditClick(cat)}
                             >
                               <Pencil className="size-3.5" />
@@ -388,7 +388,7 @@ export default function CategoriesPage() {
                               <Button 
                                 variant="ghost" 
                                 size="icon" 
-                                className="size-8 text-muted-foreground hover:text-destructive cursor-pointer"
+                                className="size-8 text-muted-foreground hover:text-destructive cursor-pointer rounded-lg hover:bg-muted"
                                 onClick={() => setDeletingId(cat.id)}
                               >
                                 <Trash2 className="size-3.5" />

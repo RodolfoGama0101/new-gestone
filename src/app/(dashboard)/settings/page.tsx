@@ -184,26 +184,26 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 animate-in fade-in duration-300">
       {/* Header */}
       <div>
         <h1 className="text-3xl font-extrabold tracking-tight">Configurações</h1>
-        <p className="text-muted-foreground text-sm sm:text-base">
+        <p className="text-muted-foreground text-sm sm:text-base font-medium">
           Gerencie seu perfil, preferências e segurança de conta.
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-8 md:grid-cols-2">
         {/* Seção 1: Perfil do Usuário */}
-        <Card className="shadow-sm border-border bg-card">
-          <CardHeader>
+        <Card className="shadow-xs border-border bg-card hover:shadow-md transition-all duration-300">
+          <CardHeader className="pb-3 pt-6 px-6">
             <div className="flex items-center gap-2">
               <User className="size-5 text-muted-foreground" />
               <CardTitle>Meu Perfil</CardTitle>
             </div>
-            <CardDescription>Atualize seu nome público de exibição</CardDescription>
+            <CardDescription className="text-xs">Atualize seu nome público de exibição</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-6 pb-6">
             <form onSubmit={handleSaveName} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="displayName">Nome de Exibição</Label>
@@ -232,22 +232,22 @@ export default function SettingsPage() {
         </Card>
 
         {/* Seção 2: Preferências */}
-        <Card className="shadow-sm border-border bg-card">
-          <CardHeader>
+        <Card className="shadow-xs border-border bg-card hover:shadow-md transition-all duration-300">
+          <CardHeader className="pb-3 pt-6 px-6">
             <div className="flex items-center gap-2">
               <SettingsIcon className="size-5 text-muted-foreground" />
               <CardTitle>Preferências</CardTitle>
             </div>
-            <CardDescription>Personalize o comportamento do aplicativo</CardDescription>
+            <CardDescription className="text-xs">Personalize o comportamento do aplicativo</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 px-6 pb-6">
             {/* Seletor de Tema */}
             <div className="space-y-2 text-left">
               <Label>Tema da Interface</Label>
               <div className="grid grid-cols-3 gap-2">
                 <Button
                   variant={theme === 'light' ? 'default' : 'outline'}
-                  className="gap-1.5 cursor-pointer justify-center"
+                  className="gap-1.5 cursor-pointer justify-center rounded-lg"
                   onClick={() => setTheme('light')}
                 >
                   <Sun className="size-4" />
@@ -255,7 +255,7 @@ export default function SettingsPage() {
                 </Button>
                 <Button
                   variant={theme === 'dark' ? 'default' : 'outline'}
-                  className="gap-1.5 cursor-pointer justify-center"
+                  className="gap-1.5 cursor-pointer justify-center rounded-lg"
                   onClick={() => setTheme('dark')}
                 >
                   <Moon className="size-4" />
@@ -263,7 +263,7 @@ export default function SettingsPage() {
                 </Button>
                 <Button
                   variant={theme === 'system' ? 'default' : 'outline'}
-                  className="gap-1.5 cursor-pointer justify-center"
+                  className="gap-1.5 cursor-pointer justify-center rounded-lg"
                   onClick={() => setTheme('system')}
                 >
                   <Monitor className="size-4" />
@@ -276,7 +276,7 @@ export default function SettingsPage() {
             <div className="space-y-2 text-left">
               <Label htmlFor="currency">Moeda Base</Label>
               <Select value={currency} onValueChange={handleCurrencyChange}>
-                <SelectTrigger id="currency" className="w-full">
+                <SelectTrigger id="currency" className="w-full rounded-lg">
                   <SelectValue placeholder="Selecione a moeda" />
                 </SelectTrigger>
                 <SelectContent>
@@ -289,15 +289,15 @@ export default function SettingsPage() {
         </Card>
 
         {/* Seção 3: Segurança */}
-        <Card className="shadow-sm border-border bg-card">
-          <CardHeader>
+        <Card className="shadow-xs border-border bg-card hover:shadow-md transition-all duration-300">
+          <CardHeader className="pb-3 pt-6 px-6">
             <div className="flex items-center gap-2">
               <Lock className="size-5 text-muted-foreground" />
               <CardTitle>Segurança</CardTitle>
             </div>
-            <CardDescription>Altere a senha de acesso a sua conta</CardDescription>
+            <CardDescription className="text-xs">Altere a senha de acesso a sua conta</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-6 pb-6">
             <form onSubmit={handleSavePassword} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="new-password">Nova Senha</Label>
@@ -340,16 +340,16 @@ export default function SettingsPage() {
         </Card>
 
         {/* Seção 4: Zona de Risco (Excluir Conta) */}
-        <Card className="border-destructive/30 bg-destructive/5 shadow-sm">
-          <CardHeader>
+        <Card className="border-destructive/30 bg-destructive/5 shadow-xs hover:shadow-md transition-all duration-300">
+          <CardHeader className="pb-3 pt-6 px-6">
             <div className="flex items-center gap-2">
               <Trash2 className="size-5 text-destructive" />
               <CardTitle className="text-destructive">Zona de Risco</CardTitle>
             </div>
-            <CardDescription>Ações permanentes e irreversíveis</CardDescription>
+            <CardDescription className="text-xs">Ações permanentes e irreversíveis</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-xs text-muted-foreground leading-normal">
+          <CardContent className="space-y-4 px-6 pb-6">
+            <p className="text-xs text-muted-foreground leading-normal font-semibold">
               Ao apagar sua conta, todos os lançamentos financeiros, relatórios, configurações e categorias salvas no Firestore serão removidos permanentemente. A ação não poderá ser desfeita.
             </p>
 
@@ -371,7 +371,7 @@ export default function SettingsPage() {
               variant="destructive" 
               onClick={() => setIsDeleteConfirmOpen(true)}
               disabled={deleteConfirmationText !== 'EXCLUIR CONTA' || isDeletingAccount}
-              className="w-full font-bold cursor-pointer"
+              className="w-full font-bold cursor-pointer rounded-lg"
             >
               {isDeletingAccount ? (
                 <>

@@ -39,7 +39,10 @@
     --chart-3: oklch(0.637 0.237 25.331);
     --chart-4: oklch(0.72 0.18 310);
     --chart-5: oklch(0.66 0.2 55);
-    --radius: 0.75rem;
+    --radius: 0.875rem;
+    --space-page: 2rem;
+    --space-card: 1.25rem;
+    --header-height: 4rem;
     --sidebar: oklch(0.97 0.008 240);
     --sidebar-foreground: oklch(0.13 0.025 265);
     --sidebar-primary: oklch(0.54 0.22 264);
@@ -91,10 +94,10 @@
     --expense-foreground: oklch(0.985 0 0);
   }
   * {
-    @apply border-border;
+    @apply border-border transition-colors duration-200;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground transition-colors duration-200;
   }
   html {
     @apply font-sans;

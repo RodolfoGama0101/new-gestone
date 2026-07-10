@@ -1,6 +1,7 @@
 import { ThemeToggle } from '@/components/shared/theme-toggle'
 import { RegisterForm } from '@/components/auth/register-form'
-import { TrendingUp, BarChart3, Tag, Download } from 'lucide-react'
+import { BarChart3, Tag, Download } from 'lucide-react'
+import { Logo } from '@/components/shared/logo'
 import Link from 'next/link'
 
 export default function RegisterPage() {
@@ -22,12 +23,7 @@ export default function RegisterPage() {
         </div>
 
         <div className="relative z-10 flex flex-col items-start gap-10 max-w-sm w-full">
-          <div className="flex items-center gap-3">
-            <div className="size-11 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg">
-              <TrendingUp className="size-6 text-white" />
-            </div>
-            <span className="text-2xl font-extrabold tracking-tight text-white">GestOne</span>
-          </div>
+          <Logo variant="full" size="lg" textColor="text-white hover:opacity-100" href="" />
 
           <div className="space-y-4">
             <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-white">
@@ -58,17 +54,14 @@ export default function RegisterPage() {
       </div>
 
       {/* Painel Direito — Formulário */}
-      <div className="flex-1 flex flex-col items-center justify-center p-6 bg-background relative overflow-y-auto">
+      <div className="flex-1 flex flex-col items-center justify-center p-8 bg-background relative overflow-y-auto animate-in fade-in slide-in-from-bottom-4 duration-300">
         <div className="absolute top-4 right-4">
           <ThemeToggle />
         </div>
 
         {/* Logo mobile */}
-        <div className="lg:hidden flex items-center gap-2 mb-8">
-          <div className="size-9 rounded-xl bg-primary flex items-center justify-center">
-            <TrendingUp className="size-5 text-primary-foreground" />
-          </div>
-          <span className="text-xl font-extrabold tracking-tight text-foreground">GestOne</span>
+        <div className="lg:hidden flex items-center justify-center mb-8">
+          <Logo variant="full" size="md" />
         </div>
 
         <div className="w-full max-w-sm">

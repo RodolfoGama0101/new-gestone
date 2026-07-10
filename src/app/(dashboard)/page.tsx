@@ -36,31 +36,31 @@ export default function DashboardPage() {
   const userFirstName = user?.displayName ? user.displayName.split(' ')[0] : 'Usuário'
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 animate-in fade-in duration-300">
       {/* Top Header com Saudação e Seletor de Mês */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-extrabold tracking-tight">
+        <div className="space-y-1">
+          <h1 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
             {getGreeting()}, {userFirstName}!
           </h1>
-          <p className="text-muted-foreground text-sm sm:text-base">
+          <p className="text-muted-foreground text-sm sm:text-base font-medium">
             Aqui está um resumo de sua saúde financeira atual.
           </p>
         </div>
 
         {/* Seletor de Mês */}
-        <div className="flex items-center gap-1.5 self-start sm:self-auto border border-border bg-card p-1 rounded-lg shadow-sm">
+        <div className="flex items-center gap-1.5 self-start sm:self-auto border border-border bg-card p-1.5 rounded-xl shadow-xs transition-all duration-200 hover:border-border/80">
           <Button
             variant="ghost"
             size="icon-sm"
             onClick={handlePrevMonth}
-            className="size-8 cursor-pointer"
+            className="size-8 cursor-pointer hover:bg-accent rounded-lg"
           >
             <ChevronLeft className="size-4 text-muted-foreground hover:text-foreground" />
           </Button>
           
-          <div className="flex items-center gap-1.5 px-3 min-w-[130px] justify-center text-sm font-semibold text-foreground">
-            <CalendarDays className="size-4 text-muted-foreground shrink-0" />
+          <div className="flex items-center gap-2 px-3 min-w-[140px] justify-center text-sm font-bold text-foreground">
+            <CalendarDays className="size-4 text-primary shrink-0" />
             <span className="capitalize leading-none">
               {format(selectedDate, 'MMMM yyyy', { locale: ptBR })}
             </span>
@@ -70,7 +70,7 @@ export default function DashboardPage() {
             variant="ghost"
             size="icon-sm"
             onClick={handleNextMonth}
-            className="size-8 cursor-pointer"
+            className="size-8 cursor-pointer hover:bg-accent rounded-lg"
           >
             <ChevronRight className="size-4 text-muted-foreground hover:text-foreground" />
           </Button>
@@ -78,9 +78,9 @@ export default function DashboardPage() {
       </div>
 
       {/* Grid Principal do Dashboard */}
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-8 md:grid-cols-3">
         {/* Coluna Esquerda/Meio: Cards Financeiros */}
-        <div className="md:col-span-2 space-y-6">
+        <div className="md:col-span-2 space-y-8">
           {/* Card de Saldo Líquido com Sparkline */}
           <BalanceCard
             balance={summary?.balance ?? 0}

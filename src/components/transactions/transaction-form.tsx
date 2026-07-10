@@ -119,17 +119,17 @@ export function TransactionForm({
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
       {/* Seletor de Tipo (Receita / Despesa) */}
       <div className="space-y-2">
-        <Label>Tipo de Lançamento</Label>
-        <div className="grid grid-cols-2 gap-2">
+        <Label className="text-sm font-semibold text-foreground">Tipo de Lançamento</Label>
+        <div className="grid grid-cols-2 gap-3">
           <Button
             type="button"
             variant={watchType === 'income' ? 'default' : 'outline'}
-            className={`w-full gap-2 cursor-pointer ${
+            className={`w-full h-10 gap-2 cursor-pointer rounded-lg font-bold transition-all ${
               watchType === 'income' 
-                ? 'bg-income text-white hover:bg-income/90 border-transparent' 
+                ? 'bg-income text-white hover:bg-income/90 border-transparent shadow-xs' 
                 : 'text-muted-foreground'
             }`}
             onClick={() => {
@@ -144,9 +144,9 @@ export function TransactionForm({
           <Button
             type="button"
             variant={watchType === 'expense' ? 'default' : 'outline'}
-            className={`w-full gap-2 cursor-pointer ${
+            className={`w-full h-10 gap-2 cursor-pointer rounded-lg font-bold transition-all ${
               watchType === 'expense' 
-                ? 'bg-expense text-white hover:bg-expense/90 border-transparent' 
+                ? 'bg-expense text-white hover:bg-expense/90 border-transparent shadow-xs' 
                 : 'text-muted-foreground'
             }`}
             onClick={() => {
@@ -163,7 +163,7 @@ export function TransactionForm({
 
       {/* Valor Monetário */}
       <div className="space-y-2">
-        <Label htmlFor="amount">Valor</Label>
+        <Label htmlFor="amount" className="text-sm font-semibold text-foreground">Valor</Label>
         <Controller
           name="amount"
           control={control}
@@ -183,7 +183,7 @@ export function TransactionForm({
 
       {/* Descrição */}
       <div className="space-y-2">
-        <Label htmlFor="description">Descrição</Label>
+        <Label htmlFor="description" className="text-sm font-semibold text-foreground">Descrição</Label>
         <Input
           id="description"
           placeholder="Ex: Aluguel, Supermercado"
@@ -197,7 +197,7 @@ export function TransactionForm({
 
       {/* Categoria */}
       <div className="space-y-2">
-        <Label htmlFor="categoryId">Categoria</Label>
+        <Label htmlFor="categoryId" className="text-sm font-semibold text-foreground">Categoria</Label>
         <Controller
           name="categoryId"
           control={control}
@@ -207,7 +207,7 @@ export function TransactionForm({
               onValueChange={field.onChange}
               disabled={isLoading || isCategoriesLoading}
             >
-              <SelectTrigger id="categoryId" className="w-full">
+              <SelectTrigger id="categoryId" className="w-full h-10 rounded-lg">
                 <SelectValue placeholder="Selecione uma categoria" />
               </SelectTrigger>
               <SelectContent>
@@ -227,7 +227,7 @@ export function TransactionForm({
 
       {/* Data */}
       <div className="space-y-2">
-        <Label htmlFor="date">Data</Label>
+        <Label htmlFor="date" className="text-sm font-semibold text-foreground">Data</Label>
         <Controller
           name="date"
           control={control}
@@ -247,7 +247,7 @@ export function TransactionForm({
 
       {/* Tags (Opcional) */}
       <div className="space-y-2">
-        <Label htmlFor="tags">Tags (separadas por vírgula)</Label>
+        <Label htmlFor="tags" className="text-sm font-semibold text-foreground">Tags (separadas por vírgula)</Label>
         <Input
           id="tags"
           placeholder="Ex: essencial, compras, viagem"
@@ -266,13 +266,13 @@ export function TransactionForm({
 
       {/* Notas adicionais */}
       <div className="space-y-2">
-        <Label htmlFor="notes">Anotações / Notas</Label>
+        <Label htmlFor="notes" className="text-sm font-semibold text-foreground">Anotações / Notas</Label>
         <textarea
           id="notes"
           rows={3}
           placeholder="Alguma observação importante sobre esta transação..."
           disabled={isLoading}
-          className="flex min-h-20 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex min-h-20 w-full rounded-lg border border-input bg-transparent px-4 py-3 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
           {...register('notes')}
         />
         {errors.notes && (
@@ -281,7 +281,7 @@ export function TransactionForm({
       </div>
 
       {/* Botões de Ação */}
-      <Button type="submit" className="w-full font-semibold" disabled={isLoading}>
+      <Button type="submit" className="w-full h-11 font-bold rounded-lg text-sm cursor-pointer" disabled={isLoading}>
         {isLoading ? (
           <>
             <Loader2 className="mr-2 size-4 animate-spin" />

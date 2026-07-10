@@ -20,12 +20,12 @@ export function CategoryDonutChart({ data }: CategoryDonutChartProps) {
   }
 
   return (
-    <Card className="shadow-sm border-border bg-card h-full">
-      <CardHeader>
+    <Card className="shadow-xs border-border bg-card h-full hover:shadow-md transition-all duration-300">
+      <CardHeader className="pb-3 pt-6 px-6">
         <CardTitle className="text-lg font-bold">Gastos por Categoria</CardTitle>
-        <CardDescription>Distribuição proporcional das despesas no período</CardDescription>
+        <CardDescription className="text-xs">Distribuição proporcional das despesas no período</CardDescription>
       </CardHeader>
-      <CardContent className="h-[300px] pb-4">
+      <CardContent className="h-[320px] pb-6 px-6">
         {data.length === 0 ? (
           <div className="flex h-full items-center justify-center text-sm text-muted-foreground font-semibold">
             Sem dados de despesas no período selecionado.
@@ -39,9 +39,9 @@ export function CategoryDonutChart({ data }: CategoryDonutChartProps) {
                 nameKey="name"
                 cx="50%"
                 cy="45%"
-                innerRadius={60}
-                outerRadius={80}
-                paddingAngle={2}
+                innerRadius={65}
+                outerRadius={85}
+                paddingAngle={2.5}
               >
                 {data.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
@@ -50,10 +50,11 @@ export function CategoryDonutChart({ data }: CategoryDonutChartProps) {
               <Tooltip 
                 formatter={formatTooltip} 
                 contentStyle={{ 
-                  backgroundColor: 'hsl(var(--popover))', 
-                  borderColor: 'hsl(var(--border))', 
-                  borderRadius: '8px',
-                  color: 'hsl(var(--popover-foreground))'
+                  backgroundColor: 'var(--popover)', 
+                  borderColor: 'var(--border)', 
+                  borderRadius: '12px',
+                  color: 'var(--popover-foreground)',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)'
                 }} 
               />
               <Legend 
@@ -62,7 +63,7 @@ export function CategoryDonutChart({ data }: CategoryDonutChartProps) {
                 formatter={(value: string) => {
                   const item = data.find((d) => d.name === value)
                   const valStr = item ? ` (${formatBRL(item.value)})` : ''
-                  return <span className="text-xs text-foreground font-medium">{value}{valStr}</span>
+                  return <span className="text-xs text-foreground font-semibold">{value}{valStr}</span>
                 }}
               />
             </PieChart>
