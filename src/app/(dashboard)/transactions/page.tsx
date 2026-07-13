@@ -6,7 +6,7 @@ import { useTransactions } from '@/hooks/use-transactions'
 import { useCategories } from '@/hooks/use-categories'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import { CategoryBadge } from '@/components/shared/category-badge'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { ConfirmDialog } from '@/components/shared/confirm-dialog'
 import { EmptyState } from '@/components/shared/empty-state'
@@ -17,9 +17,10 @@ import { Transaction } from '@/types/transaction'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { Timestamp } from 'firebase/firestore'
+import { PageHeader } from '@/components/shared/page-header'
 import { 
-  TrendingUp, 
-  TrendingDown, 
+  ArrowUpRight,
+  ArrowDownRight,
   Plus, 
   Loader2, 
   Pencil, 
@@ -131,36 +132,32 @@ export default function TransactionsPage() {
   return (
     <div className="space-y-6">
       {/* Top Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-extrabold tracking-tight">Extrato</h1>
-          <p className="text-muted-foreground text-sm sm:text-base">
-            Consulte seu histórico completo de lançamentos financeiros.
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Botão de Exportação CSV */}
-          <CsvExportButton transactions={filtered} />
-
-          {/* Modal de Adicionar Transação */}
-          <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-            <DialogTrigger className="inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding text-sm font-semibold whitespace-nowrap transition-all outline-none select-none active:translate-y-px disabled:pointer-events-none disabled:opacity-50 h-8 gap-1.5 px-2.5 shadow-sm bg-primary hover:bg-primary/90 text-primary-foreground cursor-pointer">
-              <Plus className="size-4" />
-              Novo Lançamento
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[450px]">
-              <DialogHeader>
-                <DialogTitle>Novo Lançamento</DialogTitle>
-                <DialogDescription>
-                  Adicione uma nova receita ou despesa na sua conta.
-                </DialogDescription>
-              </DialogHeader>
-              <TransactionForm onSuccess={() => setIsAddOpen(false)} />
-            </DialogContent>
-          </Dialog>
-        </div>
-      </div>
+      <PageHeader
+        title="Extrato"
+        description="Consulte seu histórico completo de lançamentos financeiros."
+        action={
+          <div className="flex items-center gap-2">
+            <CsvExportButton transactions={filtered} />
+            <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+              <DialogTrigger render={
+                <Button size="sm" className="gap-1.5 cursor-pointer">
+                  <Plus className="size-4" />
+                  Novo Lançamento
+                </Button>
+              } />
+              <DialogContent className="sm:max-w-[450px]">
+                <DialogHeader>
+                  <DialogTitle>Novo Lançamento</DialogTitle>
+                  <DialogDescription>
+                    Adicione uma nova receita ou despesa na sua conta.
+                  </DialogDescription>
+                </DialogHeader>
+                <TransactionForm onSuccess={() => setIsAddOpen(false)} />
+              </DialogContent>
+            </Dialog>
+          </div>
+        }
+      />
 
       {/* Painel de Filtros URL */}
       <TransactionFilters />
@@ -173,81 +170,77 @@ export default function TransactionsPage() {
           icon={WalletIcon}
         />
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-5">
           {sortedDateKeys.map((dateKey) => (
-            <div key={dateKey} className="space-y-2">
-              {/* Cabeçalho do Dia */}
-              <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider sticky top-0 bg-background/90 backdrop-blur-xs py-1.5 z-10">
+            <div key={dateKey} className="space-y-1.5">
+              {/* Cabeçalho do Dia sticky */}
+              <h3 className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider sticky top-[48px] bg-background/85 backdrop-blur-md py-1.5 z-10">
                 {formatGroupHeader(dateKey)}
               </h3>
 
-              <Card className="shadow-sm border-border bg-card">
-                <CardContent className="divide-y divide-border/40 p-0">
+              <Card className="border-border bg-card shadow-xs rounded-md">
+                <CardContent className="divide-y divide-border/60 p-0">
                   {groupedTransactions[dateKey].map((tx) => {
                     const cat = getCategoryDetails(tx.categoryId)
                     const isIncome = tx.type === 'income'
                     return (
-                      <div 
-                        key={tx.id} 
-                        className="flex items-center justify-between p-4 gap-4"
+                      <div
+                        key={tx.id}
+                        className="flex items-center justify-between px-3.5 py-2.5 gap-4 hover:bg-accent/40 transition-colors group"
                       >
                         <div className="flex items-center gap-3 flex-1 min-w-0">
-                          {/* Ícone de evolução financeira */}
-                          <div 
-                            className={`size-8 rounded-full flex items-center justify-center shrink-0 ${
-                              isIncome ? 'bg-income/10 text-income' : 'bg-expense/10 text-expense'
+                          {/* Icon compact squared 28px */}
+                          <div
+                            className={`size-7 rounded-md flex items-center justify-center shrink-0 border ${
+                              isIncome
+                                ? 'bg-green-100 text-green-700 border-green-200/40 dark:bg-green-1000/20 dark:text-green-500 dark:border-green-800/10'
+                                : 'bg-red-100 text-red-700 border-red-200/40 dark:bg-red-1000/20 dark:text-red-500 dark:border-red-800/10'
                             }`}
                           >
-                            {isIncome ? <TrendingUp className="size-4" /> : <TrendingDown className="size-4" />}
+                            {isIncome ? <ArrowUpRight className="size-3.5" /> : <ArrowDownRight className="size-3.5" />}
                           </div>
 
                           <div className="min-w-0 flex-1">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <span className="font-semibold text-sm sm:text-base leading-tight truncate">
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              <span className="font-medium text-xs text-foreground leading-tight truncate">
                                 {tx.description}
                               </span>
                               {cat && (
-                                <Badge 
-                                  variant="secondary" 
-                                  className="text-[10px] font-semibold text-white px-2 py-0.5 rounded-full shrink-0"
-                                  style={{ backgroundColor: cat.color }}
-                                >
-                                  {cat.name}
-                                </Badge>
+                                <CategoryBadge name={cat.name} color={cat.color} />
                               )}
                             </div>
                             {tx.notes && (
-                              <p className="text-xs text-muted-foreground truncate mt-0.5">
+                              <p className="text-[10px] text-muted-foreground truncate mt-0.5">
                                 {tx.notes}
                               </p>
                             )}
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-4 shrink-0">
-                          <span className={`text-sm sm:text-base font-extrabold ${
-                            isIncome ? 'text-income' : 'text-expense'
+                        <div className="flex items-center gap-3 shrink-0">
+                          <span className={`text-xs font-semibold tabular-nums ${
+                            isIncome ? 'text-green-700 dark:text-green-500' : 'text-red-700 dark:text-red-500'
                           }`}>
-                            {isIncome ? '+' : '-'}
+                            {isIncome ? '+' : '−'}
                             {(tx.amount / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                           </span>
-                          
-                          <div className="flex items-center gap-1">
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="size-8 text-muted-foreground hover:text-foreground cursor-pointer"
+
+                          <div className="flex items-center gap-0.5 opacity-50 group-hover:opacity-100 transition-opacity">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="size-7 text-muted-foreground hover:text-foreground cursor-pointer rounded-md"
                               onClick={() => setEditingTx(tx)}
                             >
-                              <Pencil className="size-3.5" />
+                              <Pencil className="size-3" />
                             </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="size-8 text-muted-foreground hover:text-destructive cursor-pointer"
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="size-7 text-muted-foreground hover:text-destructive cursor-pointer rounded-md"
                               onClick={() => setDeletingId(tx.id)}
                             >
-                              <Trash2 className="size-3.5" />
+                              <Trash2 className="size-3" />
                             </Button>
                           </div>
                         </div>
@@ -266,11 +259,11 @@ export default function TransactionsPage() {
                 variant="outline"
                 disabled={isFetchingNextPage}
                 onClick={() => fetchNextPage()}
-                className="gap-2 cursor-pointer"
+                className="gap-2 cursor-pointer rounded-md text-xs h-8"
               >
                 {isFetchingNextPage ? (
                   <>
-                    <Loader2 className="size-4 animate-spin" />
+                    <Loader2 className="size-3.5 animate-spin" />
                     Carregando...
                   </>
                 ) : (

@@ -2,8 +2,9 @@
 
 import * as React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { LineChart, Line, ResponsiveContainer } from 'recharts'
-import { TrendingUp, TrendingDown, Loader2 } from 'lucide-react'
+import { AreaChart, Area, ResponsiveContainer } from 'recharts'
+import { TrendingUp, TrendingDown } from 'lucide-react'
+import { Skeleton } from '@/components/ui/skeleton'
 
 interface DailyPoint {
   date: string
@@ -28,47 +29,74 @@ export function BalanceCard({ balance, changePercent, data, isLoading = false }:
 
   if (isLoading) {
     return (
-      <Card className="shadow-xs border-border bg-card flex h-[160px] items-center justify-center">
-        <Loader2 className="size-6 animate-spin text-muted-foreground" />
+      <Card className="border-border bg-card shadow-xs rounded-md p-5 h-[142px] flex flex-col justify-between">
+        <div className="space-y-2">
+          <Skeleton className="h-3 w-20" />
+          <Skeleton className="h-7 w-48" />
+        </div>
+        <Skeleton className="h-10 w-full" />
       </Card>
     )
   }
 
+  // Cor do Geist para a sparkline: azul Geist para saldo positivo, vermelho Geist para negativo
+  const chartColor = isPositive ? 'var(--income)' : 'var(--expense)'
+
   return (
-    <Card className="shadow-xs border-border bg-card overflow-hidden hover:shadow-md transition-all duration-300">
-      <CardHeader className="pb-3 pt-6 px-6">
-        <CardTitle className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-          Saldo Geral Líquido
+    <Card className="border-border bg-card overflow-hidden shadow-xs hover:shadow-sm transition-all duration-200 rounded-md">
+      <CardHeader className="pb-1 pt-4 px-5">
+        <CardTitle className="text-xs font-normal text-muted-foreground">
+          Saldo Líquido
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4 pb-6 px-6">
-        <div className="flex items-baseline justify-between">
-          <span className={`text-2xl sm:text-3xl font-extrabold tracking-tight ${isPositive ? 'text-income' : 'text-expense'}`}>
+      <CardContent className="pb-0 px-5">
+        <div className="flex items-baseline justify-between gap-4">
+          <span
+            className="text-3xl font-semibold tracking-tight text-foreground"
+          >
             {formattedBalance}
           </span>
-          <span className={`text-xs font-bold flex items-center gap-0.5 px-2.5 py-1 rounded-full shrink-0 ${
-            isTrendPositive ? 'bg-income/10 text-income' : 'bg-expense/10 text-expense'
-          }`}>
-            {isTrendPositive ? <TrendingUp className="size-3" /> : <TrendingDown className="size-3" />}
-            {isTrendPositive ? '+' : ''}{changePercent}%
+          <span
+            className={`flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${
+              isTrendPositive
+                ? 'bg-green-100 text-green-700 dark:bg-green-1000/20 dark:text-green-500'
+                : 'bg-red-100 text-red-700 dark:bg-red-1000/20 dark:text-red-500'
+            }`}
+          >
+            {isTrendPositive ? (
+              <TrendingUp className="size-3 shrink-0" />
+            ) : (
+              <TrendingDown className="size-3 shrink-0" />
+            )}
+            {isTrendPositive ? '+' : ''}
+            {changePercent}%
           </span>
         </div>
-
-        {/* Mini Sparkline Chart */}
-        <div className="h-14 w-full pt-1">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data}>
-              <Line
-                type="monotone"
-                dataKey="balance"
-                stroke={isPositive ? 'var(--income)' : 'var(--expense)'}
-                strokeWidth={2.5}
-                dot={false}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
+        <p className="text-[10px] text-muted-foreground mt-0.5 mb-2">Em relação ao mês anterior</p>
       </CardContent>
+
+      {/* Sparkline with minimalist line */}
+      <div className="h-12 w-full mt-2">
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={data} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+            <defs>
+              <linearGradient id="balanceGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={chartColor} stopOpacity={0.15} />
+                <stop offset="95%" stopColor={chartColor} stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <Area
+              type="monotone"
+              dataKey="balance"
+              stroke={chartColor}
+              strokeWidth={1.5}
+              fill="url(#balanceGradient)"
+              dot={false}
+              activeDot={false}
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
     </Card>
   )
 }

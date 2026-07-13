@@ -42,22 +42,22 @@ export function ThemeToggle() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger 
-        className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none hover:bg-accent hover:text-accent-foreground focus-visible:ring-1 focus-visible:ring-ring active:translate-y-px disabled:pointer-events-none disabled:opacity-50 cursor-pointer"
+        className="inline-flex size-7 shrink-0 items-center justify-center rounded-md text-sm font-medium transition-colors outline-none select-none hover:bg-accent hover:text-accent-foreground focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 cursor-pointer"
         aria-label="Alternar tema"
       >
         {getThemeIcon()}
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="min-w-[120px]">
-        <DropdownMenuItem onClick={() => setTheme('light')} className="gap-2 cursor-pointer">
-          <Sun className="size-4" />
+      <DropdownMenuContent align="end" className="min-w-[110px] rounded-md">
+        <DropdownMenuItem onClick={() => setTheme('light')} className="gap-2 cursor-pointer text-xs rounded-md">
+          <Sun className="size-3.5" />
           <span>Claro</span>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme('dark')} className="gap-2 cursor-pointer">
-          <Moon className="size-4" />
+        <DropdownMenuItem onClick={() => setTheme('dark')} className="gap-2 cursor-pointer text-xs rounded-md">
+          <Moon className="size-3.5" />
           <span>Escuro</span>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme('system')} className="gap-2 cursor-pointer">
-          <Monitor className="size-4" />
+        <DropdownMenuItem onClick={() => setTheme('system')} className="gap-2 cursor-pointer text-xs rounded-md">
+          <Monitor className="size-3.5" />
           <span>Sistema</span>
         </DropdownMenuItem>
       </DropdownMenuContent>

@@ -14,6 +14,7 @@ import { ConfirmDialog } from '@/components/shared/confirm-dialog'
 import { ReauthDialog } from '@/components/auth/reauth-dialog'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
+import { cn } from '@/lib/utils'
 import { 
   Sun, 
   Moon, 
@@ -24,11 +25,14 @@ import {
   Trash2,
   Loader2
 } from 'lucide-react'
+import { PageHeader } from '@/components/shared/page-header'
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme()
   const router = useRouter()
   const user = auth.currentUser
+
+  const [activeTab, setActiveTab] = React.useState<'profile' | 'preferences' | 'security' | 'danger'>('profile')
 
   // Estados de Nome
   const [name, setName] = React.useState(user?.displayName ?? '')
@@ -184,206 +188,231 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-300">
+    <div className="space-y-6 animate-in fade-in duration-200">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-extrabold tracking-tight">Configurações</h1>
-        <p className="text-muted-foreground text-sm sm:text-base font-medium">
-          Gerencie seu perfil, preferências e segurança de conta.
-        </p>
+      <PageHeader
+        title="Configurações"
+        description="Gerencie seu perfil, preferências de exibição e segurança da conta."
+      />
+
+      {/* Tabs Control */}
+      <div className="flex border-b border-border overflow-x-auto scrollbar-thin">
+        {[
+          { id: 'profile', label: 'Meu Perfil', icon: User },
+          { id: 'preferences', label: 'Preferências', icon: SettingsIcon },
+          { id: 'security', label: 'Segurança', icon: Lock },
+          { id: 'danger', label: 'Zona de Risco', icon: Trash2 },
+        ].map((tab) => {
+          const TabIcon = tab.icon
+          const isActive = activeTab === tab.id
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              className={cn(
+                "flex items-center gap-1.5 px-4 py-2.5 border-b-2 text-xs font-semibold transition-all -mb-px shrink-0 outline-none cursor-pointer",
+                isActive
+                  ? "border-primary text-foreground"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <TabIcon className="size-3.5" />
+              {tab.label}
+            </button>
+          )
+        })}
       </div>
 
-      <div className="grid gap-8 md:grid-cols-2">
-        {/* Seção 1: Perfil do Usuário */}
-        <Card className="shadow-xs border-border bg-card hover:shadow-md transition-all duration-300">
-          <CardHeader className="pb-3 pt-6 px-6">
-            <div className="flex items-center gap-2">
-              <User className="size-5 text-muted-foreground" />
-              <CardTitle>Meu Perfil</CardTitle>
-            </div>
-            <CardDescription className="text-xs">Atualize seu nome público de exibição</CardDescription>
-          </CardHeader>
-          <CardContent className="px-6 pb-6">
-            <form onSubmit={handleSaveName} className="space-y-4">
+      {/* Tab Contents */}
+      <div className="max-w-2xl">
+        {activeTab === 'profile' && (
+          <Card className="border-border bg-card shadow-xs rounded-md">
+            <CardHeader className="pb-1 pt-4 px-5">
+              <CardTitle className="text-sm font-semibold">Meu Perfil</CardTitle>
+              <CardDescription className="text-xs text-muted-foreground">Atualize seu nome público de exibição</CardDescription>
+            </CardHeader>
+            <CardContent className="px-5 pb-5 pt-3">
+              <form onSubmit={handleSaveName} className="space-y-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="displayName" className="text-xs">Nome de Exibição</Label>
+                  <Input
+                    id="displayName"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Nome do usuário"
+                    maxLength={50}
+                    required
+                    disabled={isSavingName}
+                    className="h-9 text-xs rounded-md"
+                  />
+                </div>
+                <Button type="submit" disabled={isSavingName} className="w-full text-xs font-semibold h-9 rounded-md cursor-pointer gap-2">
+                  {isSavingName ? (
+                    <>
+                      <Loader2 className="size-3.5 animate-spin" />
+                      Salvando...
+                    </>
+                  ) : (
+                    'Salvar Nome'
+                  )}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        )}
+
+        {activeTab === 'preferences' && (
+          <Card className="border-border bg-card shadow-xs rounded-md">
+            <CardHeader className="pb-1 pt-4 px-5">
+              <CardTitle className="text-sm font-semibold">Preferências</CardTitle>
+              <CardDescription className="text-xs text-muted-foreground">Personalize o comportamento do aplicativo</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4 px-5 pb-5 pt-3">
+              {/* Seletor de Tema */}
               <div className="space-y-2">
-                <Label htmlFor="displayName">Nome de Exibição</Label>
+                <Label className="text-xs">Tema da Interface</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  <Button
+                    variant={theme === 'light' ? 'default' : 'outline'}
+                    className="gap-1.5 text-xs h-9 cursor-pointer justify-center rounded-md"
+                    onClick={() => setTheme('light')}
+                  >
+                    <Sun className="size-3.5" />
+                    Claro
+                  </Button>
+                  <Button
+                    variant={theme === 'dark' ? 'default' : 'outline'}
+                    className="gap-1.5 text-xs h-9 cursor-pointer justify-center rounded-md"
+                    onClick={() => setTheme('dark')}
+                  >
+                    <Moon className="size-3.5" />
+                    Escuro
+                  </Button>
+                  <Button
+                    variant={theme === 'system' ? 'default' : 'outline'}
+                    className="gap-1.5 text-xs h-9 cursor-pointer justify-center rounded-md"
+                    onClick={() => setTheme('system')}
+                  >
+                    <Monitor className="size-3.5" />
+                    Sistema
+                  </Button>
+                </div>
+              </div>
+
+              {/* Seletor de Moeda */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="currency" className="text-xs">Moeda Base</Label>
+                  <span className="text-[9px] font-semibold text-muted-foreground bg-muted px-1.5 py-0.5 rounded">Em breve</span>
+                </div>
+                <Select value={currency} onValueChange={handleCurrencyChange} disabled>
+                  <SelectTrigger id="currency" className="w-full h-9 text-xs rounded-md opacity-70">
+                    <SelectValue placeholder="Selecione a moeda" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-md">
+                    <SelectItem value="BRL" className="text-xs rounded-md">Real Brasileiro (BRL, R$)</SelectItem>
+                    <SelectItem value="USD" className="text-xs rounded-md">Dólar Americano (USD, $)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {activeTab === 'security' && (
+          <Card className="border-border bg-card shadow-xs rounded-md">
+            <CardHeader className="pb-1 pt-4 px-5">
+              <CardTitle className="text-sm font-semibold">Segurança</CardTitle>
+              <CardDescription className="text-xs text-muted-foreground">Altere a senha de acesso a sua conta</CardDescription>
+            </CardHeader>
+            <CardContent className="px-5 pb-5 pt-3">
+              <form onSubmit={handleSavePassword} className="space-y-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="new-password" className="text-xs">Nova Senha</Label>
+                  <Input
+                    id="new-password"
+                    type="password"
+                    placeholder="Mínimo 6 caracteres"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    required
+                    disabled={isSavingPassword}
+                    className="h-9 text-xs rounded-md"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="confirm-password" className="text-xs">Confirmar Nova Senha</Label>
+                  <Input
+                    id="confirm-password"
+                    type="password"
+                    placeholder="Repita a nova senha"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    disabled={isSavingPassword}
+                    className="h-9 text-xs rounded-md"
+                  />
+                </div>
+
+                <Button type="submit" disabled={isSavingPassword} className="w-full text-xs font-semibold h-9 rounded-md cursor-pointer gap-2">
+                  {isSavingPassword ? (
+                    <>
+                      <Loader2 className="size-3.5 animate-spin" />
+                      Alterando...
+                    </>
+                  ) : (
+                    'Alterar Senha'
+                  )}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        )}
+
+        {activeTab === 'danger' && (
+          <Card className="border-red-200 dark:border-red-900/30 bg-red-50/10 dark:bg-red-950/5 shadow-xs rounded-md">
+            <CardHeader className="pb-1 pt-4 px-5">
+              <CardTitle className="text-sm font-semibold text-red-700 dark:text-red-500">Excluir Conta</CardTitle>
+              <CardDescription className="text-xs text-red-600/80 dark:text-red-400/80">Ações permanentes e irreversíveis</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4 px-5 pb-5 pt-3">
+              <p className="text-[11px] text-muted-foreground leading-normal font-medium">
+                Ao apagar sua conta, todos os lançamentos financeiros, relatórios, configurações e categorias salvas no Firestore serão removidos permanentemente. A ação não poderá ser desfeita.
+              </p>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="confirmDeleteText" className="text-[10px] font-bold text-muted-foreground uppercase">
+                  Escreva &quot;EXCLUIR CONTA&quot; para liberar
+                </Label>
                 <Input
-                  id="displayName"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Nome do usuário"
-                  maxLength={50}
-                  required
-                  disabled={isSavingName}
+                  id="confirmDeleteText"
+                  placeholder="EXCLUIR CONTA"
+                  value={deleteConfirmationText}
+                  onChange={(e) => setDeleteConfirmationText(e.target.value)}
+                  className="border-red-200/50 dark:border-red-900/20 focus-visible:ring-red-500 h-9 text-xs rounded-md"
                 />
               </div>
-              <Button type="submit" disabled={isSavingName} className="w-full font-semibold cursor-pointer">
-                {isSavingName ? (
+
+              <Button 
+                type="button" 
+                variant="destructive" 
+                onClick={() => setIsDeleteConfirmOpen(true)}
+                disabled={deleteConfirmationText !== 'EXCLUIR CONTA' || isDeletingAccount}
+                className="w-full text-xs font-semibold cursor-pointer rounded-md h-9 gap-2"
+              >
+                {isDeletingAccount ? (
                   <>
-                    <Loader2 className="mr-2 size-4 animate-spin" />
-                    Salvando...
+                    <Loader2 className="size-3.5 animate-spin" />
+                    Apagando dados...
                   </>
                 ) : (
-                  'Salvar Nome'
+                  'Excluir Conta Permanentemente'
                 )}
               </Button>
-            </form>
-          </CardContent>
-        </Card>
-
-        {/* Seção 2: Preferências */}
-        <Card className="shadow-xs border-border bg-card hover:shadow-md transition-all duration-300">
-          <CardHeader className="pb-3 pt-6 px-6">
-            <div className="flex items-center gap-2">
-              <SettingsIcon className="size-5 text-muted-foreground" />
-              <CardTitle>Preferências</CardTitle>
-            </div>
-            <CardDescription className="text-xs">Personalize o comportamento do aplicativo</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4 px-6 pb-6">
-            {/* Seletor de Tema */}
-            <div className="space-y-2 text-left">
-              <Label>Tema da Interface</Label>
-              <div className="grid grid-cols-3 gap-2">
-                <Button
-                  variant={theme === 'light' ? 'default' : 'outline'}
-                  className="gap-1.5 cursor-pointer justify-center rounded-lg"
-                  onClick={() => setTheme('light')}
-                >
-                  <Sun className="size-4" />
-                  Claro
-                </Button>
-                <Button
-                  variant={theme === 'dark' ? 'default' : 'outline'}
-                  className="gap-1.5 cursor-pointer justify-center rounded-lg"
-                  onClick={() => setTheme('dark')}
-                >
-                  <Moon className="size-4" />
-                  Escuro
-                </Button>
-                <Button
-                  variant={theme === 'system' ? 'default' : 'outline'}
-                  className="gap-1.5 cursor-pointer justify-center rounded-lg"
-                  onClick={() => setTheme('system')}
-                >
-                  <Monitor className="size-4" />
-                  Sistema
-                </Button>
-              </div>
-            </div>
-
-            {/* Seletor de Moeda */}
-            <div className="space-y-2 text-left">
-              <Label htmlFor="currency">Moeda Base</Label>
-              <Select value={currency} onValueChange={handleCurrencyChange}>
-                <SelectTrigger id="currency" className="w-full rounded-lg">
-                  <SelectValue placeholder="Selecione a moeda" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="BRL">Real Brasileiro (BRL, R$)</SelectItem>
-                  <SelectItem value="USD">Dólar Americano (USD, $)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Seção 3: Segurança */}
-        <Card className="shadow-xs border-border bg-card hover:shadow-md transition-all duration-300">
-          <CardHeader className="pb-3 pt-6 px-6">
-            <div className="flex items-center gap-2">
-              <Lock className="size-5 text-muted-foreground" />
-              <CardTitle>Segurança</CardTitle>
-            </div>
-            <CardDescription className="text-xs">Altere a senha de acesso a sua conta</CardDescription>
-          </CardHeader>
-          <CardContent className="px-6 pb-6">
-            <form onSubmit={handleSavePassword} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="new-password">Nova Senha</Label>
-                <Input
-                  id="new-password"
-                  type="password"
-                  placeholder="Min 6 caracteres"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  required
-                  disabled={isSavingPassword}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="confirm-password">Confirmar Nova Senha</Label>
-                <Input
-                  id="confirm-password"
-                  type="password"
-                  placeholder="Repita a nova senha"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                  disabled={isSavingPassword}
-                />
-              </div>
-
-              <Button type="submit" disabled={isSavingPassword} className="w-full font-semibold cursor-pointer">
-                {isSavingPassword ? (
-                  <>
-                    <Loader2 className="mr-2 size-4 animate-spin" />
-                    Alterando...
-                  </>
-                ) : (
-                  'Alterar Senha'
-                )}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-
-        {/* Seção 4: Zona de Risco (Excluir Conta) */}
-        <Card className="border-destructive/30 bg-destructive/5 shadow-xs hover:shadow-md transition-all duration-300">
-          <CardHeader className="pb-3 pt-6 px-6">
-            <div className="flex items-center gap-2">
-              <Trash2 className="size-5 text-destructive" />
-              <CardTitle className="text-destructive">Zona de Risco</CardTitle>
-            </div>
-            <CardDescription className="text-xs">Ações permanentes e irreversíveis</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4 px-6 pb-6">
-            <p className="text-xs text-muted-foreground leading-normal font-semibold">
-              Ao apagar sua conta, todos os lançamentos financeiros, relatórios, configurações e categorias salvas no Firestore serão removidos permanentemente. A ação não poderá ser desfeita.
-            </p>
-
-            <div className="space-y-2">
-              <Label htmlFor="confirmDeleteText" className="text-xs font-bold text-muted-foreground uppercase">
-                Escreva &quot;EXCLUIR CONTA&quot; para liberar
-              </Label>
-              <Input
-                id="confirmDeleteText"
-                placeholder="EXCLUIR CONTA"
-                value={deleteConfirmationText}
-                onChange={(e) => setDeleteConfirmationText(e.target.value)}
-                className="border-destructive/20 focus-visible:ring-destructive/30"
-              />
-            </div>
-
-            <Button 
-              type="button" 
-              variant="destructive" 
-              onClick={() => setIsDeleteConfirmOpen(true)}
-              disabled={deleteConfirmationText !== 'EXCLUIR CONTA' || isDeletingAccount}
-              className="w-full font-bold cursor-pointer rounded-lg"
-            >
-              {isDeletingAccount ? (
-                <>
-                  <Loader2 className="mr-2 size-4 animate-spin" />
-                  Apagando dados...
-                </>
-              ) : (
-                'Excluir Conta Permanentemente'
-              )}
-            </Button>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Confirmação de Ação Destrutiva */}

@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
 import { CurrencyInput } from '@/components/shared/currency-input'
 import { DatePicker } from '@/components/shared/date-picker'
 import { Loader2, TrendingUp, TrendingDown } from 'lucide-react'
@@ -267,12 +268,11 @@ export function TransactionForm({
       {/* Notas adicionais */}
       <div className="space-y-2">
         <Label htmlFor="notes" className="text-sm font-semibold text-foreground">Anotações / Notas</Label>
-        <textarea
+        <Textarea
           id="notes"
           rows={3}
           placeholder="Alguma observação importante sobre esta transação..."
           disabled={isLoading}
-          className="flex min-h-20 w-full rounded-lg border border-input bg-transparent px-4 py-3 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
           {...register('notes')}
         />
         {errors.notes && (

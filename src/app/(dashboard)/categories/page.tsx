@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { toast } from 'sonner'
 import { useCategories } from '@/hooks/use-categories'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -34,6 +35,7 @@ import {
   Check
 } from 'lucide-react'
 import * as Icons from 'lucide-react'
+import { PageHeader } from '@/components/shared/page-header'
 
 // Mapeamento dos ícones para o selecionador
 const AVAILABLE_ICONS = [
@@ -130,6 +132,7 @@ export default function CategoriesPage() {
           categoryId: editingId,
           data: { name, type, icon: selectedIcon, color: selectedColor },
         })
+        toast.success('Categoria atualizada com sucesso!')
       } else {
         await createCategory({
           name,
@@ -138,10 +141,12 @@ export default function CategoriesPage() {
           color: selectedColor,
           isDefault: false,
         })
+        toast.success('Categoria criada com sucesso!')
       }
       resetForm()
     } catch (error) {
       console.error(error)
+      toast.error('Erro ao salvar categoria. Tente novamente.')
     } finally {
       setIsSubmitting(false)
     }
@@ -154,8 +159,10 @@ export default function CategoriesPage() {
     try {
       await deleteCategory(deletingId)
       setDeletingId(null)
+      toast.success('Categoria excluída com sucesso!')
     } catch (error) {
       console.error(error)
+      toast.error('Erro ao excluir categoria. Tente novamente.')
     } finally {
       setIsDeleting(false)
     }
@@ -174,18 +181,16 @@ export default function CategoriesPage() {
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-300">
+    <div className="space-y-6 animate-in fade-in duration-300">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-extrabold tracking-tight">Categorias</h1>
-        <p className="text-muted-foreground text-sm sm:text-base font-medium">
-          Crie e gerencie as categorias para classificar suas despesas e receitas.
-        </p>
-      </div>
+      <PageHeader
+        title="Categorias"
+        description="Crie e gerencie as categorias para classificar suas despesas e receitas."
+      />
 
-      <div className="grid gap-8 md:grid-cols-5 items-start">
+      <div className="grid gap-6 md:grid-cols-5 items-start">
         {/* Formulário de Criação/Edição */}
-        <Card className="shadow-xs border-border bg-card md:col-span-2 hover:shadow-md transition-all duration-300">
+        <Card className="border-border bg-card md:col-span-2 hover:shadow-[var(--shadow-elevated)] transition-shadow duration-300">
           <CardHeader className="pb-3 pt-6 px-6">
             <CardTitle>{editingId ? 'Editar Categoria' : 'Nova Categoria'}</CardTitle>
             <CardDescription className="text-xs">
@@ -299,14 +304,19 @@ export default function CategoriesPage() {
           ) : (
             <>
               {/* Receitas */}
-              <Card className="shadow-xs border-border bg-card hover:shadow-md transition-all duration-300">
+              <Card className="border-border bg-card hover:shadow-[var(--shadow-elevated)] transition-shadow duration-300">
                 <CardHeader className="pb-3 pt-6 px-6">
                   <CardTitle className="text-lg font-bold text-income">Receitas</CardTitle>
                   <CardDescription className="text-xs">Categorias aplicadas a entradas financeiras</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3 px-6 pb-6">
                   {incomes.length === 0 ? (
-                    <p className="text-sm text-muted-foreground py-2">Nenhuma categoria de receita cadastrada.</p>
+                    <EmptyState
+                      title="Sem categorias de receita"
+                      description="Adicione categorias para classificar suas entradas."
+                      icon={Tag}
+                      compact
+                    />
                   ) : (
                     <div className="grid gap-3 sm:grid-cols-2">
                       {incomes.map((cat) => (
@@ -316,10 +326,10 @@ export default function CategoriesPage() {
                         >
                           <div className="flex items-center gap-3">
                             <div 
-                              className="size-8.5 rounded-lg flex items-center justify-center text-white shadow-xs"
+                              className="size-8 rounded-lg flex items-center justify-center text-white shadow-xs"
                               style={{ backgroundColor: cat.color }}
                             >
-                              <DynamicIcon name={cat.icon} className="size-4.5" />
+                              <DynamicIcon name={cat.icon} className="size-4" />
                             </div>
                             <span className="text-sm font-semibold">{cat.name}</span>
                           </div>
@@ -351,14 +361,19 @@ export default function CategoriesPage() {
               </Card>
 
               {/* Despesas */}
-              <Card className="shadow-xs border-border bg-card hover:shadow-md transition-all duration-300">
+              <Card className="border-border bg-card hover:shadow-[var(--shadow-elevated)] transition-shadow duration-300">
                 <CardHeader className="pb-3 pt-6 px-6">
                   <CardTitle className="text-lg font-bold text-expense">Despesas</CardTitle>
                   <CardDescription className="text-xs">Categorias aplicadas a saídas financeiras</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3 px-6 pb-6">
                   {expenses.length === 0 ? (
-                    <p className="text-sm text-muted-foreground py-2">Nenhuma categoria de despesa cadastrada.</p>
+                    <EmptyState
+                      title="Sem categorias de despesa"
+                      description="Adicione categorias para classificar suas saídas."
+                      icon={Tag}
+                      compact
+                    />
                   ) : (
                     <div className="grid gap-3 sm:grid-cols-2">
                       {expenses.map((cat) => (
@@ -368,10 +383,10 @@ export default function CategoriesPage() {
                         >
                           <div className="flex items-center gap-3">
                             <div 
-                              className="size-8.5 rounded-lg flex items-center justify-center text-white shadow-xs"
+                              className="size-8 rounded-lg flex items-center justify-center text-white shadow-xs"
                               style={{ backgroundColor: cat.color }}
                             >
-                              <DynamicIcon name={cat.icon} className="size-4.5" />
+                              <DynamicIcon name={cat.icon} className="size-4" />
                             </div>
                             <span className="text-sm font-semibold">{cat.name}</span>
                           </div>

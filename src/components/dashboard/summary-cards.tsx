@@ -2,7 +2,8 @@
 
 import * as React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ArrowUpRight, ArrowDownRight, Loader2, ArrowUpCircle, ArrowDownCircle } from 'lucide-react'
+import { ArrowUpRight, ArrowDownRight, ArrowUpCircle, ArrowDownCircle } from 'lucide-react'
+import { Skeleton } from '@/components/ui/skeleton'
 
 interface SummaryCardsProps {
   income: number // em centavos (ex: 1000 = R$ 10,00)
@@ -31,68 +32,100 @@ export function SummaryCards({
 
   if (isLoading) {
     return (
-      <div className="grid gap-5 sm:grid-cols-2">
-        <Card className="shadow-xs border-border bg-card flex h-[130px] items-center justify-center">
-          <Loader2 className="size-6 animate-spin text-muted-foreground" />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Card className="border-border bg-card shadow-xs rounded-md p-4 h-[102px] flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <Skeleton className="h-3 w-14" />
+            <Skeleton className="size-5 rounded-md" />
+          </div>
+          <div className="flex items-baseline justify-between gap-2 mt-2">
+            <Skeleton className="h-6 w-28" />
+            <Skeleton className="h-4.5 w-10 rounded-full" />
+          </div>
         </Card>
-        <Card className="shadow-xs border-border bg-card flex h-[130px] items-center justify-center">
-          <Loader2 className="size-6 animate-spin text-muted-foreground" />
+        <Card className="border-border bg-card shadow-xs rounded-md p-4 h-[102px] flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <Skeleton className="h-3 w-14" />
+            <Skeleton className="size-5 rounded-md" />
+          </div>
+          <div className="flex items-baseline justify-between gap-2 mt-2">
+            <Skeleton className="h-6 w-28" />
+            <Skeleton className="h-4.5 w-10 rounded-full" />
+          </div>
         </Card>
       </div>
     )
   }
 
   return (
-    <div className="grid gap-5 sm:grid-cols-2">
-      {/* Card de Receitas */}
-      <Card className="shadow-xs border-border bg-card hover:shadow-md transition-all duration-300">
-        <CardHeader className="pb-3 pt-6 px-6 flex flex-row items-center justify-between space-y-0">
-          <CardTitle className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-            Receitas Totais
+    <div className="grid gap-4 sm:grid-cols-2">
+      {/* Income Card */}
+      <Card className="border-border bg-card shadow-xs hover:shadow-sm transition-all duration-200 rounded-md">
+        <CardHeader className="pb-1 pt-4 px-5 flex flex-row items-center justify-between space-y-0">
+          <CardTitle className="text-xs font-normal text-muted-foreground">
+            Receitas
           </CardTitle>
-          <ArrowUpCircle className="size-5 text-income opacity-80" />
+          <div className="size-6 rounded-md bg-green-100 dark:bg-green-1000/20 flex items-center justify-center border border-green-200/50 dark:border-green-800/20">
+            <ArrowUpCircle className="size-3.5 text-green-700 dark:text-green-500" />
+          </div>
         </CardHeader>
-        <CardContent className="space-y-2 pb-6 px-6">
-          <div className="flex items-baseline justify-between">
-            <span className="text-xl sm:text-2xl font-extrabold tracking-tight text-income">
+        <CardContent className="pb-4 px-5 space-y-0.5">
+          <div className="flex items-baseline justify-between gap-2">
+            <span className="text-2xl font-semibold tracking-tight text-green-700 dark:text-green-500">
               {formatBRL(income)}
             </span>
-            <span className={`text-xs font-bold flex items-center gap-0.5 px-2 py-0.5 rounded-full shrink-0 ${
-              isIncomeTrendPositive ? 'bg-income/10 text-income' : 'bg-expense/10 text-expense'
-            }`}>
-              {isIncomeTrendPositive ? <ArrowUpRight className="size-3" /> : <ArrowDownRight className="size-3" />}
-              {isIncomeTrendPositive ? '+' : ''}{incomeChange}%
+            <span
+              className={`flex items-center gap-0.5 text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${
+                isIncomeTrendPositive
+                  ? 'bg-green-100 text-green-700 dark:bg-green-1000/20 dark:text-green-500'
+                  : 'bg-red-100 text-red-700 dark:bg-red-1000/20 dark:text-red-500'
+              }`}
+            >
+              {isIncomeTrendPositive ? (
+                <ArrowUpRight className="size-2.5" />
+              ) : (
+                <ArrowDownRight className="size-2.5" />
+              )}
+              {isIncomeTrendPositive ? '+' : ''}
+              {incomeChange}%
             </span>
           </div>
-          <p className="text-[10px] text-muted-foreground font-semibold">
-            Em relação ao mês anterior
-          </p>
+          <p className="text-[10px] text-muted-foreground">Em relação ao mês anterior</p>
         </CardContent>
       </Card>
 
-      {/* Card de Despesas */}
-      <Card className="shadow-xs border-border bg-card hover:shadow-md transition-all duration-300">
-        <CardHeader className="pb-3 pt-6 px-6 flex flex-row items-center justify-between space-y-0">
-          <CardTitle className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-            Despesas Totais
+      {/* Expense Card */}
+      <Card className="border-border bg-card shadow-xs hover:shadow-sm transition-all duration-200 rounded-md">
+        <CardHeader className="pb-1 pt-4 px-5 flex flex-row items-center justify-between space-y-0">
+          <CardTitle className="text-xs font-normal text-muted-foreground">
+            Despesas
           </CardTitle>
-          <ArrowDownCircle className="size-5 text-expense opacity-80" />
+          <div className="size-6 rounded-md bg-red-100 dark:bg-red-1000/20 flex items-center justify-center border border-red-200/50 dark:border-red-800/20">
+            <ArrowDownCircle className="size-3.5 text-red-700 dark:text-red-500" />
+          </div>
         </CardHeader>
-        <CardContent className="space-y-2 pb-6 px-6">
-          <div className="flex items-baseline justify-between">
-            <span className="text-xl sm:text-2xl font-extrabold tracking-tight text-expense">
+        <CardContent className="pb-4 px-5 space-y-0.5">
+          <div className="flex items-baseline justify-between gap-2">
+            <span className="text-2xl font-semibold tracking-tight text-red-700 dark:text-red-500">
               {formatBRL(expense)}
             </span>
-            <span className={`text-xs font-bold flex items-center gap-0.5 px-2 py-0.5 rounded-full shrink-0 ${
-              !isExpenseTrendPositive ? 'bg-income/10 text-income' : 'bg-expense/10 text-expense'
-            }`}>
-              {isExpenseTrendPositive ? <ArrowUpRight className="size-3" /> : <ArrowDownRight className="size-3" />}
-              {isExpenseTrendPositive ? '+' : ''}{expenseChange}%
+            <span
+              className={`flex items-center gap-0.5 text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${
+                !isExpenseTrendPositive
+                  ? 'bg-green-100 text-green-700 dark:bg-green-1000/20 dark:text-green-500'
+                  : 'bg-red-100 text-red-700 dark:bg-red-1000/20 dark:text-red-500'
+              }`}
+            >
+              {isExpenseTrendPositive ? (
+                <ArrowUpRight className="size-2.5" />
+              ) : (
+                <ArrowDownRight className="size-2.5" />
+              )}
+              {isExpenseTrendPositive ? '+' : ''}
+              {expenseChange}%
             </span>
           </div>
-          <p className="text-[10px] text-muted-foreground font-semibold">
-            Em relação ao mês anterior
-          </p>
+          <p className="text-[10px] text-muted-foreground">Em relação ao mês anterior</p>
         </CardContent>
       </Card>
     </div>

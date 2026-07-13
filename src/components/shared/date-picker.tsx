@@ -41,7 +41,7 @@ export function DatePicker({
         id={id}
         disabled={disabled}
         className={cn(
-          'inline-flex shrink-0 items-center justify-start rounded-lg border border-border bg-background px-3 py-2 text-sm font-normal whitespace-nowrap transition-all outline-none select-none active:translate-y-px disabled:pointer-events-none disabled:opacity-50 h-8 gap-1.5 w-full justify-start text-left cursor-pointer',
+          'inline-flex shrink-0 items-center justify-start rounded-lg border border-border bg-background px-3 py-2 text-sm font-normal whitespace-nowrap transition-all outline-none select-none active:translate-y-px disabled:pointer-events-none disabled:opacity-50 h-10 gap-1.5 w-full justify-start text-left cursor-pointer',
           !date && 'text-muted-foreground',
           className
         )}

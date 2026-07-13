@@ -40,7 +40,7 @@ export default function DashboardLayout({
       <Sidebar />
 
       {/* Área de conteúdo principal */}
-      <div className="flex flex-col md:pl-60 min-h-screen pb-20 md:pb-0">
+      <div className="flex flex-col md:pl-52 min-h-screen pb-20 md:pb-0">
         {/* Top Header */}
         <Header />
 

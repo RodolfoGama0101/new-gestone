@@ -5,7 +5,7 @@ import { useTransactions } from '@/hooks/use-transactions'
 import { useCategories } from '@/hooks/use-categories'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import { CategoryBadge } from '@/components/shared/category-badge'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { ConfirmDialog } from '@/components/shared/confirm-dialog'
 import { EmptyState } from '@/components/shared/empty-state'
@@ -14,8 +14,9 @@ import { Transaction } from '@/types/transaction'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { Timestamp } from 'firebase/firestore'
+import { PageHeader } from '@/components/shared/page-header'
 import { 
-  TrendingDown, 
+  ArrowDownRight,
   Plus, 
   Loader2, 
   Pencil, 
@@ -85,76 +86,66 @@ export default function ExpensesPage() {
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-300">
+    <div className="space-y-6 animate-in fade-in duration-300">
       {/* Top Header */}
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-expense">Despesas</h1>
-          <p className="text-muted-foreground text-sm sm:text-base font-medium">
-            Visualize e cadastre seus gastos (saídas financeiras).
-          </p>
-        </div>
-        
-        {/* Modal de Adicionar Lançamento */}
-        <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-          <DialogTrigger render={
-            <Button className="bg-expense hover:bg-expense/90 text-white font-bold h-10 px-4 gap-1.5 shadow-xs transition-all active:scale-95 duration-150 cursor-pointer">
-              <Plus className="size-4" />
-              Nova Despesa
-            </Button>
-          } />
-          <DialogContent className="sm:max-w-[450px]">
-            <DialogHeader>
-              <DialogTitle>Nova Despesa</DialogTitle>
-              <DialogDescription>
-                Adicione as informações sobre a nova saída financeira.
-              </DialogDescription>
-            </DialogHeader>
-            <TransactionForm defaultType="expense" onSuccess={() => setIsAddOpen(false)} />
-          </DialogContent>
-        </Dialog>
-      </div>
+      <PageHeader
+        title="Despesas"
+        description="Visualize e cadastre seus gastos (saídas financeiras)."
+        action={
+          <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+            <DialogTrigger render={
+              <Button className="h-8 text-xs rounded-md gap-1.5 cursor-pointer">
+                <Plus className="size-3.5" />
+                Nova Despesa
+              </Button>
+            } />
+            <DialogContent className="sm:max-w-[450px] rounded-md">
+              <DialogHeader>
+                <DialogTitle>Nova Despesa</DialogTitle>
+                <DialogDescription>
+                  Adicione as informações sobre a nova saída financeira.
+                </DialogDescription>
+              </DialogHeader>
+              <TransactionForm defaultType="expense" onSuccess={() => setIsAddOpen(false)} />
+            </DialogContent>
+          </Dialog>
+        }
+      />
 
       {/* Lista de Transações */}
       {transactions.length === 0 ? (
         <EmptyState
           title="Sem despesas registradas"
           description="Você ainda não cadastrou nenhuma despesa. Clique no botão acima para adicionar o primeiro gasto."
-          icon={TrendingDown}
+          icon={ArrowDownRight}
         />
       ) : (
         <div className="space-y-4">
-          <Card className="shadow-xs border-border bg-card hover:shadow-md transition-all duration-300">
-            <CardHeader className="pb-4 pt-6 px-6">
-              <CardTitle className="text-lg font-bold">Histórico de Saídas</CardTitle>
-              <CardDescription className="text-xs">Lista cronológica de despesas cadastradas</CardDescription>
+          <Card className="border-border bg-card shadow-xs hover:shadow-sm transition-all duration-200 rounded-md">
+            <CardHeader className="pb-2 pt-4 px-5">
+              <CardTitle className="text-sm font-semibold">Histórico de Saídas</CardTitle>
+              <CardDescription className="text-[10px] text-muted-foreground">Lista cronológica de despesas cadastradas</CardDescription>
             </CardHeader>
-            <CardContent className="divide-y divide-border/40 px-6 pb-6">
+            <CardContent className="divide-y divide-border/60 px-5 pb-4">
               {transactions.map((tx) => {
                 const cat = getCategoryDetails(tx.categoryId)
                 return (
                   <div 
                     key={tx.id} 
-                    className="flex flex-col sm:flex-row sm:items-center justify-between py-4 px-3 gap-4 last:pb-0 first:pt-0 hover:bg-muted/15 rounded-xl transition-all duration-200 -mx-3"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between py-2.5 px-2 gap-4 last:pb-0 first:pt-0 hover:bg-accent/40 rounded-md transition-colors -mx-2"
                   >
-                    <div className="space-y-1 flex-1">
+                    <div className="space-y-0.5 flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="font-semibold text-sm sm:text-base leading-none">
+                        <span className="font-semibold text-xs sm:text-sm leading-none">
                           {tx.description}
                         </span>
                         {cat && (
-                          <Badge 
-                            variant="secondary" 
-                            className="text-[10px] font-semibold text-white px-2 py-0.5 rounded-full"
-                            style={{ backgroundColor: cat.color }}
-                          >
-                            {cat.name}
-                          </Badge>
+                          <CategoryBadge name={cat.name} color={cat.color} />
                         )}
                       </div>
-                      <div className="flex items-center gap-3 text-xs text-muted-foreground font-semibold">
-                        <span className="flex items-center gap-1">
-                          <Calendar className="size-3.5" />
+                      <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
+                        <span className="flex items-center gap-1 font-mono">
+                          <Calendar className="size-3" />
                           {formatDate(tx.date)}
                         </span>
                         {tx.notes && (
@@ -166,15 +157,15 @@ export default function ExpensesPage() {
                     </div>
 
                     <div className="flex items-center justify-between sm:justify-end gap-6 shrink-0">
-                      <span className="text-base sm:text-lg font-extrabold text-expense">
+                      <span className="text-xs sm:text-sm font-semibold text-red-700 dark:text-red-500">
                         -{(tx.amount / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                       </span>
                       
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-0.5">
                         <Button 
                           variant="ghost" 
                           size="icon" 
-                          className="size-8 text-muted-foreground hover:text-foreground cursor-pointer rounded-lg"
+                          className="size-7 text-muted-foreground hover:text-foreground cursor-pointer rounded-md"
                           onClick={() => setEditingTx(tx)}
                         >
                           <Pencil className="size-3.5" />

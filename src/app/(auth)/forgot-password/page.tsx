@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
-import { Loader2, TrendingUp, ArrowLeft, Mail } from 'lucide-react'
+import { Loader2, ArrowLeft, Mail } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -59,57 +59,59 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="relative min-h-screen flex">
-      {/* Painel Esquerdo — Branding */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-primary flex-col items-center justify-center p-12 text-primary-foreground">
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-32 -left-32 size-96 rounded-full bg-white/5 blur-3xl" />
-          <div className="absolute -bottom-32 -right-32 size-96 rounded-full bg-white/5 blur-3xl" />
-          <svg className="absolute inset-0 size-full opacity-10" xmlns="http://www.w3.org/2000/svg">
+      {/* Left Panel — Branding */}
+      <div className="hidden lg:flex lg:w-[52%] relative overflow-hidden flex-col items-center justify-center p-14 bg-black">
+        {/* Decorative background grid */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <svg className="absolute inset-0 size-full opacity-[0.035]" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <pattern id="dots-fp" x="0" y="0" width="24" height="24" patternUnits="userSpaceOnUse">
-                <circle cx="2" cy="2" r="1" fill="currentColor" />
+                <circle cx="2" cy="2" r="1" fill="#ffffff" />
               </pattern>
             </defs>
             <rect width="100%" height="100%" fill="url(#dots-fp)" />
           </svg>
+          {/* Subtle light border in center */}
+          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
         </div>
 
-        <div className="relative z-10 flex flex-col items-start gap-10 max-w-sm w-full">
-          <Logo variant="full" size="lg" textColor="text-white hover:opacity-100" href="" />
+        <div className="relative z-10 flex flex-col items-start gap-12 max-w-md w-full">
+          <Logo variant="full" size="lg" textColor="text-white" href="" />
 
           <div className="space-y-4">
-            <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-white">
+            <h1 className="text-4xl font-bold leading-tight tracking-tight text-white xl:text-5xl">
               Recupere o<br />
               acesso à<br />
-              <span className="text-white/70">sua conta</span>
+              <span className="text-neutral-400 font-medium">sua conta</span>
             </h1>
-            <p className="text-base text-white/70 leading-relaxed">
+            <p className="text-sm text-neutral-400 leading-relaxed max-w-xs">
               Enviaremos um link seguro para o e-mail cadastrado para você redefinir sua senha.
             </p>
           </div>
         </div>
       </div>
 
-      {/* Painel Direito — Formulário */}
-      <div className="flex-1 flex flex-col items-center justify-center p-8 bg-background relative animate-in fade-in slide-in-from-bottom-4 duration-300">
-        <div className="absolute top-4 right-4">
+      {/* Right Panel — Form */}
+      <div className="flex-1 flex flex-col items-center justify-center p-8 bg-background relative">
+        {/* Theme Toggle */}
+        <div className="absolute top-5 right-5">
           <ThemeToggle />
         </div>
 
-        {/* Logo mobile */}
-        <div className="lg:hidden flex items-center justify-center mb-8">
+        {/* Mobile logo */}
+        <div className="lg:hidden flex items-center justify-center mb-10">
           <Logo variant="full" size="md" />
         </div>
 
-        <div className="w-full max-w-sm">
+        <div className="w-full max-w-sm animate-in fade-in slide-in-from-bottom-3 duration-300">
           {sent ? (
-            /* Estado de sucesso */
+            /* Success state */
             <div className="space-y-6 text-center">
-              <div className="size-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
-                <Mail className="size-8 text-primary" />
+              <div className="size-16 rounded-full bg-primary/10 border border-primary/15 flex items-center justify-center mx-auto">
+                <Mail className="size-7 text-primary" />
               </div>
               <div className="space-y-2">
-                <h2 className="text-2xl font-extrabold tracking-tight text-foreground">
+                <h2 className="text-2xl font-bold tracking-tight text-foreground">
                   E-mail enviado!
                 </h2>
                 <p className="text-sm text-muted-foreground leading-relaxed">
@@ -126,10 +128,10 @@ export default function ForgotPasswordPage() {
               </Button>
             </div>
           ) : (
-            /* Formulário de recuperação */
+            /* Recovery form */
             <>
-              <div className="mb-8 space-y-1">
-                <h2 className="text-2xl font-extrabold tracking-tight text-foreground">
+              <div className="mb-8 space-y-1.5">
+                <h2 className="text-2xl font-bold tracking-tight text-foreground">
                   Recuperar senha
                 </h2>
                 <p className="text-sm text-muted-foreground">
@@ -171,12 +173,12 @@ export default function ForgotPasswordPage() {
                 </Button>
               </form>
 
-              <div className="mt-6 text-center">
+              <div className="mt-7 text-center">
                 <Link
                   href="/login"
-                  className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors underline-offset-4 hover:underline"
                 >
-                  <ArrowLeft className="size-4" />
+                  <ArrowLeft className="size-3.5" />
                   Voltar ao login
                 </Link>
               </div>

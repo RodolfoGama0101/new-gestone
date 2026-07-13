@@ -1,0 +1,316 @@
+# Auditoria de UI — GestOne: Plano de Implementação
+
+## Visão Geral
+
+Análise completa de todos os componentes e páginas do projeto **GestOne** (gestão financeira pessoal em Next.js + Tailwind + shadcn/ui + Firebase). Foram identificadas **27 inconsistências e oportunidades de melhoria** agrupadas por severidade e área.
+
+---
+
+## 🔴 Problemas de Alta Severidade
+
+### 1. ThemeToggle duplicado na sidebar desktop
+**Arquivo:** [sidebar.tsx](file:///c:/projects/new-gestone/src/components/layout/sidebar.tsx) · [header.tsx](file:///c:/projects/new-gestone/src/components/layout/header.tsx)
+
+O `ThemeToggle` aparece em **dois lugares simultâneos** no desktop:
+- No footer da Sidebar (linha 62)
+- No header (linha 61, visível apenas em `md:block`)
+
+O usuário vê dois controles de tema idênticos lado a lado. O do header deve ser removido no desktop (ou a sidebar deve remover o seu).
+
+**Correção:** Remover o `ThemeToggle` do header no desktop. Manter apenas na sidebar.
+
+---
+
+### 2. Navegação mobile não inclui "Categorias"
+**Arquivo:** [bottom-nav.tsx](file:///c:/projects/new-gestone/src/components/layout/bottom-nav.tsx)
+
+O `BottomNav` mobile tem apenas 5 itens (`Painel`, `Receitas`, `Despesas`, `Gráficos`, `Ajustes`) — **Categorias está ausente** no mobile. O usuário mobile não tem acesso a Categorias via navegação.
+
+**Correção:** Adicionar Categorias ao BottomNav ou criar uma solução de navegação expandida (drawer/menu).
+
+---
+
+### 3. Labels inconsistentes entre Sidebar e BottomNav
+**Arquivo:** [sidebar.tsx](file:///c:/projects/new-gestone/src/components/layout/sidebar.tsx) · [bottom-nav.tsx](file:///c:/projects/new-gestone/src/components/layout/bottom-nav.tsx)
+
+| Rota | Sidebar | BottomNav |
+|------|---------|-----------|
+| `/` | "Dashboard" | "Painel" |
+| `/analytics` | "Analytics" | "Gráficos" |
+| `/settings` | "Configurações" | "Ajustes" |
+
+Três labels diferentes para as mesmas telas cria confusão. Devem ser padronizados.
+
+**Correção:** Unificar para PT-BR consistente: `Painel`, `Analytics`/`Relatórios`, `Configurações`.
+
+---
+
+### 4. Botão "Novo Lançamento" na página Extrato usa classes inline brutas
+**Arquivo:** [transactions/page.tsx](file:///c:/projects/new-gestone/src/app/(dashboard)/transactions/page.tsx) — linha 148
+
+O `DialogTrigger` tem **classes hardcoded** replicando o estilo do Button manualmente (sem usar o componente `<Button>`), enquanto nas páginas Receitas e Despesas é usado `<Button>` corretamente. Isso cria inconsistência visual e de manutenção.
+
+**Correção:** Substituir o `DialogTrigger` com className inline por `<DialogTrigger asChild><Button>...</Button></DialogTrigger>`.
+
+---
+
+### 5. Página Extrato não usa `font-medium` na subtítulo (inconsistência tipográfica)
+**Arquivo:** [transactions/page.tsx](file:///c:/projects/new-gestone/src/app/(dashboard)/transactions/page.tsx) — linha 137-138
+
+O `<p>` da descrição da página não tem `font-medium`, enquanto **todas as outras páginas** (Receitas, Despesas, Analytics, Configurações, Categorias) têm `font-medium` nesse mesmo elemento.
+
+**Correção:** Adicionar `font-medium` ao parágrafo de descrição da página Extrato.
+
+---
+
+## 🟡 Problemas de Severidade Média
+
+### 6. Cabeçalhos de página sem padrão de cor
+**Arquivos:** Múltiplos
+
+| Página | Cor do `<h1>` |
+|--------|---------------|
+| Dashboard | `text-transparent` (gradiente) |
+| Receitas | `text-income` (verde) |
+| Despesas | `text-expense` (vermelho) |
+| Categorias | sem cor (padrão) |
+| Configurações | sem cor (padrão) |
+| Analytics | sem cor (padrão) |
+| Extrato | sem cor (padrão) |
+
+Há três tratamentos diferentes. Receitas e Despesas destacam com cor semântica (que faz sentido), mas Categorias, Configurações, Analytics e Extrato ficam sem identidade visual. **Correção:** Adicionar cor temática consistente (`text-primary`) ou adotar gradiente para todas as páginas neutras.
+
+---
+
+### 7. Link "Ver todos" em RecentTransactions aponta para /expenses (incorreto)
+**Arquivo:** [recent-transactions.tsx](file:///c:/projects/new-gestone/src/components/dashboard/recent-transactions.tsx) — linha 59
+
+O card "Lançamentos Recentes" mostra tanto receitas quanto despesas, mas o link "Ver todos" aponta para `/expenses`. Deveria apontar para `/transactions` (o extrato completo).
+
+**Correção:** Alterar `href="/expenses"` para `href="/transactions"`.
+
+---
+
+### 8. Inconsistência no tamanho dos badges de categoria
+**Arquivos:** [recent-transactions.tsx](file:///c:/projects/new-gestone/src/components/dashboard/recent-transactions.tsx), [expenses/page.tsx](file:///c:/projects/new-gestone/src/app/(dashboard)/expenses/page.tsx), [income/page.tsx](file:///c:/projects/new-gestone/src/app/(dashboard)/income/page.tsx), [transactions/page.tsx](file:///c:/projects/new-gestone/src/app/(dashboard)/transactions/page.tsx)
+
+O badge de categoria tem `border-none` no `recent-transactions.tsx` mas usa `variant="secondary"` nas páginas de listagem. A sobreposição de variant + style inline cria inconsistência.
+
+**Correção:** Criar um componente `CategoryBadge` reutilizável e aplicar em todos os locais.
+
+---
+
+### 9. `textarea` em TransactionForm não usa o componente Textarea do shadcn/ui
+**Arquivo:** [transaction-form.tsx](file:///c:/projects/new-gestone/src/components/transactions/transaction-form.tsx) — linha 270
+
+O campo de "Notas" usa `<textarea>` HTML nativo com classes manuais ao invés do componente `<Textarea>` do shadcn/ui. Isso cria inconsistência de altura, borda-radius e estados focus/disabled.
+
+**Correção:** Importar e usar `Textarea` do shadcn/ui.
+
+---
+
+### 10. DatePicker tem altura `h-8` enquanto os outros inputs têm `h-10`
+**Arquivo:** [date-picker.tsx](file:///c:/projects/new-gestone/src/components/shared/date-picker.tsx) — linha 44
+
+O PopoverTrigger que funciona como date picker usa `h-8` (32px) mas o `<Input>` e `<SelectTrigger>` no mesmo formulário usam `h-10` (40px) implicitamente. Há um desalinhamento visual de 8px de altura nos campos do formulário.
+
+**Correção:** Alterar `h-8` para `h-10` no DatePicker (consistente com os outros campos).
+
+---
+
+### 11. CurrencyInput não tem altura definida explicitamente
+**Arquivo:** [currency-input.tsx](file:///c:/projects/new-gestone/src/components/shared/currency-input.tsx)
+
+O `CurrencyInput` renderiza um `<Input>` sem altura definida, enquanto no `login-form.tsx` os inputs têm `h-11`. No formulário de transações, a altura fica padrão (`h-10`), criando inconsistência com o login.
+
+**Correção:** Dentro do contexto do formulário de transação, isso é aceitável, mas o `CurrencyInput` deve aceitar e repassar `className` para personalização de altura.
+
+---
+
+### 12. Inconsistência no padding do CardHeader nas páginas de Categorias
+**Arquivo:** [categories/page.tsx](file:///c:/projects/new-gestone/src/app/(dashboard)/categories/page.tsx) — linha 303-305
+
+Os cards de listagem de categorias (Receitas e Despesas) usam `pb-3 pt-6 px-6` no `CardHeader`. O card do formulário usa o mesmo padrão — ok. Mas a `CardTitle` do card de lista de Receitas usa `text-income` e a de Despesas usa `text-expense`, sem `CardDescription` com classe consistente com o restante.
+
+---
+
+### 13. Falta feedback visual de estado ativo nos botões de seletor de período no Analytics
+**Arquivo:** [analytics/page.tsx](file:///c:/projects/new-gestone/src/app/(dashboard)/analytics/page.tsx) — linhas 97-108
+
+O botão ativo usa `variant="default"` mas os botões inativos usam `variant="ghost"` sem transição suave. Comparado ao seletor de mês do Dashboard que usa `border border-border bg-card p-1.5 rounded-xl`, o seletor de Analytics tem container similar, mas sem `hover:border-border/80` e sem a transição visual que o Dashboard tem.
+
+---
+
+### 14. Empty states inconsistentes entre páginas de Categorias e outras páginas
+**Arquivo:** [categories/page.tsx](file:///c:/projects/new-gestone/src/app/(dashboard)/categories/page.tsx) — linhas 308-309, 360-361
+
+Quando não há categorias de um tipo específico (receitas ou despesas), a categoria usa `<p className="text-sm text-muted-foreground py-2">` inline — sem usar o componente `<EmptyState>`. Isso é visualmente diferente do `EmptyState` usado globalmente.
+
+**Correção:** Substituir o `<p>` simples por um `<EmptyState>` reduzido ou criar uma variante menor do componente.
+
+---
+
+### 15. `size-8.5` é uma classe customizada sem garantia de suporte em todos os contextos
+**Arquivos:** [recent-transactions.tsx](file:///c:/projects/new-gestone/src/components/dashboard/recent-transactions.tsx) · [categories/page.tsx](file:///c:/projects/new-gestone/src/app/(dashboard)/categories/page.tsx)
+
+`size-8.5` (34px) não é padrão no Tailwind v3. Apesar de funcionar com o plugin de tw-animate-css, pode não gerar o CSS correto em builds produção ou diferentes configurações. O mesmo vale para `size-4.5` e `size-5.5`.
+
+**Correção:** Substituir por valores padrão (`size-8` ou `size-9`) ou garantir que o plugin/config suporte esses valores.
+
+---
+
+## 🟢 Melhorias de Baixa Severidade / UX
+
+### 16. ThemeToggle no Sidebar sem feedback do tema atual ativo
+**Arquivo:** [sidebar.tsx](file:///c:/projects/new-gestone/src/components/layout/sidebar.tsx)
+
+O footer da sidebar mostra "Tema do Sistema" seguido de um botão de toggle que abre dropdown. Não há indicação visual de qual tema está ativo (o ícone muda, mas o label "Tema do Sistema" é estático e enganoso).
+
+**Correção:** Tornar o label dinâmico: "Tema: Claro" / "Tema: Escuro" / "Tema: Sistema".
+
+---
+
+### 17. Página de Configurações: seletor de moeda sem efeito funcional
+**Arquivo:** [settings/page.tsx](file:///c:/projects/new-gestone/src/app/(dashboard)/settings/page.tsx) — linhas 276-287
+
+O `Select` de moeda altera o estado local `currency`, mas não há salvamento nem propagação para o resto da aplicação. Parece funcional mas não faz nada. Isso gera expectativa frustrada no usuário.
+
+**Correção (UI):** Adicionar um botão "Salvar Preferências" ao card, ou desabilitar o select com tooltip "Em breve".
+
+---
+
+### 18. Página de Configurações: ícone do CardHeader não alinhado com padrão
+**Arquivo:** [settings/page.tsx](file:///c:/projects/new-gestone/src/app/(dashboard)/settings/page.tsx)
+
+Os cards de Perfil, Preferências e Segurança têm ícone dentro do `CardHeader` antes do `CardTitle`, mas o `CardDescription` fica fora do `div` do ícone. Visualmente, a descrição parece desalinhada com o ícone + título.
+
+---
+
+### 19. Página Analytics: título da página é "Relatórios" mas o link na sidebar é "Analytics"
+**Arquivo:** [analytics/page.tsx](file:///c:/projects/new-gestone/src/app/(dashboard)/analytics/page.tsx) — linha 89 · [sidebar.tsx](file:///c:/projects/new-gestone/src/components/layout/sidebar.tsx) — linha 21 · [header.tsx](file:///c:/projects/new-gestone/src/components/layout/header.tsx) — linha 32
+
+- Sidebar: `Analytics`
+- Header (getPageTitle): `Analytics`
+- `<h1>` da página: `Relatórios`
+
+O título muda entre o menu e a página. Deve ser consistente.
+
+**Correção:** Padronizar para "Relatórios" em toda parte, ou "Analytics" em toda parte.
+
+---
+
+### 20. `getInitials` no Header usa os 2 primeiros caracteres do email (não do nome)
+**Arquivo:** [header.tsx](file:///c:/projects/new-gestone/src/components/layout/header.tsx) — linhas 42-45
+
+A função `getInitials` pega `email.substring(0, 2)`, mas a iniciais de um avatar deveriam ser baseadas no `displayName`, não no email. Para um usuário `joao.silva@gmail.com`, exibe "JO" que pode estar ok, mas para `a@b.com` exibe "a@" — o `@` vai aparecer.
+
+**Correção:** Priorizar `user.displayName` e usar `email` como fallback, mas sanitizando para não incluir `@` ou `.`.
+
+---
+
+### 21. Botões "Salvar" nos formulários de Settings usam `Loader2 mr-2` mas todos os outros usam gap no flex
+**Arquivo:** [settings/page.tsx](file:///c:/projects/new-gestone/src/app/(dashboard)/settings/page.tsx) — linhas 223, 331
+
+Uso de `<Loader2 className="mr-2 size-4 animate-spin" />` vs. uso de `gap-2` + ícone sem margem manual. Mistura dos dois padrões.
+
+---
+
+### 22. Cabeçalho do BalanceCard usa `CardTitle` mas SummaryCards também usa — classes idênticas mas alturas de card diferentes
+**Arquivo:** [balance-card.tsx](file:///c:/projects/new-gestone/src/components/dashboard/balance-card.tsx) · [summary-cards.tsx](file:///c:/projects/new-gestone/src/components/dashboard/summary-cards.tsx)
+
+O `BalanceCard` tem `h-[160px]` no loading state, mas o `SummaryCards` tem `h-[130px]`. Quando lado a lado, os skeletons de loading têm alturas diferentes do conteúdo real — o BalanceCard cresce mais que o previsto.
+
+---
+
+### 23. Página de Categorias: formulário sem feedback de sucesso visual no campo
+**Arquivo:** [categories/page.tsx](file:///c:/projects/new-gestone/src/app/(dashboard)/categories/page.tsx)
+
+Após criar/editar uma categoria, o formulário apenas reseta os campos sem indicação visual de sucesso (sem toast, sem animação). As páginas de Configurações usam `toast.success()`.
+
+**Correção:** Adicionar `toast.success('Categoria criada com sucesso!')`.
+
+---
+
+### 24. TransactionFilters: border-radius inconsistente entre elementos
+**Arquivo:** [transaction-filters.tsx](file:///c:/projects/new-gestone/src/components/transactions/transaction-filters.tsx)
+
+O container usa `rounded-xl`, o `Input` e `Select` usam `rounded-md` (padrão shadcn). O container externo tem bordas mais arredondadas que os campos internos.
+
+---
+
+### 25. Donut Chart: legendas muito longas podem ser cortadas
+**Arquivo:** [category-donut-chart.tsx](file:///c:/projects/new-gestone/src/components/charts/category-donut-chart.tsx)
+
+O `formatter` da Legend adiciona o valor em BRL ao nome da categoria: `"Alimentação (R$ 1.200,00)"`. Em categorias com nomes longos + valores grandes, a legenda pode ser cortada.
+
+---
+
+### 26. Sidebar: navegação não tem rota para `/transactions` (Extrato)
+**Arquivo:** [sidebar.tsx](file:///c:/projects/new-gestone/src/components/layout/sidebar.tsx)
+
+A página `/transactions` (Extrato completo) existe e é acessível via link "Ver todos" do Dashboard, mas **não está na sidebar desktop**. O usuário não consegue navegar diretamente para o Extrato pela sidebar.
+
+**Correção:** Adicionar `{ label: 'Extrato', href: '/transactions', icon: Receipt }` ao navItems.
+
+---
+
+### 27. Logo: hover scale em elemento dentro de um link pode causar overflow em telas pequenas
+**Arquivo:** [logo.tsx](file:///c:/projects/new-gestone/src/components/shared/logo.tsx) — linha 47
+
+A classe `hover:scale-105` está no container interno da imagem. Combinado com `overflow-hidden` no pai, o scale nunca será visível. É código ineficaz.
+
+---
+
+## Plano de Implementação por Prioridade
+
+### Fase 1 — Bugs e Inconsistências Críticas (Alta prioridade)
+
+| # | Problema | Arquivo | Ação |
+|---|---------|---------|------|
+| 1 | ThemeToggle duplicado | header.tsx | Remover `<ThemeToggle>` do header no desktop |
+| 2 | Categorias ausente no mobile | bottom-nav.tsx | Adicionar item Categorias ao BottomNav |
+| 3 | Labels inconsistentes Sidebar/BottomNav | sidebar.tsx, bottom-nav.tsx | Unificar labels |
+| 4 | DialogTrigger com classes inline | transactions/page.tsx | Usar `<Button asChild>` |
+| 5 | `font-medium` ausente na subtítulo | transactions/page.tsx | Adicionar `font-medium` |
+| 7 | Link "Ver todos" errado | recent-transactions.tsx | Corrigir href para `/transactions` |
+| 26 | Extrato ausente na sidebar | sidebar.tsx | Adicionar rota `/transactions` |
+
+### Fase 2 — Inconsistências Visuais (Média prioridade)
+
+| # | Problema | Arquivo | Ação |
+|---|---------|---------|------|
+| 6 | Cores de h1 inconsistentes | múltiplos pages | Padronizar com `text-primary` ou manter semântico |
+| 9 | textarea nativo vs Textarea shadcn | transaction-form.tsx | Usar componente `<Textarea>` |
+| 10 | DatePicker `h-8` vs `h-10` nos inputs | date-picker.tsx | Alterar para `h-10` |
+| 14 | Empty state inline em Categorias | categories/page.tsx | Usar `<EmptyState>` ou variante |
+| 19 | "Analytics" vs "Relatórios" inconsistente | analytics/page.tsx, sidebar.tsx, header.tsx | Padronizar nome |
+| 20 | `getInitials` pode incluir `@` | header.tsx | Corrigir lógica |
+| 21 | `mr-2` vs `gap-2` no loader | settings/page.tsx | Padronizar para `gap-2` |
+| 23 | Sem toast de sucesso em Categorias | categories/page.tsx | Adicionar `toast.success()` |
+
+### Fase 3 — Melhorias de UX (Baixa prioridade)
+
+| # | Problema | Arquivo | Ação |
+|---|---------|---------|------|
+| 8 | Badge de categoria inconsistente | múltiplos | Criar `CategoryBadge` reutilizável |
+| 13 | Seletor Analytics sem transição | analytics/page.tsx | Adicionar `hover:border-border/80` |
+| 16 | Label "Tema do Sistema" estático | sidebar.tsx | Label dinâmico |
+| 17 | Select de moeda sem efeito funcional | settings/page.tsx | Desabilitar ou adicionar aviso |
+| 27 | hover:scale no Logo nunca visível | logo.tsx | Mover scale para o elemento externo |
+
+---
+
+## Verificação
+
+Após as implementações:
+- [ ] Verificar navegação mobile completa (todas as rotas acessíveis)
+- [ ] Verificar consistência visual dark/light mode em todas as páginas
+- [ ] Confirmar que todos os formulários têm feedback de sucesso/erro
+- [ ] Confirmar que os formulários têm alturas de campo consistentes
+- [ ] Checar que a sidebar desktop não exibe ThemeToggle duplicado
+
+> [!IMPORTANT]
+> Os itens #1, #2, #3, #7, e #26 são os mais impactantes para a experiência de navegação e devem ser resolvidos primeiro.
+
+> [!WARNING]
+> O item #17 (seletor de moeda sem efeito) pode gerar frustração de usuário se ignorado — o usuário espera que a ação tenha efeito.
