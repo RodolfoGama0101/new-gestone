@@ -30,11 +30,13 @@ export function CurrencyInput({
     })
   }
 
+  const [prevValue, setPrevValue] = React.useState(value)
   const [displayValue, setDisplayValue] = React.useState(formatValue(value))
 
-  React.useEffect(() => {
+  if (value !== prevValue) {
+    setPrevValue(value)
     setDisplayValue(formatValue(value))
-  }, [value])
+  }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawValue = e.target.value

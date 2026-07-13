@@ -54,6 +54,14 @@ export default function TransactionsPage() {
   const [deletingId, setDeletingId] = React.useState<string | null>(null)
   const [isDeleting, setIsDeleting] = React.useState(false)
 
+  // Cache para today/yesterday formatados para evitar chamadas impuras no render
+  const { today, yesterday } = React.useMemo(() => {
+    const now = new Date()
+    const todayStr = format(now, 'yyyy-MM-dd')
+    const yesterdayStr = format(new Date(now.getTime() - 86400000), 'yyyy-MM-dd')
+    return { today: todayStr, yesterday: yesterdayStr }
+  }, [])
+
   // Encontra a categoria correspondente para renderização de badge
   const getCategoryDetails = (catId: string) => {
     return categories.find((c) => c.id === catId)
@@ -85,9 +93,6 @@ export default function TransactionsPage() {
   }
 
   const formatGroupHeader = (dateKey: string): string => {
-    const today = format(new Date(), 'yyyy-MM-dd')
-    const yesterday = format(new Date(Date.now() - 86400000), 'yyyy-MM-dd')
-    
     if (dateKey === today) return 'Hoje'
     if (dateKey === yesterday) return 'Ontem'
     

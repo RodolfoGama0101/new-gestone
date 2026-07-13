@@ -197,18 +197,18 @@ export default function SettingsPage() {
 
       {/* Tabs Control */}
       <div className="flex border-b border-border overflow-x-auto scrollbar-thin">
-        {[
+        {([
           { id: 'profile', label: 'Meu Perfil', icon: User },
           { id: 'preferences', label: 'Preferências', icon: SettingsIcon },
           { id: 'security', label: 'Segurança', icon: Lock },
           { id: 'danger', label: 'Zona de Risco', icon: Trash2 },
-        ].map((tab) => {
+        ] as const).map((tab) => {
           const TabIcon = tab.icon
           const isActive = activeTab === tab.id
           return (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
+              onClick={() => setActiveTab(tab.id)}
               className={cn(
                 "flex items-center gap-1.5 px-4 py-2.5 border-b-2 text-xs font-semibold transition-all -mb-px shrink-0 outline-none cursor-pointer",
                 isActive
