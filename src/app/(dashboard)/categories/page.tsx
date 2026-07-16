@@ -218,6 +218,10 @@ export default function CategoriesPage() {
                   value={type}
                   onValueChange={(val) => setType(val as 'income' | 'expense')}
                   disabled={isSubmitting}
+                  items={[
+                    { value: 'expense', label: 'Despesa' },
+                    { value: 'income', label: 'Receita' }
+                  ]}
                 >
                   <SelectTrigger id="type" className="w-full">
                     <SelectValue placeholder="Selecione o tipo" />

@@ -32,14 +32,27 @@ export function TransactionFilters() {
     await setCategoryId(!val || val === 'all' ? '' : val)
   }
 
+  const typeSelectItems = React.useMemo(() => [
+    { value: 'all', label: 'Todos os tipos' },
+    { value: 'income', label: 'Receitas (Entradas)' },
+    { value: 'expense', label: 'Despesas (Saídas)' },
+  ], [])
+
+  const categorySelectItems = React.useMemo(() => {
+    return [
+      { value: 'all', label: 'Todas as categorias' },
+      ...categories.map((c) => ({ value: c.id, label: c.name })),
+    ]
+  }, [categories])
+
   return (
-    <div className="flex flex-col gap-3 p-3.5 rounded-md border border-border bg-background-200 dark:bg-card">
+    <div className="flex flex-col gap-4 p-4 rounded-md border border-border bg-background-200 dark:bg-card">
       <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
         <Filter className="size-3.5 text-muted-foreground" />
         Filtros de Busca
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-3">
         {/* Busca Textual */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground/60" />
@@ -47,12 +60,12 @@ export function TransactionFilters() {
             placeholder="Buscar por descrição..."
             value={search}
             onChange={(e) => setSearch(e.target.value || '')}
-            className="pl-9 h-9 text-xs rounded-md bg-background border-border"
+            className="pl-9 h-9 text-xs rounded-md bg-background border-border w-full"
           />
         </div>
 
         {/* Tipo */}
-        <Select value={type || 'all'} onValueChange={handleTypeChange}>
+        <Select value={type || 'all'} onValueChange={handleTypeChange} items={typeSelectItems}>
           <SelectTrigger className="h-9 text-xs rounded-md bg-background border-border">
             <SelectValue placeholder="Tipo de lançamento" />
           </SelectTrigger>
@@ -64,7 +77,7 @@ export function TransactionFilters() {
         </Select>
 
         {/* Categoria */}
-        <Select value={categoryId || 'all'} onValueChange={handleCategoryChange}>
+        <Select value={categoryId || 'all'} onValueChange={handleCategoryChange} items={categorySelectItems}>
           <SelectTrigger className="h-9 text-xs rounded-md bg-background border-border">
             <SelectValue placeholder="Categoria" />
           </SelectTrigger>

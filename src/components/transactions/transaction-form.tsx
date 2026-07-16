@@ -99,6 +99,14 @@ export function TransactionForm({
     (c) => c.type === watchType || c.type === 'both'
   )
 
+  // Mapeia categorias filtradas para o formato esperado pelo Select do Base UI
+  const categorySelectItems = React.useMemo(() => {
+    return filteredCategories.map((c) => ({
+      value: c.id,
+      label: c.name,
+    }))
+  }, [filteredCategories])
+
   const onSubmit = async (data: TransactionInput) => {
     const amountVal = typeof data.amount === 'string' ? parseInt(data.amount) : data.amount
     if (amountVal <= 0) return
@@ -245,6 +253,7 @@ export function TransactionForm({
                 value={field.value}
                 onValueChange={field.onChange}
                 disabled={isLoading || isCategoriesLoading}
+                items={categorySelectItems}
               >
                 <SelectTrigger id="categoryId" className="w-full h-10 rounded-lg">
                   <SelectValue placeholder="Selecione uma categoria" />

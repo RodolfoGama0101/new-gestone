@@ -43,6 +43,7 @@ export default function TransactionsPage() {
     fetchNextPage,
     isFetchingNextPage,
     deleteTransaction,
+    error,
   } = useTransactions({
     type: (type === 'income' || type === 'expense' ? type : undefined),
     categoryId: (categoryId || undefined),
@@ -130,6 +131,20 @@ export default function TransactionsPage() {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
         <Loader2 className="size-8 animate-spin text-primary" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="p-5 border border-destructive bg-destructive/10 text-destructive rounded-md text-sm space-y-2">
+        <p className="font-semibold">Erro ao carregar os lançamentos:</p>
+        <p className="text-xs font-mono bg-background/50 p-2.5 rounded border border-destructive/20">{error.message}</p>
+        {error.message.includes('index') && (
+          <p className="text-xs text-muted-foreground">
+            Nota: Este erro geralmente ocorre porque o Firestore exige um índice composto para consultas filtradas e ordenadas.
+          </p>
+        )}
       </div>
     )
   }

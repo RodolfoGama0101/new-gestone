@@ -305,7 +305,15 @@ export default function SettingsPage() {
                   <Label htmlFor="currency" className="text-xs">Moeda Base</Label>
                   <span className="text-[9px] font-semibold text-muted-foreground bg-muted px-1.5 py-0.5 rounded">Em breve</span>
                 </div>
-                <Select value={currency} onValueChange={handleCurrencyChange} disabled>
+                <Select
+                  value={currency}
+                  onValueChange={handleCurrencyChange}
+                  disabled
+                  items={[
+                    { value: 'BRL', label: 'Real Brasileiro (BRL, R$)' },
+                    { value: 'USD', label: 'Dólar Americano (USD, $)' }
+                  ]}
+                >
                   <SelectTrigger id="currency" className="w-full h-9 text-xs rounded-md opacity-70">
                     <SelectValue placeholder="Selecione a moeda" />
                   </SelectTrigger>
