@@ -24,6 +24,7 @@ export const metadata: Metadata = {
 };
 
 import { QueryProvider } from "@/providers/query-provider";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 export default function RootLayout({
   children,
@@ -47,7 +48,9 @@ export default function RootLayout({
         >
           <QueryProvider>
             <AuthProvider>
-              {children}
+              <NuqsAdapter>
+                {children}
+              </NuqsAdapter>
             </AuthProvider>
           </QueryProvider>
         </ThemeProvider>
