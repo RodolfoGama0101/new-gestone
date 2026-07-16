@@ -32,14 +32,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" suppressHydrationWarning>
-      <body
-        className={cn(
-          "min-h-screen bg-background font-sans antialiased",
-          geistSans.variable,
-          geistMono.variable
-        )}
-      >
+    <html
+      lang="pt-BR"
+      className={cn(geistSans.variable, geistMono.variable)}
+      data-scroll-behavior="smooth"
+      suppressHydrationWarning
+    >
+      <body className="min-h-screen bg-background font-sans antialiased">
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
