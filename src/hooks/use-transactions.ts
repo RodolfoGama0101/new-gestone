@@ -27,6 +27,7 @@ export function useTransactions(filters: Omit<GetTransactionsFilters, 'lastVisib
       TransactionService.create(userId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions', userId] })
+      queryClient.invalidateQueries({ queryKey: ['analytics', userId] })
       toast.success('Lançamento registrado com sucesso!')
     },
     onError: () => {
@@ -44,6 +45,7 @@ export function useTransactions(filters: Omit<GetTransactionsFilters, 'lastVisib
     }) => TransactionService.update(userId, transactionId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions', userId] })
+      queryClient.invalidateQueries({ queryKey: ['analytics', userId] })
       toast.success('Lançamento atualizado com sucesso!')
     },
     onError: () => {
@@ -56,12 +58,14 @@ export function useTransactions(filters: Omit<GetTransactionsFilters, 'lastVisib
       TransactionService.delete(userId, transactionId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions', userId] })
+      queryClient.invalidateQueries({ queryKey: ['analytics', userId] })
       toast.success('Lançamento excluído com sucesso!')
     },
     onError: () => {
       toast.error('Erro ao excluir lançamento.')
     },
   })
+
 
   const transactions = transactionsQuery.data?.pages.flatMap((page) => page.transactions) ?? []
 

@@ -6,7 +6,7 @@ import { useCategories } from '@/hooks/use-categories'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { CategoryBadge } from '@/components/shared/category-badge'
 import { EmptyState } from '@/components/shared/empty-state'
-import { Timestamp } from 'firebase/firestore'
+import { parseFirestoreDate } from '@/lib/utils/parse-date'
 import { format } from 'date-fns'
 import { ArrowUpRight, ArrowDownRight, Wallet, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
@@ -20,27 +20,17 @@ export function RecentTransactions() {
 
   const recent = transactions.slice(0, 5)
 
-  const getCategoryDetails = (catId: string) => {
-    return categories.find((c) => c.id === catId)
-  }
+  // O(1) lookup em vez de categories.find() chamado N vezes no render
+  const categoryMap = React.useMemo(
+    () => new Map(categories.map((c) => [c.id, c])),
+    [categories]
+  )
 
-  const formatDate = (dateVal: unknown): string => {
-    if (!dateVal) return ''
-    let d: Date
-    if (dateVal instanceof Date) {
-      d = dateVal
-    } else if (dateVal instanceof Timestamp) {
-      d = dateVal.toDate()
-    } else {
-      const record = dateVal as { seconds?: number }
-      if (record && typeof record.seconds === 'number') {
-        d = new Date(record.seconds * 1000)
-      } else {
-        d = new Date(dateVal as string | number)
-      }
-    }
-    return format(d, 'dd/MM')
-  }
+  const formatDate = React.useCallback(
+    (dateVal: unknown): string =>
+      format(parseFirestoreDate(dateVal), 'dd/MM'),
+    []
+  )
 
   if (isLoading) {
     return (
@@ -95,7 +85,7 @@ export function RecentTransactions() {
         ) : (
           <div className="divide-y divide-border/60">
             {recent.map((tx) => {
-              const cat = getCategoryDetails(tx.categoryId)
+              const cat = categoryMap.get(tx.categoryId)
               const isIncome = tx.type === 'income'
               return (
                 <div

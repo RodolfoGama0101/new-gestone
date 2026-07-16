@@ -4,7 +4,7 @@ import { db } from '@/lib/firebase/config'
 import { useAuth } from '@/contexts/auth-context'
 import { Transaction } from '@/types/transaction'
 import { AnalyticsService, PeriodSummary } from '@/services/analytics.service'
-import { startOfMonth, subMonths } from 'date-fns'
+import { startOfMonth, subMonths, format } from 'date-fns'
 
 export function useAnalytics(selectedDate: Date) {
   const { user } = useAuth()
@@ -12,21 +12,25 @@ export function useAnalytics(selectedDate: Date) {
 
   const startOfPrevious = startOfMonth(subMonths(selectedDate, 1))
 
+  // Usa apenas o mês/ano na queryKey para evitar cache misses causados por re-renders
+  // que criam novos objetos Date com milissegundos diferentes para o mesmo mês
+  const monthKey = format(selectedDate, 'yyyy-MM')
+
   const analyticsQuery = useQuery({
-    queryKey: ['analytics', userId, selectedDate.toISOString()],
+    queryKey: ['analytics', userId, monthKey],
     queryFn: async (): Promise<PeriodSummary> => {
       const colRef = collection(db, 'users', userId, 'transactions')
-      
+
       // Query otimizada: busca lançamentos apenas a partir do mês anterior ao selecionado
       const q = query(
         colRef,
         where('date', '>=', Timestamp.fromDate(startOfPrevious)),
         orderBy('date', 'asc')
       )
-      
+
       const snapshot = await getDocs(q)
       const transactions: Transaction[] = []
-      
+
       snapshot.forEach((docSnap) => {
         const data = docSnap.data()
         transactions.push({
@@ -47,6 +51,9 @@ export function useAnalytics(selectedDate: Date) {
       return AnalyticsService.calculateSummary(transactions, selectedDate)
     },
     enabled: !!userId,
+    // Dados de analytics são invalidados explicitamente após mutações de transações.
+    // staleTime: Infinity evita refetches automáticos desnecessários.
+    staleTime: Infinity,
   })
 
   return {
@@ -56,3 +63,4 @@ export function useAnalytics(selectedDate: Date) {
     refetch: analyticsQuery.refetch,
   }
 }
+

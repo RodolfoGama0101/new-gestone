@@ -3,8 +3,10 @@
 import * as React from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useCategories } from '@/hooks/use-categories'
-import { useTransactions } from '@/hooks/use-transactions'
+import { useAuth } from '@/contexts/auth-context'
+import { TransactionService } from '@/services/transaction.service'
 import { transactionSchema, type TransactionInput } from '@/lib/validations/transaction.schema'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -15,7 +17,8 @@ import { CurrencyInput } from '@/components/shared/currency-input'
 import { DatePicker } from '@/components/shared/date-picker'
 import { Loader2, TrendingUp, TrendingDown } from 'lucide-react'
 import { Transaction } from '@/types/transaction'
-import { Timestamp } from 'firebase/firestore'
+import { parseFirestoreDate } from '@/lib/utils/parse-date'
+import { toast } from 'sonner'
 
 interface TransactionFormProps {
   onSuccess?: () => void
@@ -28,29 +31,45 @@ export function TransactionForm({
   defaultType = 'expense',
   editingTransaction,
 }: TransactionFormProps) {
+  const { user } = useAuth()
+  const queryClient = useQueryClient()
+  const userId = user?.uid ?? ''
   const { categories, isLoading: isCategoriesLoading } = useCategories()
-  const { createTransaction, updateTransaction, isCreating, isUpdating } = useInfiniteQueryWrapper() 
 
   const isEditMode = !!editingTransaction
-  const isLoading = isCreating || isUpdating
 
-  // Função auxiliar para obter objeto Date de timestamp ou data
-  const parseDate = (d: unknown): Date => {
-    if (!d) return new Date()
-    if (d instanceof Date) return d
-    if (d instanceof Timestamp) return d.toDate()
-    const record = d as { seconds?: number }
-    if (record && typeof record.seconds === 'number') {
-      return new Date(record.seconds * 1000)
-    }
-    return new Date(d as string | number)
-  }
+  // Mutations diretas — o form não precisa buscar transações, apenas criar/atualizar
+  const createMutation = useMutation({
+    mutationFn: (data: Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'>) =>
+      TransactionService.create(userId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions', userId] })
+      queryClient.invalidateQueries({ queryKey: ['analytics', userId] })
+      toast.success('Lançamento registrado com sucesso!')
+    },
+    onError: () => toast.error('Erro ao registrar lançamento.'),
+  })
+
+  const updateMutation = useMutation({
+    mutationFn: ({ transactionId, data }: {
+      transactionId: string
+      data: Partial<Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'>>
+    }) => TransactionService.update(userId, transactionId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions', userId] })
+      queryClient.invalidateQueries({ queryKey: ['analytics', userId] })
+      toast.success('Lançamento atualizado com sucesso!')
+    },
+    onError: () => toast.error('Erro ao atualizar lançamento.'),
+  })
+
+  const isLoading = createMutation.isPending || updateMutation.isPending
 
   // Prepara as tags (array para string separada por vírgulas)
-  const formatTags = (tags: string[] | undefined): string => {
+  const formatTags = React.useCallback((tags: string[] | undefined): string => {
     if (!tags || tags.length === 0) return ''
     return tags.join(', ')
-  }
+  }, [])
 
   const {
     register,
@@ -66,7 +85,7 @@ export function TransactionForm({
       amount: editingTransaction?.amount ?? 0,
       description: editingTransaction?.description ?? '',
       categoryId: editingTransaction?.categoryId ?? '',
-      date: parseDate(editingTransaction?.date),
+      date: parseFirestoreDate(editingTransaction?.date),
       tags: editingTransaction?.tags ?? [],
       notes: editingTransaction?.notes ?? '',
       recurring: editingTransaction?.recurring ?? false,
@@ -82,13 +101,11 @@ export function TransactionForm({
 
   const onSubmit = async (data: TransactionInput) => {
     const amountVal = typeof data.amount === 'string' ? parseInt(data.amount) : data.amount
-    if (amountVal <= 0) {
-      return
-    }
+    if (amountVal <= 0) return
 
     try {
       if (isEditMode && editingTransaction) {
-        await updateTransaction({
+        await updateMutation.mutateAsync({
           transactionId: editingTransaction.id,
           data: {
             type: data.type,
@@ -102,7 +119,7 @@ export function TransactionForm({
           },
         })
       } else {
-        await createTransaction({
+        await createMutation.mutateAsync({
           type: data.type,
           amount: amountVal,
           description: data.description,
@@ -297,9 +314,4 @@ export function TransactionForm({
       </Button>
     </form>
   )
-}
-
-// Wrapper local auxiliar para invocar useTransactions sem filtros e evitar typescript loop
-function useInfiniteQueryWrapper() {
-  return useTransactions()
 }

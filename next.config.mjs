@@ -9,7 +9,14 @@ const withPWA = withPWAInit({
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Configurações padrão do Next.js
+  // Ativa o React Strict Mode para melhor detecção de problemas e profiling
+  reactStrictMode: true,
+
+  // Otimiza tree-shaking de pacotes com muitos exports — reduz bundle size
+  // lucide-react e recharts têm centenas de ícones/componentes não utilizados
+  experimental: {
+    optimizePackageImports: ['lucide-react', 'recharts', 'date-fns'],
+  },
 }
 
 export default withPWA(nextConfig)

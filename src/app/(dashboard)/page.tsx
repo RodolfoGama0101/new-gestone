@@ -25,53 +25,60 @@ export default function DashboardPage() {
   const handlePrevMonth = () => setSelectedDate(subMonths(selectedDate, 1))
   const handleNextMonth = () => setSelectedDate(addMonths(selectedDate, 1))
 
-  // Saudação amigável baseada no horário local
-  const getGreeting = () => {
+  // Saudação amigável baseada no horário local — memoizada para não recalcular a cada render
+  const greeting = React.useMemo(() => {
     const hour = new Date().getHours()
     if (hour < 12) return 'Bom dia'
     if (hour < 18) return 'Boa tarde'
     return 'Boa noite'
-  }
+  }, [])
 
-  const userFirstName = user?.displayName ? user.displayName.split(' ')[0] : 'Usuário'
+  const userFirstName = React.useMemo(
+    () => (user?.displayName ? user.displayName.split(' ')[0] : 'Usuário'),
+    [user?.displayName]
+  )
 
-  // Seletor de Mês
-  const monthSelector = (
-    <div className="flex items-center gap-0.5 bg-background-100 dark:bg-card border border-border rounded-md p-0.5 shadow-sm">
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={handlePrevMonth}
-        className="size-7 cursor-pointer rounded-md hover:bg-accent shrink-0"
-        aria-label="Mês anterior"
-      >
-        <ChevronLeft className="size-3.5 text-muted-foreground" />
-      </Button>
+  // Seletor de Mês — memoizado para evitar recriar o JSX a cada re-render
+  const monthSelector = React.useMemo(
+    () => (
+      <div className="flex items-center gap-0.5 bg-background-100 dark:bg-card border border-border rounded-md p-0.5 shadow-sm">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handlePrevMonth}
+          className="size-7 cursor-pointer rounded-md hover:bg-accent shrink-0"
+          aria-label="Mês anterior"
+        >
+          <ChevronLeft className="size-3.5 text-muted-foreground" />
+        </Button>
 
-      <div className="flex items-center gap-1.5 px-2 min-w-[130px] justify-center">
-        <CalendarDays className="size-3 text-muted-foreground shrink-0" />
-        <span className="text-xs font-medium text-foreground capitalize leading-none">
-          {format(selectedDate, 'MMMM yyyy', { locale: ptBR })}
-        </span>
+        <div className="flex items-center gap-1.5 px-2 min-w-[130px] justify-center">
+          <CalendarDays className="size-3 text-muted-foreground shrink-0" />
+          <span className="text-xs font-medium text-foreground capitalize leading-none">
+            {format(selectedDate, 'MMMM yyyy', { locale: ptBR })}
+          </span>
+        </div>
+
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleNextMonth}
+          className="size-7 cursor-pointer rounded-md hover:bg-accent shrink-0"
+          aria-label="Próximo mês"
+        >
+          <ChevronRight className="size-3.5 text-muted-foreground" />
+        </Button>
       </div>
-
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={handleNextMonth}
-        className="size-7 cursor-pointer rounded-md hover:bg-accent shrink-0"
-        aria-label="Próximo mês"
-      >
-        <ChevronRight className="size-3.5 text-muted-foreground" />
-      </Button>
-    </div>
+    ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [selectedDate]
   )
 
   return (
     <div className="space-y-7 animate-in fade-in duration-300">
       {/* Header com saudação e seletor de mês */}
       <PageHeader
-        title={`${getGreeting()}, ${userFirstName}!`}
+        title={`${greeting}, ${userFirstName}!`}
         description="Aqui está um resumo de sua saúde financeira atual."
         action={monthSelector}
       />

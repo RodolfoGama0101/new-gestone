@@ -20,6 +20,9 @@ export function useCategories() {
       return list
     },
     enabled: !!userId,
+    // Categorias raramente mudam e já são invalidadas explicitamente nas mutações.
+    // staleTime: Infinity evita refetches automáticos desnecessários ao navegar entre telas.
+    staleTime: Infinity,
   })
 
   const createCategoryMutation = useMutation({
