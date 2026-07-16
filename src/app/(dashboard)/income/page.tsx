@@ -99,7 +99,7 @@ export default function IncomePage() {
                 Nova Receita
               </Button>
             } />
-            <DialogContent className="sm:max-w-[450px] rounded-md">
+            <DialogContent className="sm:max-w-[450px] md:max-w-[600px] rounded-md">
               <DialogHeader>
                 <DialogTitle>Nova Receita</DialogTitle>
                 <DialogDescription>
@@ -211,7 +211,7 @@ export default function IncomePage() {
 
       {/* Modal de Edição */}
       <Dialog open={editingTx !== null} onOpenChange={(open) => !open && setEditingTx(null)}>
-        <DialogContent className="sm:max-w-[450px]">
+        <DialogContent className="sm:max-w-[450px] md:max-w-[600px]">
           <DialogHeader>
             <DialogTitle>Editar Receita</DialogTitle>
             <DialogDescription>
