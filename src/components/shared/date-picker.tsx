@@ -59,6 +59,7 @@ export function DatePicker({
           selected={date}
           onSelect={handleSelect}
           disabled={disabled}
+          locale={ptBR}
         />
       </PopoverContent>
     </Popover>
