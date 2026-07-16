@@ -9,6 +9,7 @@ import { ThemeToggle } from '@/components/shared/theme-toggle'
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -90,21 +91,23 @@ export function Header() {
             </DropdownMenuTrigger>
 
             <DropdownMenuContent align="end" className="w-56 rounded-md">
-              <DropdownMenuLabel className="font-normal p-2">
-                <div className="flex items-center gap-2">
-                  <Avatar className="size-7 shrink-0">
-                    <AvatarFallback className="bg-muted text-foreground text-[10px] font-bold">
-                      {getInitials()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex flex-col min-w-0">
-                    <p className="text-xs font-semibold leading-none truncate">{displayName}</p>
-                    <p className="text-[10px] leading-none text-muted-foreground truncate mt-0.5">
-                      {user.email}
-                    </p>
+              <DropdownMenuGroup>
+                <DropdownMenuLabel className="font-normal p-2">
+                  <div className="flex items-center gap-2">
+                    <Avatar className="size-7 shrink-0">
+                      <AvatarFallback className="bg-muted text-foreground text-[10px] font-bold">
+                        {getInitials()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col min-w-0">
+                      <p className="text-xs font-semibold leading-none truncate">{displayName}</p>
+                      <p className="text-[10px] leading-none text-muted-foreground truncate mt-0.5">
+                        {user.email}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </DropdownMenuLabel>
+                </DropdownMenuLabel>
+              </DropdownMenuGroup>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={signOutUser}
