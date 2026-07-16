@@ -3,6 +3,7 @@
 import * as React from 'react'
 import { User, onAuthStateChanged } from 'firebase/auth'
 import { auth } from '@/lib/firebase/config'
+import { useRouter, usePathname } from 'next/navigation'
 
 interface AuthContextType {
   user: User | null
@@ -17,6 +18,8 @@ const AuthContext = React.createContext<AuthContextType>({
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = React.useState<User | null>(null)
   const [isLoading, setIsLoading] = React.useState(true)
+  const router = useRouter()
+  const pathname = usePathname()
 
   React.useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -48,6 +51,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => unsubscribe()
   }, [])
+
+  React.useEffect(() => {
+    if (!isLoading && user) {
+      const isAuthPage =
+        pathname === '/login' ||
+        pathname === '/register' ||
+        pathname === '/forgot-password'
+      if (isAuthPage) {
+        router.push('/')
+        router.refresh()
+      }
+    }
+  }, [user, isLoading, pathname, router])
 
   return (
     <AuthContext.Provider value={{ user, isLoading }}>
