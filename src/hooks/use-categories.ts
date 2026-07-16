@@ -11,7 +11,14 @@ export function useCategories() {
 
   const categoriesQuery = useQuery({
     queryKey: ['categories', userId],
-    queryFn: () => CategoryService.getAll(userId),
+    queryFn: async () => {
+      let list = await CategoryService.getAll(userId)
+      if (list.length === 0) {
+        await CategoryService.seedDefaultCategories(userId)
+        list = await CategoryService.getAll(userId)
+      }
+      return list
+    },
     enabled: !!userId,
   })
 
