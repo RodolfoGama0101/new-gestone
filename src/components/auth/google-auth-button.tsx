@@ -11,9 +11,14 @@ export function GoogleAuthButton() {
   const [isLoading, setIsLoading] = React.useState(false)
 
   const handleGoogleSignIn = async () => {
-    setIsLoading(true)
     try {
-      const user = await signInWithGoogle()
+      // Abre o pop-up imediatamente para aproveitar o gesto do usuário e evitar bloqueios pelo navegador
+      const signInPromise = signInWithGoogle()
+
+      // Altera o estado de loading após a chamada síncrona de abertura do pop-up
+      setIsLoading(true)
+
+      const user = await signInPromise
       if (user) {
         toast.success('Login efetuado com sucesso via Google!')
         // Mantém o estado de carregamento ativo até que o AuthProvider redirecione
