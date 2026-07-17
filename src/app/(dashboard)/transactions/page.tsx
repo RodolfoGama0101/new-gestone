@@ -25,7 +25,9 @@ import {
   Loader2, 
   Pencil, 
   Trash2, 
-  WalletIcon
+  WalletIcon,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react'
 
 export default function TransactionsPage() {
@@ -40,8 +42,10 @@ export default function TransactionsPage() {
     transactions,
     isLoading,
     hasNextPage,
-    fetchNextPage,
-    isFetchingNextPage,
+    hasPreviousPage,
+    goToNextPage,
+    goToPreviousPage,
+    currentPage,
     deleteTransaction,
     error,
   } = useTransactions({
@@ -272,23 +276,31 @@ export default function TransactionsPage() {
             </div>
           ))}
 
-          {/* Carregar mais */}
-          {hasNextPage && (
-            <div className="flex justify-center pt-2">
+          {/* Paginação */}
+          {(hasNextPage || hasPreviousPage) && (
+            <div className="flex items-center justify-between pt-2 px-1">
               <Button
                 variant="outline"
-                disabled={isFetchingNextPage}
-                onClick={() => fetchNextPage()}
-                className="gap-2 cursor-pointer rounded-md text-xs h-8"
+                size="sm"
+                disabled={!hasPreviousPage}
+                onClick={goToPreviousPage}
+                className="gap-1.5 cursor-pointer text-xs h-8"
               >
-                {isFetchingNextPage ? (
-                  <>
-                    <Loader2 className="size-3.5 animate-spin" />
-                    Carregando...
-                  </>
-                ) : (
-                  'Carregar Mais'
-                )}
+                <ChevronLeft className="size-3.5" />
+                Anterior
+              </Button>
+              <span className="text-xs text-muted-foreground font-medium">
+                Página {currentPage}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={!hasNextPage}
+                onClick={goToNextPage}
+                className="gap-1.5 cursor-pointer text-xs h-8"
+              >
+                Próximo
+                <ChevronRight className="size-3.5" />
               </Button>
             </div>
           )}

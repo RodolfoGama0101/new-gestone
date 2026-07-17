@@ -67,8 +67,8 @@ export function SummaryCards({
           </div>
         </CardHeader>
         <CardContent className="pb-4 px-5 space-y-0.5">
-          <div className="flex items-baseline justify-between gap-2">
-            <span className="text-2xl font-semibold tracking-tight text-green-700 dark:text-green-500">
+          <div className="flex flex-wrap items-baseline justify-between gap-1">
+            <span className="text-xl sm:text-2xl font-semibold tracking-tight text-green-700 dark:text-green-500">
               {formatBRL(income)}
             </span>
             <span
@@ -102,8 +102,8 @@ export function SummaryCards({
           </div>
         </CardHeader>
         <CardContent className="pb-4 px-5 space-y-0.5">
-          <div className="flex items-baseline justify-between gap-2">
-            <span className="text-2xl font-semibold tracking-tight text-red-700 dark:text-red-500">
+          <div className="flex flex-wrap items-baseline justify-between gap-1">
+            <span className="text-xl sm:text-2xl font-semibold tracking-tight text-red-700 dark:text-red-500">
               {formatBRL(expense)}
             </span>
             <span
@@ -137,8 +137,8 @@ export function SummaryCards({
           </div>
         </CardHeader>
         <CardContent className="pb-4 px-5 space-y-0.5">
-          <div className="flex items-baseline justify-between gap-2">
-            <span className="text-2xl font-semibold tracking-tight text-violet-700 dark:text-violet-500">
+          <div className="flex flex-wrap items-baseline justify-between gap-1">
+            <span className="text-xl sm:text-2xl font-semibold tracking-tight text-violet-700 dark:text-violet-500">
               {formatBRL(investment)}
             </span>
             <span

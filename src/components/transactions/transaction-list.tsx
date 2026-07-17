@@ -19,7 +19,7 @@ import { TransactionForm } from '@/components/transactions/transaction-form'
 import { TransactionRow } from '@/components/transactions/transaction-row'
 import { PageHeader } from '@/components/shared/page-header'
 import { Transaction } from '@/types/transaction'
-import { Plus, Loader2, LucideIcon } from 'lucide-react'
+import { Plus, Loader2, LucideIcon, ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface TransactionListProps {
   /** Tipo de transação a ser exibido e criado */
@@ -80,8 +80,10 @@ export function TransactionList({
     transactions,
     isLoading,
     hasNextPage,
-    fetchNextPage,
-    isFetchingNextPage,
+    hasPreviousPage,
+    goToNextPage,
+    goToPreviousPage,
+    currentPage,
     deleteTransaction,
     error,
   } = useTransactions({ type })
@@ -202,23 +204,31 @@ export function TransactionList({
             </CardContent>
           </Card>
 
-          {/* Paginação — Carregar mais */}
-          {hasNextPage && (
-            <div className="flex justify-center pt-2">
+          {/* Paginação */}
+          {(hasNextPage || hasPreviousPage) && (
+            <div className="flex items-center justify-between pt-2 px-1">
               <Button
                 variant="outline"
-                disabled={isFetchingNextPage}
-                onClick={() => fetchNextPage()}
-                className="gap-2 cursor-pointer"
+                size="sm"
+                disabled={!hasPreviousPage}
+                onClick={goToPreviousPage}
+                className="gap-1.5 cursor-pointer text-xs h-8"
               >
-                {isFetchingNextPage ? (
-                  <>
-                    <Loader2 className="size-4 animate-spin" />
-                    Carregando...
-                  </>
-                ) : (
-                  'Carregar Mais'
-                )}
+                <ChevronLeft className="size-3.5" />
+                Anterior
+              </Button>
+              <span className="text-xs text-muted-foreground font-medium">
+                Página {currentPage}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={!hasNextPage}
+                onClick={goToNextPage}
+                className="gap-1.5 cursor-pointer text-xs h-8"
+              >
+                Próximo
+                <ChevronRight className="size-3.5" />
               </Button>
             </div>
           )}

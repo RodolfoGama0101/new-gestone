@@ -86,7 +86,7 @@ export default function CreditCardsPage() {
             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-1">
               Cartões Ativos ({creditCards.length})
             </h3>
-            <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
+            <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-3 pl-1 py-1">
               {creditCards.map((card) => {
                 const isSelected = selectedCard?.id === card.id
                 return (
