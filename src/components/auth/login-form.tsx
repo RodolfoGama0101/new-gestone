@@ -1,7 +1,6 @@
 'use client'
 
 import * as React from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -18,7 +17,6 @@ import { signInWithEmail } from '@/lib/firebase/auth'
 
 export function LoginForm() {
   const [isLoading, setIsLoading] = React.useState(false)
-  const router = useRouter()
 
   const {
     register,
@@ -37,9 +35,9 @@ export function LoginForm() {
     try {
       await signInWithEmail(data.email, data.password)
       toast.success('Login realizado com sucesso!')
-      router.push('/')
-      router.refresh()
+      // Mantém o estado de carregamento ativo até que o AuthProvider redirecione
     } catch (error) {
+      setIsLoading(false)
       const authError = error as { code?: string }
       console.error('Login Error:', error)
       switch (authError.code) {
@@ -57,8 +55,6 @@ export function LoginForm() {
         default:
           toast.error('Erro ao realizar o login. Verifique seus dados e tente novamente.')
       }
-    } finally {
-      setIsLoading(false)
     }
   }
 

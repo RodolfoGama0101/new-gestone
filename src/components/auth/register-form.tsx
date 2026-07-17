@@ -1,7 +1,6 @@
 'use client'
 
 import * as React from 'react'
-import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
@@ -18,7 +17,6 @@ import { CategoryService } from '@/services/category.service'
 
 export function RegisterForm() {
   const [isLoading, setIsLoading] = React.useState(false)
-  const router = useRouter()
 
   const {
     register,
@@ -41,9 +39,9 @@ export function RegisterForm() {
         await CategoryService.seedDefaultCategories(user.uid)
       }
       toast.success('Conta criada com sucesso! Bem-vindo(a).')
-      router.push('/')
-      router.refresh()
+      // Mantém o estado de carregamento ativo até que o AuthProvider redirecione
     } catch (error) {
+      setIsLoading(false)
       const authError = error as { code?: string }
       console.error('Registration Error:', error)
       switch (authError.code) {
@@ -59,8 +57,6 @@ export function RegisterForm() {
         default:
           toast.error('Erro ao criar a conta. Tente novamente.')
       }
-    } finally {
-      setIsLoading(false)
     }
   }
 

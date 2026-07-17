@@ -1,7 +1,6 @@
 'use client'
 
 import * as React from 'react'
-import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
 
@@ -10,23 +9,30 @@ import { signInWithGoogle } from '@/lib/firebase/auth'
 
 export function GoogleAuthButton() {
   const [isLoading, setIsLoading] = React.useState(false)
-  const router = useRouter()
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true)
     try {
-      await signInWithGoogle()
-      toast.success('Login efetuado com sucesso via Google!')
-      router.push('/')
-      router.refresh()
+      const user = await signInWithGoogle()
+      if (user) {
+        toast.success('Login efetuado com sucesso via Google!')
+        // Mantém o estado de carregamento ativo até que o AuthProvider redirecione
+      } else {
+        setIsLoading(false)
+      }
     } catch (error) {
+      setIsLoading(false)
       const authError = error as { code?: string }
       console.error('Google Sign-In Error:', error)
-      if (authError.code !== 'auth/popup-closed-by-user') {
+      if (authError.code === 'auth/popup-blocked') {
+        toast.error(
+          'O pop-up de login foi bloqueado pelo seu navegador. Por favor, ative os pop-ups para este site e tente novamente.'
+        )
+      } else if (authError.code === 'auth/popup-closed-by-user') {
+        toast.error('O pop-up foi fechado antes de completar o login.')
+      } else {
         toast.error('Erro ao autenticar com o Google. Tente novamente.')
       }
-    } finally {
-      setIsLoading(false)
     }
   }
 

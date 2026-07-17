@@ -2,7 +2,6 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signInWithPopup,
-  signInWithRedirect,
   GoogleAuthProvider,
   signOut,
   sendPasswordResetEmail,
@@ -35,11 +34,6 @@ export async function signInWithGoogle() {
     const userCredential = await signInWithPopup(auth, googleProvider)
     return userCredential.user
   } catch (error) {
-    const authError = error as { code?: string }
-    if (authError.code === 'auth/popup-blocked' || authError.code === 'auth/cancelled-popup-request') {
-      await signInWithRedirect(auth, googleProvider)
-      return null
-    }
     throw error
   }
 }
