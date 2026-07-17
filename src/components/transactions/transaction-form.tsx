@@ -5,6 +5,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useCategories } from '@/hooks/use-categories'
+import { useCreditCards } from '@/hooks/use-credit-cards'
 import { useAuth } from '@/contexts/auth-context'
 import { TransactionService } from '@/services/transaction.service'
 import { transactionSchema, type TransactionInput } from '@/lib/validations/transaction.schema'
@@ -35,6 +36,7 @@ export function TransactionForm({
   const queryClient = useQueryClient()
   const userId = user?.uid ?? ''
   const { categories, isLoading: isCategoriesLoading } = useCategories()
+  const { creditCards } = useCreditCards()
 
   const isEditMode = !!editingTransaction
 
@@ -91,7 +93,7 @@ export function TransactionForm({
       tags: editingTransaction?.tags ?? [],
       notes: editingTransaction?.notes ?? '',
       recurring: editingTransaction?.recurring ?? false,
-      creditCardId: editingTransaction?.creditCardId ?? null,
+      creditCardId: editingTransaction?.creditCardId ?? 'none',
     },
   })
 
@@ -110,13 +112,23 @@ export function TransactionForm({
     }))
   }, [filteredCategories])
 
+  const cardSelectItems = React.useMemo(() => {
+    return [
+      { value: 'none', label: 'Não usar cartão (Débito)' },
+      ...creditCards.map((c) => ({
+        value: c.id,
+        label: `${c.name} (${c.bankName})`,
+      })),
+    ]
+  }, [creditCards])
+
   const onSubmit = async (data: TransactionInput) => {
     const amountVal = typeof data.amount === 'string' ? parseInt(data.amount) : data.amount
     if (amountVal <= 0) return
 
     try {
       const isExpense = data.type === 'expense'
-      const creditCardId = isExpense ? (data.creditCardId || null) : null
+      const creditCardId = isExpense && data.creditCardId !== 'none' ? (data.creditCardId || null) : null
 
       if (isEditMode && editingTransaction) {
         await updateMutation.mutateAsync({
@@ -170,7 +182,7 @@ export function TransactionForm({
               onClick={() => {
                 setValue('type', 'income')
                 setValue('categoryId', '') // reseta categoria ao mudar tipo
-                setValue('creditCardId', null)
+                setValue('creditCardId', 'none')
               }}
               disabled={isLoading}
             >
@@ -205,7 +217,7 @@ export function TransactionForm({
               onClick={() => {
                 setValue('type', 'investment')
                 setValue('categoryId', '')
-                setValue('creditCardId', null)
+                setValue('creditCardId', 'none')
               }}
               disabled={isLoading}
             >
@@ -299,6 +311,37 @@ export function TransactionForm({
             <p className="text-xs font-medium text-destructive">{errors.categoryId.message}</p>
           )}
         </div>
+
+        {/* Cartão de Crédito (Apenas para Despesa) */}
+        {watchType === 'expense' && (
+          <div className="space-y-1.5">
+            <Label htmlFor="creditCardId" className="text-sm font-semibold text-foreground">Forma de Pagamento (Cartão)</Label>
+            <Controller
+              name="creditCardId"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  value={field.value || 'none'}
+                  onValueChange={field.onChange}
+                  disabled={isLoading}
+                  items={cardSelectItems}
+                >
+                  <SelectTrigger id="creditCardId" className="w-full h-10 rounded-lg">
+                    <SelectValue placeholder="Sem cartão (Débito)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Não usar cartão (Débito)</SelectItem>
+                    {creditCards.map((card) => (
+                      <SelectItem key={card.id} value={card.id}>
+                        {card.name} ({card.bankName})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+          </div>
+        )}
 
         {/* Tags (Opcional) */}
         <div className="space-y-1.5 md:col-span-2">
