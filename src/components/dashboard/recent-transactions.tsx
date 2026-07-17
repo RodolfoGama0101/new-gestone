@@ -8,7 +8,7 @@ import { CategoryBadge } from '@/components/shared/category-badge'
 import { EmptyState } from '@/components/shared/empty-state'
 import { parseFirestoreDate } from '@/lib/utils/parse-date'
 import { format } from 'date-fns'
-import { ArrowUpRight, ArrowDownRight, Wallet, ArrowRight } from 'lucide-react'
+import { ArrowUpRight, ArrowDownRight, Wallet, ArrowRight, Coins } from 'lucide-react'
 import Link from 'next/link'
 import { Skeleton } from '@/components/ui/skeleton'
 
@@ -87,6 +87,7 @@ export function RecentTransactions() {
             {recent.map((tx) => {
               const cat = categoryMap.get(tx.categoryId)
               const isIncome = tx.type === 'income'
+              const isInvestment = tx.type === 'investment'
               return (
                 <div
                   key={tx.id}
@@ -97,11 +98,15 @@ export function RecentTransactions() {
                     className={`size-7 rounded-md flex items-center justify-center shrink-0 border ${
                       isIncome
                         ? 'bg-green-100 text-green-700 border-green-200/40 dark:bg-green-1000/20 dark:text-green-500 dark:border-green-800/10'
-                        : 'bg-red-100 text-red-700 border-red-200/40 dark:bg-red-1000/20 dark:text-red-500 dark:border-red-800/10'
+                        : isInvestment
+                          ? 'bg-violet-100 text-violet-700 border-violet-200/40 dark:bg-violet-1000/20 dark:text-violet-500 dark:border-violet-800/10'
+                          : 'bg-red-100 text-red-700 border-red-200/40 dark:bg-red-1000/20 dark:text-red-500 dark:border-red-800/10'
                     }`}
                   >
                     {isIncome ? (
                       <ArrowUpRight className="size-3.5" />
+                    ) : isInvestment ? (
+                      <Coins className="size-3.5" />
                     ) : (
                       <ArrowDownRight className="size-3.5" />
                     )}
@@ -121,7 +126,11 @@ export function RecentTransactions() {
                   {/* Amount */}
                   <span
                     className={`text-xs font-semibold shrink-0 tabular-nums ${
-                      isIncome ? 'text-green-700 dark:text-green-500' : 'text-red-700 dark:text-red-500'
+                      isIncome 
+                        ? 'text-green-700 dark:text-green-500' 
+                        : isInvestment
+                          ? 'text-violet-700 dark:text-violet-500'
+                          : 'text-red-700 dark:text-red-500'
                     }`}
                   >
                     {isIncome ? '+' : '−'}

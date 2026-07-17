@@ -15,7 +15,6 @@ export const defaultCategories: Omit<Category, 'id' | 'createdAt' | 'updatedAt'>
   // Receitas
   { name: 'Salário', type: 'income', icon: 'Briefcase', color: '#2563eb', isDefault: true },
   { name: 'Freelance', type: 'income', icon: 'Laptop', color: '#16a34a', isDefault: true },
-  { name: 'Investimentos', type: 'income', icon: 'TrendingUp', color: '#7c3aed', isDefault: true },
   { name: 'Prêmios / Presentes', type: 'income', icon: 'Gift', color: '#ec4899', isDefault: true },
   { name: 'Outras Receitas', type: 'income', icon: 'Coins', color: '#4b5563', isDefault: true },
   // Despesas
@@ -29,6 +28,12 @@ export const defaultCategories: Omit<Category, 'id' | 'createdAt' | 'updatedAt'>
   { name: 'Assinaturas / Serviços', type: 'expense', icon: 'Tv', color: '#0284c7', isDefault: true },
   { name: 'Vestuário', type: 'expense', icon: 'Shirt', color: '#8b5cf6', isDefault: true },
   { name: 'Outras Despesas', type: 'expense', icon: 'CreditCard', color: '#6b7280', isDefault: true },
+  // Investimentos
+  { name: 'Renda Fixa', type: 'investment', icon: 'Landmark', color: '#2563eb', isDefault: true },
+  { name: 'Renda Variável', type: 'investment', icon: 'TrendingUp', color: '#16a34a', isDefault: true },
+  { name: 'FIIs', type: 'investment', icon: 'Building2', color: '#06b6d4', isDefault: true },
+  { name: 'Cripto', type: 'investment', icon: 'Bitcoin', color: '#f97316', isDefault: true },
+  { name: 'Outros Investimentos', type: 'investment', icon: 'Wallet', color: '#7c3aed', isDefault: true },
 ]
 
 export const CategoryService = {
@@ -55,6 +60,80 @@ export const CategoryService = {
       })
     })
 
+    return this.checkAndMigrateCategories(userId, categories)
+  },
+
+  async checkAndMigrateCategories(userId: string, categories: Category[]): Promise<Category[]> {
+    if (categories.length === 0) return categories
+
+    const hasInvestments = categories.some((cat) => cat.type === 'investment')
+    if (!hasInvestments) {
+      const batch = writeBatch(db)
+      const colRef = this.getCollection(userId)
+      
+      const oldInvestmentsCat = categories.find(
+        (cat) => cat.name === 'Investimentos' && cat.type === 'income'
+      )
+      
+      const migratedCategories = [...categories]
+
+      if (oldInvestmentsCat) {
+        const catRef = doc(colRef, oldInvestmentsCat.id)
+        batch.update(catRef, {
+          name: 'Outros Investimentos',
+          type: 'investment',
+          icon: 'Wallet',
+          color: '#7c3aed',
+          updatedAt: serverTimestamp(),
+        })
+        
+        const idx = migratedCategories.findIndex((c) => c.id === oldInvestmentsCat.id)
+        if (idx !== -1) {
+          migratedCategories[idx] = {
+            ...migratedCategories[idx],
+            name: 'Outros Investimentos',
+            type: 'investment',
+            icon: 'Wallet',
+            color: '#7c3aed',
+          }
+        }
+      }
+
+      const newCats: Omit<Category, 'id' | 'createdAt' | 'updatedAt'>[] = [
+        { name: 'Renda Fixa', type: 'investment', icon: 'Landmark', color: '#2563eb', isDefault: true },
+        { name: 'Renda Variável', type: 'investment', icon: 'TrendingUp', color: '#16a34a', isDefault: true },
+        { name: 'FIIs', type: 'investment', icon: 'Building2', color: '#06b6d4', isDefault: true },
+        { name: 'Cripto', type: 'investment', icon: 'Bitcoin', color: '#f97316', isDefault: true },
+      ]
+
+      if (!oldInvestmentsCat) {
+        newCats.push({
+          name: 'Outros Investimentos',
+          type: 'investment',
+          icon: 'Wallet',
+          color: '#7c3aed',
+          isDefault: true,
+        })
+      }
+
+      newCats.forEach((cat) => {
+        const newDocRef = doc(colRef)
+        batch.set(newDocRef, {
+          ...cat,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        })
+        migratedCategories.push({
+          id: newDocRef.id,
+          ...cat,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        } as unknown as Category)
+      });
+
+      await batch.commit()
+      return migratedCategories
+    }
     return categories
   },
 

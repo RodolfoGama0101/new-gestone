@@ -11,7 +11,7 @@ export function useTransactions(filters: Omit<GetTransactionsFilters, 'lastVisib
   const userId = user?.uid ?? ''
 
   const transactionsQuery = useInfiniteQuery({
-    queryKey: ['transactions', userId, filters.type, filters.categoryId],
+    queryKey: ['transactions', userId, filters.type, filters.categoryId, filters.creditCardId],
     queryFn: ({ pageParam }) =>
       TransactionService.getPaged(userId, {
         ...filters,
@@ -28,6 +28,7 @@ export function useTransactions(filters: Omit<GetTransactionsFilters, 'lastVisib
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions', userId] })
       queryClient.invalidateQueries({ queryKey: ['analytics', userId] })
+      queryClient.invalidateQueries({ queryKey: ['creditCards', userId] })
       toast.success('Lançamento registrado com sucesso!')
     },
     onError: () => {
@@ -46,6 +47,7 @@ export function useTransactions(filters: Omit<GetTransactionsFilters, 'lastVisib
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions', userId] })
       queryClient.invalidateQueries({ queryKey: ['analytics', userId] })
+      queryClient.invalidateQueries({ queryKey: ['creditCards', userId] })
       toast.success('Lançamento atualizado com sucesso!')
     },
     onError: () => {
@@ -59,6 +61,7 @@ export function useTransactions(filters: Omit<GetTransactionsFilters, 'lastVisib
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions', userId] })
       queryClient.invalidateQueries({ queryKey: ['analytics', userId] })
+      queryClient.invalidateQueries({ queryKey: ['creditCards', userId] })
       toast.success('Lançamento excluído com sucesso!')
     },
     onError: () => {

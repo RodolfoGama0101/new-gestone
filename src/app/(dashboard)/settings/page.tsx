@@ -196,7 +196,7 @@ export default function SettingsPage() {
       />
 
       {/* Tabs Control */}
-      <div className="flex border-b border-border overflow-x-auto scrollbar-thin">
+      <div className="flex border-b border-border overflow-x-auto overflow-y-hidden scrollbar-none">
         {([
           { id: 'profile', label: 'Meu Perfil', icon: User },
           { id: 'preferences', label: 'Preferências', icon: SettingsIcon },

@@ -43,6 +43,7 @@ export function useAnalytics(selectedDate: Date) {
           tags: data.tags ?? [],
           notes: data.notes ?? null,
           recurring: data.recurring ?? false,
+          creditCardId: data.creditCardId ?? null,
           createdAt: data.createdAt,
           updatedAt: data.updatedAt,
         })

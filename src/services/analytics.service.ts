@@ -10,9 +10,11 @@ export interface DailyBalancePoint {
 export interface PeriodSummary {
   income: number // em centavos
   expense: number // em centavos
+  investment: number // em centavos (NOVO)
   balance: number // em centavos
   incomeChangePercent: number // Variação em relação ao mês anterior
   expenseChangePercent: number // Variação em relação ao mês anterior
+  investmentChangePercent: number // Variação em relação ao mês anterior (NOVO)
   balanceChangePercent: number // Variação em relação ao mês anterior
   dailyBalance: DailyBalancePoint[]
 }
@@ -42,9 +44,11 @@ export const AnalyticsService = {
 
     let income = 0
     let expense = 0
+    let investment = 0
 
     let prevIncome = 0
     let prevExpense = 0
+    let prevInvestment = 0
 
     // Filtra as transações correspondentes a cada período
     transactions.forEach((tx) => {
@@ -55,14 +59,16 @@ export const AnalyticsService = {
       if (isCurrent) {
         if (tx.type === 'income') income += tx.amount
         else if (tx.type === 'expense') expense += tx.amount
+        else if (tx.type === 'investment') investment += tx.amount
       } else if (isPrevious) {
         if (tx.type === 'income') prevIncome += tx.amount
         else if (tx.type === 'expense') prevExpense += tx.amount
+        else if (tx.type === 'investment') prevInvestment += tx.amount
       }
     })
 
-    const balance = income - expense
-    const prevBalance = prevIncome - prevExpense
+    const balance = income - expense - investment
+    const prevBalance = prevIncome - prevExpense - prevInvestment
 
     // Calcula a variação percentual
     const calculateChange = (current: number, previous: number): number => {
@@ -72,6 +78,7 @@ export const AnalyticsService = {
 
     const incomeChangePercent = calculateChange(income, prevIncome)
     const expenseChangePercent = calculateChange(expense, prevExpense)
+    const investmentChangePercent = calculateChange(investment, prevInvestment)
     const balanceChangePercent = calculateChange(balance, prevBalance)
 
     // Agrupamento diário do saldo para o Sparkline
@@ -99,6 +106,7 @@ export const AnalyticsService = {
       if (tx.type === 'income') {
         runningBalance += tx.amount
       } else {
+        // Reduz o saldo tanto para expense quanto para investment
         runningBalance -= tx.amount
       }
       dailyBalanceMap.set(dayKey, runningBalance)
@@ -118,9 +126,11 @@ export const AnalyticsService = {
     return {
       income,
       expense,
+      investment,
       balance,
       incomeChangePercent,
       expenseChangePercent,
+      investmentChangePercent,
       balanceChangePercent,
       dailyBalance,
     }

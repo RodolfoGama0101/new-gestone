@@ -15,7 +15,7 @@ interface TransactionRowProps {
   category: Category | undefined
   onEdit: (tx: Transaction) => void
   onDelete: (id: string) => void
-  accentColor: 'income' | 'expense'
+  accentColor: 'income' | 'expense' | 'investment'
 }
 
 /**
@@ -30,7 +30,8 @@ export const TransactionRow = React.memo(function TransactionRow({
   onDelete,
   accentColor,
 }: TransactionRowProps) {
-  const isIncome = accentColor === 'income'
+  const isIncome = tx.type === 'income'
+  const isInvestment = tx.type === 'investment'
 
   const formattedDate = React.useMemo(
     () => format(parseFirestoreDate(tx.date), "dd 'de' MMMM, yyyy", { locale: ptBR }),
@@ -75,7 +76,9 @@ export const TransactionRow = React.memo(function TransactionRow({
           className={`text-xs sm:text-sm font-semibold tabular-nums ${
             isIncome
               ? 'text-green-700 dark:text-green-500'
-              : 'text-red-700 dark:text-red-500'
+              : isInvestment
+                ? 'text-violet-700 dark:text-violet-500'
+                : 'text-red-700 dark:text-red-500'
           }`}
         >
           {formattedAmount}

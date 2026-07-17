@@ -15,14 +15,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea'
 import { CurrencyInput } from '@/components/shared/currency-input'
 import { DatePicker } from '@/components/shared/date-picker'
-import { Loader2, TrendingUp, TrendingDown } from 'lucide-react'
+import { Loader2, TrendingUp, TrendingDown, Coins } from 'lucide-react'
 import { Transaction } from '@/types/transaction'
 import { parseFirestoreDate } from '@/lib/utils/parse-date'
 import { toast } from 'sonner'
 
 interface TransactionFormProps {
   onSuccess?: () => void
-  defaultType?: 'income' | 'expense'
+  defaultType?: 'income' | 'expense' | 'investment'
   editingTransaction?: Transaction
 }
 
@@ -45,6 +45,7 @@ export function TransactionForm({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions', userId] })
       queryClient.invalidateQueries({ queryKey: ['analytics', userId] })
+      queryClient.invalidateQueries({ queryKey: ['creditCards', userId] })
       toast.success('Lançamento registrado com sucesso!')
     },
     onError: () => toast.error('Erro ao registrar lançamento.'),
@@ -58,6 +59,7 @@ export function TransactionForm({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions', userId] })
       queryClient.invalidateQueries({ queryKey: ['analytics', userId] })
+      queryClient.invalidateQueries({ queryKey: ['creditCards', userId] })
       toast.success('Lançamento atualizado com sucesso!')
     },
     onError: () => toast.error('Erro ao atualizar lançamento.'),
@@ -89,6 +91,7 @@ export function TransactionForm({
       tags: editingTransaction?.tags ?? [],
       notes: editingTransaction?.notes ?? '',
       recurring: editingTransaction?.recurring ?? false,
+      creditCardId: editingTransaction?.creditCardId ?? null,
     },
   })
 
@@ -112,6 +115,9 @@ export function TransactionForm({
     if (amountVal <= 0) return
 
     try {
+      const isExpense = data.type === 'expense'
+      const creditCardId = isExpense ? (data.creditCardId || null) : null
+
       if (isEditMode && editingTransaction) {
         await updateMutation.mutateAsync({
           transactionId: editingTransaction.id,
@@ -124,6 +130,7 @@ export function TransactionForm({
             tags: data.tags,
             notes: data.notes || null,
             recurring: data.recurring,
+            creditCardId,
           },
         })
       } else {
@@ -136,6 +143,7 @@ export function TransactionForm({
           tags: data.tags,
           notes: data.notes || null,
           recurring: data.recurring,
+          creditCardId,
         })
       }
       if (onSuccess) onSuccess()
@@ -147,10 +155,10 @@ export function TransactionForm({
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3.5">
-        {/* Seletor de Tipo (Receita / Despesa) */}
+        {/* Seletor de Tipo (Receita / Despesa / Investimento) */}
         <div className="space-y-1.5 md:col-span-2">
           <Label className="text-sm font-semibold text-foreground">Tipo de Lançamento</Label>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             <Button
               type="button"
               variant={watchType === 'income' ? 'default' : 'outline'}
@@ -162,6 +170,7 @@ export function TransactionForm({
               onClick={() => {
                 setValue('type', 'income')
                 setValue('categoryId', '') // reseta categoria ao mudar tipo
+                setValue('creditCardId', null)
               }}
               disabled={isLoading}
             >
@@ -184,6 +193,24 @@ export function TransactionForm({
             >
               <TrendingDown className="size-4" />
               Despesa
+            </Button>
+            <Button
+              type="button"
+              variant={watchType === 'investment' ? 'default' : 'outline'}
+              className={`w-full h-10 gap-2 cursor-pointer rounded-lg font-bold transition-all ${
+                watchType === 'investment' 
+                  ? 'bg-violet-600 text-white hover:bg-violet-700 border-transparent shadow-xs' 
+                  : 'text-muted-foreground'
+              }`}
+              onClick={() => {
+                setValue('type', 'investment')
+                setValue('categoryId', '')
+                setValue('creditCardId', null)
+              }}
+              disabled={isLoading}
+            >
+              <Coins className="size-4" />
+              Investir
             </Button>
           </div>
         </div>

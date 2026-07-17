@@ -45,6 +45,7 @@ export function CashFlowBarChart({ data }: CashFlowBarChartProps) {
                 tickFormatter={(value) => `R$ ${(value / 100).toLocaleString('pt-BR', { notation: 'compact' })}`}
               />
               <Tooltip 
+                cursor={{ fill: 'var(--accent)', opacity: 0.15 }}
                 content={
                   <GeistChartTooltip valueFormatter={formatBRL} />
                 }

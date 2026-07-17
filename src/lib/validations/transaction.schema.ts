@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 export const transactionSchema = z.object({
-  type: z.enum(['income', 'expense']),
+  type: z.enum(['income', 'expense', 'investment']),
   amount: z.union([
     z.number().positive('O valor deve ser maior que zero'),
     z.string().min(1, 'O valor é obrigatório')
@@ -17,6 +17,7 @@ export const transactionSchema = z.object({
   tags: z.array(z.string()).default([]),
   notes: z.string().max(500, 'A nota não pode exceder 500 caracteres').nullable().optional(),
   recurring: z.boolean().default(false),
+  creditCardId: z.string().nullable().optional(),
 })
 
 export type TransactionInput = z.infer<typeof transactionSchema>

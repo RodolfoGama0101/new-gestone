@@ -20,8 +20,9 @@ import { db } from '@/lib/firebase/config'
 import { Transaction } from '@/types/transaction'
 
 export interface GetTransactionsFilters {
-  type?: 'income' | 'expense'
+  type?: 'income' | 'expense' | 'investment'
   categoryId?: string
+  creditCardId?: string
   limitCount?: number
   lastVisible?: QueryDocumentSnapshot<DocumentData>
 }
@@ -46,6 +47,9 @@ export const TransactionService = {
     }
     if (filters.categoryId) {
       constraints.push(where('categoryId', '==', filters.categoryId))
+    }
+    if (filters.creditCardId) {
+      constraints.push(where('creditCardId', '==', filters.creditCardId))
     }
 
     constraints.push(orderBy('date', 'desc'))
@@ -73,6 +77,7 @@ export const TransactionService = {
         tags: data.tags ?? [],
         notes: data.notes ?? null,
         recurring: data.recurring ?? false,
+        creditCardId: data.creditCardId ?? null,
         createdAt: data.createdAt,
         updatedAt: data.updatedAt,
       })

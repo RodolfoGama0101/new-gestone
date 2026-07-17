@@ -22,6 +22,8 @@ const PAGE_TITLES: Record<string, string> = {
   '/transactions': 'Extrato',
   '/income': 'Receitas',
   '/expenses': 'Despesas',
+  '/investments': 'Investimentos',
+  '/credit-cards': 'Cartões',
   '/analytics': 'Relatórios',
   '/categories': 'Categorias',
   '/settings': 'Configurações',

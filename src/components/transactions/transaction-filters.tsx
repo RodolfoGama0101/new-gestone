@@ -36,6 +36,7 @@ export function TransactionFilters() {
     { value: 'all', label: 'Todos os tipos' },
     { value: 'income', label: 'Receitas (Entradas)' },
     { value: 'expense', label: 'Despesas (Saídas)' },
+    { value: 'investment', label: 'Investimentos' },
   ], [])
 
   const categorySelectItems = React.useMemo(() => {
@@ -73,6 +74,7 @@ export function TransactionFilters() {
             <SelectItem value="all" className="text-xs rounded-md">Todos os tipos</SelectItem>
             <SelectItem value="income" className="text-xs rounded-md">Receitas (Entradas)</SelectItem>
             <SelectItem value="expense" className="text-xs rounded-md">Despesas (Saídas)</SelectItem>
+            <SelectItem value="investment" className="text-xs rounded-md">Investimentos</SelectItem>
           </SelectContent>
         </Select>
 

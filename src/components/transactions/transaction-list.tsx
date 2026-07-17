@@ -23,7 +23,7 @@ import { Plus, Loader2, LucideIcon } from 'lucide-react'
 
 interface TransactionListProps {
   /** Tipo de transação a ser exibido e criado */
-  type: 'income' | 'expense'
+  type: 'income' | 'expense' | 'investment'
   /** Título da página */
   title: string
   /** Subtítulo da página */

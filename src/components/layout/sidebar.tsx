@@ -14,6 +14,8 @@ import {
   Tag,
   Settings,
   Receipt,
+  Coins,
+  CreditCard,
 } from 'lucide-react'
 
 const navItems = [
@@ -21,6 +23,8 @@ const navItems = [
   { label: 'Extrato', href: '/transactions', icon: Receipt },
   { label: 'Receitas', href: '/income', icon: ArrowUpCircle },
   { label: 'Despesas', href: '/expenses', icon: ArrowDownCircle },
+  { label: 'Investimentos', href: '/investments', icon: Coins },
+  { label: 'Cartões', href: '/credit-cards', icon: CreditCard },
   { label: 'Relatórios', href: '/analytics', icon: BarChart3 },
   { label: 'Categorias', href: '/categories', icon: Tag },
 ]
