@@ -102,6 +102,9 @@ export default function DashboardPage() {
             expenseChange={summary?.expenseChangePercent ?? 0}
             investment={summary?.investment ?? 0}
             investmentChange={summary?.investmentChangePercent ?? 0}
+            incomeCount={summary?.incomeCount ?? 0}
+            expenseCount={summary?.expenseCount ?? 0}
+            investmentCount={summary?.investmentCount ?? 0}
             isLoading={isLoading}
           />
         </div>

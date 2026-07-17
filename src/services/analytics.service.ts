@@ -21,6 +21,9 @@ export interface PeriodSummary {
   futureCardExpenses: number // em centavos (NOVO)
   availableBalance: number // em centavos (NOVO)
   dailyBalance: DailyBalancePoint[]
+  incomeCount: number
+  expenseCount: number
+  investmentCount: number
 }
 
 // Auxiliar para converter timestamps Firestore em datas reais
@@ -55,6 +58,10 @@ export const AnalyticsService = {
     let expense = 0
     let investment = 0
 
+    let incomeCount = 0
+    let expenseCount = 0
+    let investmentCount = 0
+
     let prevIncome = 0
     let prevExpense = 0
     let prevInvestment = 0
@@ -85,9 +92,16 @@ export const AnalyticsService = {
       const isPrevious = isWithinInterval(effectiveDate, { start: startOfPrevious, end: endOfPrevious })
 
       if (isCurrent) {
-        if (tx.type === 'income') income += tx.amount
-        else if (tx.type === 'expense') expense += tx.amount
-        else if (tx.type === 'investment') investment += tx.amount
+        if (tx.type === 'income') {
+          income += tx.amount
+          incomeCount++
+        } else if (tx.type === 'expense') {
+          expense += tx.amount
+          expenseCount++
+        } else if (tx.type === 'investment') {
+          investment += tx.amount
+          investmentCount++
+        }
       } else if (isPrevious) {
         if (tx.type === 'income') prevIncome += tx.amount
         else if (tx.type === 'expense') prevExpense += tx.amount
@@ -174,6 +188,9 @@ export const AnalyticsService = {
       futureCardExpenses,
       availableBalance,
       dailyBalance,
+      incomeCount,
+      expenseCount,
+      investmentCount,
     }
   },
 }

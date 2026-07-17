@@ -12,6 +12,9 @@ interface SummaryCardsProps {
   expenseChange: number
   investment: number // em centavos (NOVO)
   investmentChange: number // (NOVO)
+  incomeCount?: number
+  expenseCount?: number
+  investmentCount?: number
   isLoading?: boolean
 }
 
@@ -22,6 +25,9 @@ export function SummaryCards({
   expenseChange,
   investment,
   investmentChange,
+  incomeCount = 0,
+  expenseCount = 0,
+  investmentCount = 0,
   isLoading = false,
 }: SummaryCardsProps) {
   const formatBRL = (cents: number) => {
@@ -66,6 +72,9 @@ export function SummaryCards({
           <span className="text-xl sm:text-2xl font-semibold tracking-tight text-green-700 dark:text-green-500">
             {formatBRL(income)}
           </span>
+          <p className="text-[10px] text-muted-foreground mt-1">
+            {incomeCount} {incomeCount === 1 ? 'recebimento' : 'recebimentos'}
+          </p>
         </CardContent>
       </Card>
  
@@ -83,6 +92,9 @@ export function SummaryCards({
           <span className="text-xl sm:text-2xl font-semibold tracking-tight text-red-700 dark:text-red-500">
             {formatBRL(expense)}
           </span>
+          <p className="text-[10px] text-muted-foreground mt-1">
+            {expenseCount} {expenseCount === 1 ? 'pagamento' : 'pagamentos'}
+          </p>
         </CardContent>
       </Card>
  
@@ -100,6 +112,9 @@ export function SummaryCards({
           <span className="text-xl sm:text-2xl font-semibold tracking-tight text-violet-700 dark:text-violet-500">
             {formatBRL(investment)}
           </span>
+          <p className="text-[10px] text-muted-foreground mt-1">
+            {investmentCount} {investmentCount === 1 ? 'aporte' : 'aportes'}
+          </p>
         </CardContent>
       </Card>
     </div>
