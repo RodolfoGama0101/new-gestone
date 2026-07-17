@@ -54,6 +54,7 @@ export default function AnalyticsPage() {
           tags: data.tags ?? [],
           notes: data.notes ?? null,
           recurring: data.recurring ?? false,
+          creditCardId: data.creditCardId ?? null,
           createdAt: data.createdAt,
           updatedAt: data.updatedAt,
         })
@@ -78,9 +79,12 @@ export default function AnalyticsPage() {
   const periodTotals = React.useMemo(() => {
     let income = 0
     let expense = 0
+    let investment = 0
     transactions.forEach((tx) => {
       if (tx.type === 'income') {
         income += tx.amount
+      } else if (tx.type === 'investment') {
+        investment += tx.amount
       } else {
         expense += tx.amount
       }
@@ -88,7 +92,8 @@ export default function AnalyticsPage() {
     return {
       income,
       expense,
-      balance: income - expense,
+      investment,
+      balance: income - expense - investment,
     }
   }, [transactions])
 
@@ -134,7 +139,7 @@ export default function AnalyticsPage() {
       ) : (
         <div className="space-y-6">
           {/* KPI Summary Cards */}
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-4">
             {/* Total Receitas */}
             <Card className="border-border bg-card shadow-xs rounded-md p-4 flex flex-col justify-between h-20">
               <span className="text-[11px] font-normal text-muted-foreground">Total Receitas (Período)</span>
@@ -147,6 +152,13 @@ export default function AnalyticsPage() {
               <span className="text-[11px] font-normal text-muted-foreground">Total Despesas (Período)</span>
               <span className="text-xl font-semibold text-red-700 dark:text-red-500 tracking-tight leading-none">
                 {(periodTotals.expense / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+              </span>
+            </Card>
+            {/* Total Investimentos */}
+            <Card className="border-border bg-card shadow-xs rounded-md p-4 flex flex-col justify-between h-20">
+              <span className="text-[11px] font-normal text-muted-foreground">Investido (Período)</span>
+              <span className="text-xl font-semibold text-violet-700 dark:text-violet-500 tracking-tight leading-none">
+                {(periodTotals.investment / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
               </span>
             </Card>
             {/* Saldo Líquido */}

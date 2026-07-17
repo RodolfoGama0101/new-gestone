@@ -92,6 +92,8 @@ export default function DashboardPage() {
             changePercent={summary?.balanceChangePercent ?? 0}
             data={summary?.dailyBalance ?? []}
             isLoading={isLoading}
+            futureCardExpenses={summary?.futureCardExpenses ?? 0}
+            availableBalance={summary?.availableBalance ?? 0}
           />
           <SummaryCards
             income={summary?.income ?? 0}

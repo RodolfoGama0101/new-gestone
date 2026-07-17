@@ -56,12 +56,13 @@ export function CashFlowBarChart({ data }: CashFlowBarChartProps) {
                 iconType="circle"
                 iconSize={6}
                 formatter={(value) => {
-                  const label = value === 'income' ? 'Receitas' : 'Despesas'
+                  const label = value === 'income' ? 'Receitas' : value === 'expense' ? 'Despesas' : 'Investimentos'
                   return <span className="text-[10px] text-muted-foreground font-medium ml-1 mr-4">{label}</span>
                 }}
               />
-              <Bar dataKey="income" name="income" fill="var(--income)" radius={[3, 3, 0, 0]} maxBarSize={28} />
-              <Bar dataKey="expense" name="expense" fill="var(--expense)" radius={[3, 3, 0, 0]} maxBarSize={28} />
+              <Bar dataKey="income" name="income" fill="var(--income)" radius={[3, 3, 0, 0]} maxBarSize={20} />
+              <Bar dataKey="expense" name="expense" fill="var(--expense)" radius={[3, 3, 0, 0]} maxBarSize={20} />
+              <Bar dataKey="investment" name="investment" fill="#7c3aed" radius={[3, 3, 0, 0]} maxBarSize={20} />
             </BarChart>
           </ResponsiveContainer>
         )}

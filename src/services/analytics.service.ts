@@ -1,6 +1,8 @@
 import { Transaction } from '@/types/transaction'
+import { CreditCard } from '@/types/credit-card'
 import { startOfMonth, endOfMonth, isWithinInterval, subMonths, format } from 'date-fns'
 import { Timestamp } from 'firebase/firestore'
+import { getEffectiveDebitMonth, hasCardExpenseDebited } from '@/lib/utils/credit-card-billing'
 
 export interface DailyBalancePoint {
   date: string // Formato "dd/MM"
@@ -10,12 +12,14 @@ export interface DailyBalancePoint {
 export interface PeriodSummary {
   income: number // em centavos
   expense: number // em centavos
-  investment: number // em centavos (NOVO)
+  investment: number // em centavos
   balance: number // em centavos
-  incomeChangePercent: number // Variação em relação ao mês anterior
-  expenseChangePercent: number // Variação em relação ao mês anterior
-  investmentChangePercent: number // Variação em relação ao mês anterior (NOVO)
-  balanceChangePercent: number // Variação em relação ao mês anterior
+  incomeChangePercent: number
+  expenseChangePercent: number
+  investmentChangePercent: number
+  balanceChangePercent: number
+  futureCardExpenses: number // em centavos (NOVO)
+  availableBalance: number // em centavos (NOVO)
   dailyBalance: DailyBalancePoint[]
 }
 
@@ -34,13 +38,18 @@ function parseToDate(dateVal: unknown): Date {
 export const AnalyticsService = {
   calculateSummary(
     transactions: Transaction[],
-    selectedDate: Date
+    selectedDate: Date,
+    creditCards: CreditCard[] = []
   ): PeriodSummary {
     const startOfCurrent = startOfMonth(selectedDate)
     const endOfCurrent = endOfMonth(selectedDate)
 
     const startOfPrevious = startOfMonth(subMonths(selectedDate, 1))
     const endOfPrevious = endOfMonth(subMonths(selectedDate, 1))
+
+    // Cria um mapa de cartões para busca rápida de closingDay
+    const cardClosingDays = new Map<string, number>()
+    creditCards.forEach((c) => cardClosingDays.set(c.id, c.closingDay))
 
     let income = 0
     let expense = 0
@@ -50,11 +59,30 @@ export const AnalyticsService = {
     let prevExpense = 0
     let prevInvestment = 0
 
+    let futureCardExpenses = 0
+    const today = new Date()
+
     // Filtra as transações correspondentes a cada período
     transactions.forEach((tx) => {
       const txDate = parseToDate(tx.date)
-      const isCurrent = isWithinInterval(txDate, { start: startOfCurrent, end: endOfCurrent })
-      const isPrevious = isWithinInterval(txDate, { start: startOfPrevious, end: endOfPrevious })
+      
+      // Se for uma despesa de cartão de crédito
+      let effectiveDate = txDate
+      let isCardExpense = false
+      let closingDay = 10 // Padrão caso o cartão não seja encontrado
+
+      if (tx.type === 'expense' && tx.creditCardId) {
+        isCardExpense = true
+        closingDay = cardClosingDays.get(tx.creditCardId) ?? 10
+        
+        // Calcula o mês efetivo em que essa despesa debita
+        const { month, year } = getEffectiveDebitMonth(closingDay, txDate)
+        // Cria uma data correspondente para ver se cai no mês selecionado
+        effectiveDate = new Date(year, month, 15) // Dia 15 para evitar problemas de fuso horário
+      }
+
+      const isCurrent = isWithinInterval(effectiveDate, { start: startOfCurrent, end: endOfCurrent })
+      const isPrevious = isWithinInterval(effectiveDate, { start: startOfPrevious, end: endOfPrevious })
 
       if (isCurrent) {
         if (tx.type === 'income') income += tx.amount
@@ -65,10 +93,16 @@ export const AnalyticsService = {
         else if (tx.type === 'expense') prevExpense += tx.amount
         else if (tx.type === 'investment') prevInvestment += tx.amount
       }
+
+      // Calcula as despesas futuras (compras no cartão que ainda não viraram/debitaram)
+      if (isCardExpense && !hasCardExpenseDebited(closingDay, txDate, today)) {
+        futureCardExpenses += tx.amount
+      }
     })
 
     const balance = income - expense - investment
     const prevBalance = prevIncome - prevExpense - prevInvestment
+    const availableBalance = balance - futureCardExpenses
 
     // Calcula a variação percentual
     const calculateChange = (current: number, previous: number): number => {
@@ -86,7 +120,15 @@ export const AnalyticsService = {
     const currentMonthTxs = transactions
       .filter((tx) => {
         const txDate = parseToDate(tx.date)
-        return isWithinInterval(txDate, { start: startOfCurrent, end: endOfCurrent })
+        let effectiveDate = txDate
+
+        if (tx.type === 'expense' && tx.creditCardId) {
+          const closingDay = cardClosingDays.get(tx.creditCardId) ?? 10
+          const { month, year } = getEffectiveDebitMonth(closingDay, txDate)
+          effectiveDate = new Date(year, month, 15)
+        }
+
+        return isWithinInterval(effectiveDate, { start: startOfCurrent, end: endOfCurrent })
       })
       .sort((a, b) => {
         const dateA = parseToDate(a.date).getTime()
@@ -96,8 +138,6 @@ export const AnalyticsService = {
 
     // Monta o saldo acumulado dia a dia
     const dailyBalanceMap = new Map<string, number>()
-    
-    // Inicializa todos os dias do mês com saldo 0
     let runningBalance = 0
     
     // Percorre e acumula o saldo diário
@@ -106,7 +146,6 @@ export const AnalyticsService = {
       if (tx.type === 'income') {
         runningBalance += tx.amount
       } else {
-        // Reduz o saldo tanto para expense quanto para investment
         runningBalance -= tx.amount
       }
       dailyBalanceMap.set(dayKey, runningBalance)
@@ -132,6 +171,8 @@ export const AnalyticsService = {
       expenseChangePercent,
       investmentChangePercent,
       balanceChangePercent,
+      futureCardExpenses,
+      availableBalance,
       dailyBalance,
     }
   },

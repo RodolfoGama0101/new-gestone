@@ -4,6 +4,7 @@ import { db } from '@/lib/firebase/config'
 import { useAuth } from '@/contexts/auth-context'
 import { Transaction } from '@/types/transaction'
 import { AnalyticsService, PeriodSummary } from '@/services/analytics.service'
+import { CreditCardService } from '@/services/credit-card.service'
 import { startOfMonth, subMonths, format } from 'date-fns'
 
 export function useAnalytics(selectedDate: Date) {
@@ -49,7 +50,10 @@ export function useAnalytics(selectedDate: Date) {
         })
       })
 
-      return AnalyticsService.calculateSummary(transactions, selectedDate)
+      // Busca cartões de crédito para calcular ciclos de faturamento no analytics
+      const cards = await CreditCardService.getAll(userId)
+
+      return AnalyticsService.calculateSummary(transactions, selectedDate, cards)
     },
     enabled: !!userId,
     // Dados de analytics são invalidados explicitamente após mutações de transações.

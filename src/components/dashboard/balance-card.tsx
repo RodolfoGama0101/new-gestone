@@ -16,9 +16,18 @@ interface BalanceCardProps {
   changePercent: number
   data: DailyPoint[]
   isLoading?: boolean
+  futureCardExpenses?: number
+  availableBalance?: number
 }
 
-export function BalanceCard({ balance, changePercent, data, isLoading = false }: BalanceCardProps) {
+export function BalanceCard({
+  balance,
+  changePercent,
+  data,
+  isLoading = false,
+  futureCardExpenses = 0,
+  availableBalance = 0,
+}: BalanceCardProps) {
   const formattedBalance = (balance / 100).toLocaleString('pt-BR', {
     style: 'currency',
     currency: 'BRL',
@@ -72,7 +81,22 @@ export function BalanceCard({ balance, changePercent, data, isLoading = false }:
             {changePercent}%
           </span>
         </div>
-        <p className="text-[10px] text-muted-foreground mt-0.5 mb-2">Em relação ao mês anterior</p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mt-0.5 mb-2">
+          <p className="text-[10px] text-muted-foreground">Em relação ao mês anterior</p>
+          {futureCardExpenses > 0 && (
+            <div className="text-[10px] text-muted-foreground flex items-center gap-1">
+              <span>Faturas:</span>
+              <span className="font-semibold text-red-600 dark:text-red-400">
+                {(futureCardExpenses / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+              </span>
+              <span className="text-muted-foreground/30">•</span>
+              <span>Disponível:</span>
+              <span className="font-semibold text-foreground">
+                {(availableBalance / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+              </span>
+            </div>
+          )}
+        </div>
       </CardContent>
 
       {/* Sparkline with minimalist line */}

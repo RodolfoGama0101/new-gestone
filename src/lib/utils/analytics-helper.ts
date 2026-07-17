@@ -14,6 +14,7 @@ export interface MonthlySummary {
   monthLabel: string // ex: "jan/26"
   income: number // em centavos
   expense: number // em centavos
+  investment: number // em centavos (NOVO)
   balance: number // em centavos
 }
 
@@ -33,7 +34,7 @@ export const AnalyticsHelper = {
   getCategoryShare(
     transactions: Transaction[],
     categories: Category[],
-    type: 'income' | 'expense' = 'expense'
+    type: 'income' | 'expense' | 'investment' = 'expense'
   ): CategoryShare[] {
     const sumMap = new Map<string, number>()
 
@@ -57,7 +58,7 @@ export const AnalyticsHelper = {
     return shares.sort((a, b) => b.value - a.value)
   },
 
-  // Agrupamento histórico mensal de receitas, despesas e saldos
+  // Agrupamento histórico mensal de receitas, despesas, investimentos e saldos
   getMonthlyHistory(transactions: Transaction[], monthsCount: number): MonthlySummary[] {
     const today = new Date()
     const startDate = startOfMonth(subMonths(today, monthsCount - 1))
@@ -73,6 +74,7 @@ export const AnalyticsHelper = {
         monthLabel: label,
         income: 0,
         expense: 0,
+        investment: 0,
         balance: 0,
       })
     })
@@ -85,6 +87,8 @@ export const AnalyticsHelper = {
         if (summary) {
           if (tx.type === 'income') {
             summary.income += tx.amount
+          } else if (tx.type === 'investment') {
+            summary.investment += tx.amount
           } else {
             summary.expense += tx.amount
           }
@@ -97,7 +101,7 @@ export const AnalyticsHelper = {
       const key = format(month, 'yyyy-MM')
       const summary = monthlySummaryMap.get(key)
       if (summary) {
-        summary.balance = summary.income - summary.expense
+        summary.balance = summary.income - summary.expense - summary.investment
         history.push(summary)
       }
     })
