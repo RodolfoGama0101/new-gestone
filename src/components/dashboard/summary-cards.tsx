@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ArrowUpRight, ArrowDownRight, ArrowUpCircle, ArrowDownCircle, Coins } from 'lucide-react'
+import { ArrowUpCircle, ArrowDownCircle, Coins } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 
 interface SummaryCardsProps {
@@ -30,10 +30,6 @@ export function SummaryCards({
       currency: 'BRL',
     })
   }
-
-  const isIncomeTrendPositive = incomeChange > 0
-  const isExpenseTrendPositive = expenseChange > 0
-  const isInvestmentTrendPositive = investmentChange > 0
 
   if (isLoading) {
     return (
@@ -66,34 +62,10 @@ export function SummaryCards({
             <ArrowUpCircle className="size-3.5 text-green-700 dark:text-green-500" />
           </div>
         </CardHeader>
-        <CardContent className="pb-4 px-5 space-y-0.5">
-          <div className="flex flex-wrap items-baseline justify-between gap-1">
-            <span className="text-xl sm:text-2xl font-semibold tracking-tight text-green-700 dark:text-green-500">
-              {formatBRL(income)}
-            </span>
-            {incomeChange !== 0 ? (
-              <span
-                className={`flex items-center gap-0.5 text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${
-                  isIncomeTrendPositive
-                    ? 'bg-green-100 text-green-700 dark:bg-green-1000/20 dark:text-green-500'
-                    : 'bg-red-100 text-red-700 dark:bg-red-1000/20 dark:text-red-500'
-                }`}
-              >
-                {isIncomeTrendPositive ? (
-                  <ArrowUpRight className="size-2.5" />
-                ) : (
-                  <ArrowDownRight className="size-2.5" />
-                )}
-                {isIncomeTrendPositive ? '+' : ''}
-                {incomeChange}%
-              </span>
-            ) : (
-              <span className="flex items-center gap-0.5 text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 bg-gray-100 text-gray-600 dark:bg-gray-800/40 dark:text-gray-400">
-                0%
-              </span>
-            )}
-          </div>
-          <p className="text-[10px] text-muted-foreground">Em relação ao mês anterior</p>
+        <CardContent className="pb-4 px-5">
+          <span className="text-xl sm:text-2xl font-semibold tracking-tight text-green-700 dark:text-green-500">
+            {formatBRL(income)}
+          </span>
         </CardContent>
       </Card>
  
@@ -107,34 +79,10 @@ export function SummaryCards({
             <ArrowDownCircle className="size-3.5 text-red-700 dark:text-red-500" />
           </div>
         </CardHeader>
-        <CardContent className="pb-4 px-5 space-y-0.5">
-          <div className="flex flex-wrap items-baseline justify-between gap-1">
-            <span className="text-xl sm:text-2xl font-semibold tracking-tight text-red-700 dark:text-red-500">
-              {formatBRL(expense)}
-            </span>
-            {expenseChange !== 0 ? (
-              <span
-                className={`flex items-center gap-0.5 text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${
-                  !isExpenseTrendPositive
-                    ? 'bg-green-100 text-green-700 dark:bg-green-1000/20 dark:text-green-500'
-                    : 'bg-red-100 text-red-700 dark:bg-red-1000/20 dark:text-red-500'
-                }`}
-              >
-                {isExpenseTrendPositive ? (
-                  <ArrowUpRight className="size-2.5" />
-                ) : (
-                  <ArrowDownRight className="size-2.5" />
-                )}
-                {isExpenseTrendPositive ? '+' : ''}
-                {expenseChange}%
-              </span>
-            ) : (
-              <span className="flex items-center gap-0.5 text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 bg-gray-100 text-gray-600 dark:bg-gray-800/40 dark:text-gray-400">
-                0%
-              </span>
-            )}
-          </div>
-          <p className="text-[10px] text-muted-foreground">Em relação ao mês anterior</p>
+        <CardContent className="pb-4 px-5">
+          <span className="text-xl sm:text-2xl font-semibold tracking-tight text-red-700 dark:text-red-500">
+            {formatBRL(expense)}
+          </span>
         </CardContent>
       </Card>
  
@@ -148,34 +96,10 @@ export function SummaryCards({
             <Coins className="size-3.5 text-violet-700 dark:text-violet-500" />
           </div>
         </CardHeader>
-        <CardContent className="pb-4 px-5 space-y-0.5">
-          <div className="flex flex-wrap items-baseline justify-between gap-1">
-            <span className="text-xl sm:text-2xl font-semibold tracking-tight text-violet-700 dark:text-violet-500">
-              {formatBRL(investment)}
-            </span>
-            {investmentChange !== 0 ? (
-              <span
-                className={`flex items-center gap-0.5 text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${
-                  isInvestmentTrendPositive
-                    ? 'bg-green-100 text-green-700 dark:bg-green-1000/20 dark:text-green-500'
-                    : 'bg-red-100 text-red-700 dark:bg-red-1000/20 dark:text-red-500'
-                }`}
-              >
-                {isInvestmentTrendPositive ? (
-                  <ArrowUpRight className="size-2.5" />
-                ) : (
-                  <ArrowDownRight className="size-2.5" />
-                )}
-                {isInvestmentTrendPositive ? '+' : ''}
-                {investmentChange}%
-              </span>
-            ) : (
-              <span className="flex items-center gap-0.5 text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 bg-gray-100 text-gray-600 dark:bg-gray-800/40 dark:text-gray-400">
-                0%
-              </span>
-            )}
-          </div>
-          <p className="text-[10px] text-muted-foreground">Em relação ao mês anterior</p>
+        <CardContent className="pb-4 px-5">
+          <span className="text-xl sm:text-2xl font-semibold tracking-tight text-violet-700 dark:text-violet-500">
+            {formatBRL(investment)}
+          </span>
         </CardContent>
       </Card>
     </div>
