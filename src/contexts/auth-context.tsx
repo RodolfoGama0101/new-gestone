@@ -24,6 +24,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   React.useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       try {
+        setIsLoading(true)
         if (firebaseUser) {
           setUser(firebaseUser)
           // Sync session cookie with server
@@ -36,11 +37,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             body: JSON.stringify({ token }),
           })
         } else {
-          setUser(null)
-          // Clear session cookie
+          // Clear session cookie first
           await fetch('/api/auth/session', {
             method: 'DELETE',
           })
+          setUser(null)
         }
       } catch (error) {
         console.error('Failed to sync auth session:', error)
