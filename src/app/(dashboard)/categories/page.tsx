@@ -507,7 +507,7 @@ export default function CategoriesPage() {
               {/* Seletor de Ícones */}
               <div className="space-y-2">
                 <Label>Ícone</Label>
-                <div className="grid grid-cols-4 gap-2 border border-border rounded-xl p-3 max-h-[150px] overflow-y-auto">
+                <div className="grid grid-cols-4 gap-2 border border-border rounded-xl p-3 max-h-[150px] overflow-y-auto scrollbar-thin">
                   {AVAILABLE_ICONS.map((item) => {
                     const isSelected = selectedIcon === item.name
                     return (
@@ -615,7 +615,7 @@ export default function CategoriesPage() {
               {/* Seletor de Ícones */}
               <div className="space-y-2">
                 <Label>Ícone</Label>
-                <div className="grid grid-cols-4 gap-2 border border-border rounded-xl p-3 max-h-[150px] overflow-y-auto">
+                <div className="grid grid-cols-4 gap-2 border border-border rounded-xl p-3 max-h-[150px] overflow-y-auto scrollbar-thin">
                   {AVAILABLE_ICONS.map((item) => {
                     const isSelected = selectedIcon === item.name
                     return (

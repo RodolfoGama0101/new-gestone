@@ -87,8 +87,8 @@
   scrollbar-color: var(--border) transparent;
 
   &::-webkit-scrollbar {
-    width: 4px;
-    height: 4px;
+    width: 6px;
+    height: 6px;
   }
 
   &::-webkit-scrollbar-track {
@@ -98,6 +98,10 @@
   &::-webkit-scrollbar-thumb {
     background-color: var(--border);
     border-radius: 9999px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background-color: var(--muted-foreground);
   }
 }
 
@@ -283,5 +287,56 @@
   [data-no-transition],
   [data-no-transition] * {
     transition: none !important;
+  }
+
+  /* Custom scrollbar styling globally */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--border);
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--muted-foreground);
+  }
+
+  /* Support for Firefox and standard properties */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  /* Enforce pointer cursor on interactive elements */
+  a,
+  button,
+  select,
+  summary,
+  [role="button"],
+  [role="tab"],
+  [role="link"],
+  [role="menuitem"],
+  [role="checkbox"],
+  [role="radio"],
+  input[type="button"],
+  input[type="submit"],
+  input[type="reset"],
+  input[type="checkbox"],
+  input[type="radio"],
+  input[type="file"]::file-selector-button,
+  [data-slot="dropdown-menu-item"],
+  [data-slot="select-item"],
+  [data-slot="select-trigger"],
+  [data-slot="dialog-close"] {
+    cursor: pointer;
   }
 }

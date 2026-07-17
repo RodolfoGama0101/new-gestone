@@ -80,7 +80,7 @@ export function CreditCardVisual({
   return (
     <div
       style={cardStyle}
-      className={`relative aspect-[1.586/1] w-full rounded-xl p-5 flex flex-col justify-between text-white shadow-md overflow-hidden border border-white/15 group transition-transform duration-300 hover:-translate-y-1 hover:scale-[1.01] cursor-default select-none ${className}`}
+      className={`relative aspect-[1.586/1] w-full rounded-xl p-5 flex flex-col justify-between text-white shadow-md overflow-hidden border border-white/15 group transition-transform duration-300 hover:-translate-y-1 hover:scale-[1.01] select-none ${className}`}
     >
       {/* Brilho reflexo */}
       <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/5 to-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
