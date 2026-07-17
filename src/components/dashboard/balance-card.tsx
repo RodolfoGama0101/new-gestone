@@ -34,7 +34,7 @@ export function BalanceCard({
   })
 
   const isPositive = balance >= 0
-  const isTrendPositive = changePercent >= 0
+  const isTrendPositive = changePercent > 0
 
   if (isLoading) {
     return (
@@ -65,21 +65,27 @@ export function BalanceCard({
           >
             {formattedBalance}
           </span>
-          <span
-            className={`flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${
-              isTrendPositive
-                ? 'bg-green-100 text-green-700 dark:bg-green-1000/20 dark:text-green-500'
-                : 'bg-red-100 text-red-700 dark:bg-red-1000/20 dark:text-red-500'
-            }`}
-          >
-            {isTrendPositive ? (
-              <TrendingUp className="size-3 shrink-0" />
-            ) : (
-              <TrendingDown className="size-3 shrink-0" />
-            )}
-            {isTrendPositive ? '+' : ''}
-            {changePercent}%
-          </span>
+          {changePercent !== 0 ? (
+            <span
+              className={`flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${
+                isTrendPositive
+                  ? 'bg-green-100 text-green-700 dark:bg-green-1000/20 dark:text-green-500'
+                  : 'bg-red-100 text-red-700 dark:bg-red-1000/20 dark:text-red-500'
+              }`}
+            >
+              {isTrendPositive ? (
+                <TrendingUp className="size-3 shrink-0" />
+              ) : (
+                <TrendingDown className="size-3 shrink-0" />
+              )}
+              {isTrendPositive ? '+' : ''}
+              {changePercent}%
+            </span>
+          ) : (
+            <span className="flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0 bg-gray-100 text-gray-600 dark:bg-gray-800/40 dark:text-gray-400">
+              0%
+            </span>
+          )}
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mt-0.5 mb-2">
           <p className="text-[10px] text-muted-foreground">Em relação ao mês anterior</p>
