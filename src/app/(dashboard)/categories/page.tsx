@@ -210,12 +210,12 @@ export default function CategoriesPage() {
           {/* Receitas */}
           <Card className="border-border bg-card hover:shadow-[var(--shadow-elevated)] transition-shadow duration-300 flex flex-col">
             <CardHeader className="pb-3 pt-5 px-6 border-b border-border/50">
-              <div className="flex items-center justify-between">
-                <div>
+              <div className="flex items-center justify-between gap-4">
+                <div className="min-w-0 flex-1">
                   <CardTitle className="text-base font-bold text-income">Receitas</CardTitle>
-                  <CardDescription className="text-xs mt-0.5">Categorias aplicadas a entradas financeiras</CardDescription>
+                  <CardDescription className="text-xs mt-0.5 truncate">Categorias aplicadas a entradas financeiras</CardDescription>
                 </div>
-                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-income/10 text-income border border-income/20">
+                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-income/10 text-income border border-income/20 shrink-0">
                   {incomes.length}
                 </span>
               </div>
@@ -286,12 +286,12 @@ export default function CategoriesPage() {
           {/* Despesas */}
           <Card className="border-border bg-card hover:shadow-[var(--shadow-elevated)] transition-shadow duration-300 flex flex-col">
             <CardHeader className="pb-3 pt-5 px-6 border-b border-border/50">
-              <div className="flex items-center justify-between">
-                <div>
+              <div className="flex items-center justify-between gap-4">
+                <div className="min-w-0 flex-1">
                   <CardTitle className="text-base font-bold text-expense">Despesas</CardTitle>
-                  <CardDescription className="text-xs mt-0.5">Categorias aplicadas a saídas financeiras</CardDescription>
+                  <CardDescription className="text-xs mt-0.5 truncate">Categorias aplicadas a saídas financeiras</CardDescription>
                 </div>
-                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-expense/10 text-expense border border-expense/20">
+                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-expense/10 text-expense border border-expense/20 shrink-0">
                   {expenses.length}
                 </span>
               </div>
@@ -362,12 +362,12 @@ export default function CategoriesPage() {
           {/* Investimentos */}
           <Card className="border-border bg-card hover:shadow-[var(--shadow-elevated)] transition-shadow duration-300 flex flex-col">
             <CardHeader className="pb-3 pt-5 px-6 border-b border-border/50">
-              <div className="flex items-center justify-between">
-                <div>
+              <div className="flex items-center justify-between gap-4">
+                <div className="min-w-0 flex-1">
                   <CardTitle className="text-base font-bold text-violet-600 dark:text-violet-500">Investimentos</CardTitle>
-                  <CardDescription className="text-xs mt-0.5">Categorias aplicadas a aportes e investimentos</CardDescription>
+                  <CardDescription className="text-xs mt-0.5 truncate">Categorias aplicadas a aportes e investimentos</CardDescription>
                 </div>
-                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-500/20">
+                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-500/20 shrink-0">
                   {investments.length}
                 </span>
               </div>
