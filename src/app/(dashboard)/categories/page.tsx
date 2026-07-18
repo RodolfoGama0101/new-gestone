@@ -235,7 +235,7 @@ export default function CategoriesPage() {
                       key={cat.id}
                       className="flex items-center justify-between py-3 hover:bg-muted/10 px-2 rounded-lg transition-colors group"
                     >
-                      <div className="flex items-center gap-3.5 min-w-0">
+                      <div className="flex items-center gap-3.5 min-w-0 flex-1">
                         <div 
                           className="size-9 rounded-lg flex items-center justify-center shrink-0 border transition-all duration-200 group-hover:scale-105"
                           style={{ 
@@ -311,7 +311,7 @@ export default function CategoriesPage() {
                       key={cat.id}
                       className="flex items-center justify-between py-3 hover:bg-muted/10 px-2 rounded-lg transition-colors group"
                     >
-                      <div className="flex items-center gap-3.5 min-w-0">
+                      <div className="flex items-center gap-3.5 min-w-0 flex-1">
                         <div 
                           className="size-9 rounded-lg flex items-center justify-center shrink-0 border transition-all duration-200 group-hover:scale-105"
                           style={{ 
@@ -387,7 +387,7 @@ export default function CategoriesPage() {
                       key={cat.id}
                       className="flex items-center justify-between py-3 hover:bg-muted/10 px-2 rounded-lg transition-colors group"
                     >
-                      <div className="flex items-center gap-3.5 min-w-0">
+                      <div className="flex items-center gap-3.5 min-w-0 flex-1">
                         <div 
                           className="size-9 rounded-lg flex items-center justify-center shrink-0 border transition-all duration-200 group-hover:scale-105"
                           style={{ 
