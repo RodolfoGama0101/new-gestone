@@ -1,0 +1,83 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    function hasOnlyKeys(data, allowedKeys) {
+      return data.keys().hasOnly(allowedKeys);
+    }
+
+    function isValidTransaction(data) {
+      return hasOnlyKeys(data, [
+        'type', 'amount', 'description', 'categoryId', 'date', 'tags', 'notes',
+        'recurring', 'creditCardId', 'createdAt', 'updatedAt'
+      ])
+        && data.type in ['income', 'expense', 'investment']
+        && data.amount is int && data.amount > 0
+        && data.description is string && data.description.size() >= 3 && data.description.size() <= 200
+        && data.categoryId is string && data.categoryId.size() > 0
+        && data.date is timestamp
+        && data.tags is list && data.tags.size() <= 20
+        && (data.notes == null || (data.notes is string && data.notes.size() <= 500))
+        && data.recurring is bool
+        && (data.creditCardId == null || data.creditCardId is string)
+        && data.createdAt is timestamp && data.updatedAt is timestamp;
+    }
+
+    function isValidCategory(data) {
+      return hasOnlyKeys(data, ['name', 'type', 'icon', 'color', 'isDefault', 'createdAt', 'updatedAt'])
+        && data.name is string && data.name.size() >= 2 && data.name.size() <= 60
+        && data.type in ['income', 'expense', 'investment', 'both']
+        && data.icon is string && data.icon.size() > 0 && data.icon.size() <= 80
+        && data.color is string && data.color.size() > 0 && data.color.size() <= 32
+        && data.isDefault is bool
+        && data.createdAt is timestamp && data.updatedAt is timestamp;
+    }
+
+    function isValidCreditCard(data) {
+      return hasOnlyKeys(data, [
+        'name', 'bankName', 'brand', 'holderName', 'closingDay', 'color', 'isActive',
+        'createdAt', 'updatedAt'
+      ])
+        && data.name is string && data.name.size() >= 2 && data.name.size() <= 50
+        && data.bankName is string && data.bankName.size() >= 2 && data.bankName.size() <= 50
+        && data.brand in ['visa', 'mastercard', 'elo', 'other']
+        && data.holderName is string && data.holderName.size() >= 2 && data.holderName.size() <= 100
+        && data.closingDay is int && data.closingDay >= 1 && data.closingDay <= 31
+        && data.color is string && data.color.size() > 0 && data.color.size() <= 32
+        && data.isActive is bool
+        && data.createdAt is timestamp && data.updatedAt is timestamp;
+    }
+
+    match /users/{userId} {
+      allow read, create, update, delete: if isOwner(userId);
+
+      match /transactions/{transactionId} {
+        allow read, delete: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidTransaction(request.resource.data);
+        allow update: if isOwner(userId)
+          && isValidTransaction(request.resource.data)
+          && request.resource.data.createdAt == resource.data.createdAt;
+      }
+
+      match /categories/{categoryId} {
+        allow read, delete: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidCategory(request.resource.data);
+        allow update: if isOwner(userId)
+          && isValidCategory(request.resource.data)
+          && request.resource.data.createdAt == resource.data.createdAt;
+      }
+
+      match /creditCards/{cardId} {
+        allow read, delete: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidCreditCard(request.resource.data);
+        allow update: if isOwner(userId)
+          && isValidCreditCard(request.resource.data)
+          && request.resource.data.createdAt == resource.data.createdAt;
+      }
+    }
+  }
+}

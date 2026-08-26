@@ -38,19 +38,15 @@ export default function ForgotPasswordPage() {
     try {
       await sendPasswordReset(data.email)
       setSent(true)
-      toast.success('E-mail de recuperação enviado com sucesso! Verifique sua caixa de entrada.')
+      toast.success('Se existir uma conta para este e-mail, enviaremos as instruções de recuperação.')
     } catch (error) {
       const authError = error as { code?: string }
       console.error('Password Reset Error:', error)
-      switch (authError.code) {
-        case 'auth/user-not-found':
-          toast.error('Nenhum usuário encontrado com este e-mail.')
-          break
-        case 'auth/invalid-email':
-          toast.error('Formato de e-mail inválido.')
-          break
-        default:
-          toast.error('Erro ao enviar e-mail de recuperação. Tente novamente.')
+      if (authError.code === 'auth/user-not-found') {
+        setSent(true)
+        toast.success('Se existir uma conta para este e-mail, enviaremos as instruções de recuperação.')
+      } else {
+        toast.error('Erro ao enviar e-mail de recuperação. Tente novamente.')
       }
     } finally {
       setIsLoading(false)

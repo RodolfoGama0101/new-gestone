@@ -198,7 +198,6 @@ export function TransactionList({
                   category={categoryMap.get(tx.categoryId)}
                   onEdit={handleEdit}
                   onDelete={handleDeleteRequest}
-                  accentColor={type}
                 />
               ))}
             </CardContent>

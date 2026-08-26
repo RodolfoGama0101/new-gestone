@@ -53,8 +53,9 @@ export function useCreditCards() {
       queryClient.invalidateQueries({ queryKey: ['analytics', userId] })
       toast.success('Cartão de crédito excluído com sucesso!')
     },
-    onError: (error: any) => {
-      toast.error(error.message || 'Erro ao excluir cartão de crédito.')
+    onError: (error: unknown) => {
+      const message = error instanceof Error ? error.message : 'Erro ao excluir cartão de crédito.'
+      toast.error(message)
     },
   })
 

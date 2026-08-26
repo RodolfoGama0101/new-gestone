@@ -22,7 +22,7 @@ export function BalanceTrendAreaChart({ data }: BalanceTrendAreaChartProps) {
     <Card className="shadow-xs border-border bg-card h-full hover:shadow-sm transition-all duration-200 rounded-md">
       <CardHeader className="pb-2 pt-4 px-5">
         <CardTitle className="text-sm font-semibold">Evolução de Saldo</CardTitle>
-        <CardDescription className="text-[10px] text-muted-foreground">Tendência de acúmulo de saldo líquido mensal</CardDescription>
+        <CardDescription className="text-xs text-muted-foreground">Saldo acumulado dentro do período selecionado</CardDescription>
       </CardHeader>
       <CardContent className="h-[280px] pb-4 px-5">
         {data.length === 0 ? (
@@ -42,13 +42,13 @@ export function BalanceTrendAreaChart({ data }: BalanceTrendAreaChartProps) {
               <XAxis 
                 dataKey="monthLabel" 
                 stroke="var(--muted-foreground)" 
-                fontSize={10} 
+                fontSize={11}
                 tickLine={false} 
                 axisLine={false} 
               />
               <YAxis 
                 stroke="var(--muted-foreground)" 
-                fontSize={9} 
+                fontSize={10}
                 tickLine={false} 
                 axisLine={false} 
                 tickFormatter={(value) => `R$ ${(value / 100).toLocaleString('pt-BR', { notation: 'compact' })}`}

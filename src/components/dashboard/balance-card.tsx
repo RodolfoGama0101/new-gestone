@@ -33,6 +33,9 @@ export function BalanceCard({
   })
 
   const isPositive = balance >= 0
+  const changeLabel = Number.isFinite(changePercent)
+    ? `${changePercent > 0 ? '+' : ''}${changePercent.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}% vs. mês anterior`
+    : 'Sem base anterior'
 
   if (isLoading) {
     return (
@@ -64,9 +67,10 @@ export function BalanceCard({
             {formattedBalance}
           </span>
         </div>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-end gap-1 mt-0.5 mb-2 min-h-[16px]">
+        <div className="mt-0.5 mb-2 flex min-h-[16px] flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+          <span className="text-[11px] text-muted-foreground">{changeLabel}</span>
           {futureCardExpenses > 0 && (
-            <div className="text-[10px] text-muted-foreground flex items-center gap-1">
+            <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
               <span>Faturas:</span>
               <span className="font-semibold text-red-600 dark:text-red-400">
                 {(futureCardExpenses / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}

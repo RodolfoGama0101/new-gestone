@@ -15,7 +15,6 @@ interface TransactionRowProps {
   category: Category | undefined
   onEdit: (tx: Transaction) => void
   onDelete: (id: string) => void
-  accentColor: 'income' | 'expense' | 'investment'
 }
 
 /**
@@ -28,14 +27,12 @@ export const TransactionRow = React.memo(function TransactionRow({
   category: cat,
   onEdit,
   onDelete,
-  accentColor,
 }: TransactionRowProps) {
   const isIncome = tx.type === 'income'
   const isInvestment = tx.type === 'investment'
 
   const formattedDate = React.useMemo(
     () => format(parseFirestoreDate(tx.date), "dd 'de' MMMM, yyyy", { locale: ptBR }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [tx.date]
   )
 
@@ -58,7 +55,7 @@ export const TransactionRow = React.memo(function TransactionRow({
           </span>
           {cat && <CategoryBadge name={cat.name} color={cat.color} />}
         </div>
-        <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
+        <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
           <span className="flex items-center gap-1 font-mono">
             <Calendar className="size-3" />
             {formattedDate}

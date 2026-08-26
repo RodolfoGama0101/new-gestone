@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { CreditCard } from '@/types/credit-card'
+import { Transaction } from '@/types/transaction'
 import { useTransactions } from '@/hooks/use-transactions'
 import { useCategories } from '@/hooks/use-categories'
 import { TransactionRow } from '@/components/transactions/transaction-row'
@@ -13,8 +14,11 @@ import { parseFirestoreDate } from '@/lib/utils/parse-date'
 
 interface CreditCardBillSummaryProps {
   card: CreditCard
-  onEditTransaction?: (tx: any) => void
+  onEditTransaction?: (tx: Transaction) => void
 }
+
+type InvoiceTransaction = Transaction & { dateLabel: string }
+type InvoiceGroup = { total: number; transactions: InvoiceTransaction[] }
 
 export function CreditCardBillSummary({ card, onEditTransaction }: CreditCardBillSummaryProps) {
   const { categories } = useCategories()
@@ -29,7 +33,7 @@ export function CreditCardBillSummary({ card, onEditTransaction }: CreditCardBil
 
   // Agrupa transações por mês de débito da fatura
   const invoiceGroups = React.useMemo(() => {
-    const groups: Record<string, { total: number; transactions: any[] }> = {}
+    const groups: Record<string, InvoiceGroup> = {}
 
     transactions.forEach((tx) => {
       const txDate = parseFirestoreDate(tx.date)
@@ -115,7 +119,6 @@ export function CreditCardBillSummary({ card, onEditTransaction }: CreditCardBil
                         console.error(err)
                       }
                     }}
-                    accentColor="expense"
                   />
                 ))}
               </CardContent>

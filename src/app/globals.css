@@ -120,43 +120,43 @@
   :root {
     /* Backgrounds */
     --background: #ffffff;
-    --foreground: #171717;
+    --foreground: #111111;
 
     /* Cards */
     --card: #ffffff;
-    --card-foreground: #171717;
+    --card-foreground: #111111;
 
     /* Popovers */
     --popover: #ffffff;
-    --popover-foreground: #171717;
+    --popover-foreground: #111111;
 
     /* Primary */
-    --primary: #171717;
+    --primary: #002fa7;
     --primary-foreground: #ffffff;
 
     /* Secondary */
-    --secondary: #fafafa;
-    --secondary-foreground: #4d4d4d;
+    --secondary: #f7f7f8;
+    --secondary-foreground: #3f3f46;
 
     /* Muted */
-    --muted: #fafafa;
-    --muted-foreground: #8f8f8f;
+    --muted: #f7f7f8;
+    --muted-foreground: #626262;
 
     /* Accent */
-    --accent: #f2f2f2;
-    --accent-foreground: #171717;
+    --accent: #eef2ff;
+    --accent-foreground: #111111;
 
     /* Destructive */
     --destructive: #fc0035;
     --destructive-foreground: #ffffff;
 
     /* Borders & Inputs */
-    --border: #eaeaea;
-    --input: #eaeaea;
-    --ring: #006bff;
+    --border: #dedee3;
+    --input: #dedee3;
+    --ring: #002fa7;
 
     /* Charts */
-    --chart-1: #006bff;
+    --chart-1: #002fa7;
     --chart-2: #28a948;
     --chart-3: #ffae00;
     --chart-4: #a000f8;
@@ -171,14 +171,14 @@
     --header-height: 3rem; /* 48px */
 
     /* Sidebar */
-    --sidebar: #fafafa;
-    --sidebar-foreground: #171717;
-    --sidebar-primary: #171717;
+    --sidebar: #f7f7f8;
+    --sidebar-foreground: #111111;
+    --sidebar-primary: #002fa7;
     --sidebar-primary-foreground: #ffffff;
-    --sidebar-accent: #f2f2f2;
-    --sidebar-accent-foreground: #171717;
-    --sidebar-border: #eaeaea;
-    --sidebar-ring: #006bff;
+    --sidebar-accent: #eef2ff;
+    --sidebar-accent-foreground: #111111;
+    --sidebar-border: #dedee3;
+    --sidebar-ring: #002fa7;
 
     /* Semantic colors */
     --income: #28a948;
@@ -228,10 +228,10 @@
     /* Borders & Inputs */
     --border: #333333;
     --input: #333333;
-    --ring: #006bff;
+    --ring: #002fa7;
 
     /* Charts */
-    --chart-1: #006bff;
+    --chart-1: #5f7dff;
     --chart-2: #4ce15e;
     --chart-3: #ffa600;
     --chart-4: #c979ff;
@@ -245,7 +245,7 @@
     --sidebar-accent: #111111;
     --sidebar-accent-foreground: #ffffff;
     --sidebar-border: #333333;
-    --sidebar-ring: #006bff;
+    --sidebar-ring: #5f7dff;
 
     /* Semantic colors */
     --income: #4ce15e;
@@ -283,6 +283,11 @@
     scroll-behavior: smooth;
   }
 
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
   /* Remove transition from elements that shouldn't animate */
   [data-no-transition],
   [data-no-transition] * {
@@ -314,6 +319,17 @@
   * {
     scrollbar-width: thin;
     scrollbar-color: var(--border) transparent;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      scroll-behavior: auto !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 
   /* Enforce pointer cursor on interactive elements */

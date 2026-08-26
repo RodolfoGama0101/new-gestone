@@ -17,32 +17,19 @@ export default function CreditCardsPage() {
   const { creditCards, isLoading, deleteCreditCard } = useCreditCards()
 
   const [isAddOpen, setIsAddOpen] = React.useState(false)
-  const [selectedCard, setSelectedCard] = React.useState<CreditCard | null>(null)
+  const [selectedCardId, setSelectedCardId] = React.useState<string | null>(null)
   const [editingCard, setEditingCard] = React.useState<CreditCard | null>(null)
   const [deletingId, setDeletingId] = React.useState<string | null>(null)
   const [isDeleting, setIsDeleting] = React.useState(false)
 
-  // Auto-seleciona o primeiro cartão ao carregar
-  React.useEffect(() => {
-    if (creditCards.length > 0 && !selectedCard) {
-      setSelectedCard(creditCards[0])
-    } else if (creditCards.length === 0) {
-      setSelectedCard(null)
-    } else if (selectedCard) {
-      // Atualiza referência do cartão selecionado se a lista mudar
-      const updated = creditCards.find((c) => c.id === selectedCard.id)
-      if (updated) setSelectedCard(updated)
-    }
-  }, [creditCards, selectedCard])
+  const selectedCard = creditCards.find((card) => card.id === selectedCardId) ?? creditCards[0] ?? null
 
   const handleDeleteConfirm = async () => {
     if (!deletingId) return
     setIsDeleting(true)
     try {
       await deleteCreditCard(deletingId)
-      if (selectedCard?.id === deletingId) {
-        setSelectedCard(null)
-      }
+      if (selectedCard?.id === deletingId) setSelectedCardId(null)
       setDeletingId(null)
     } catch (error) {
       console.error(error)
@@ -90,9 +77,12 @@ export default function CreditCardsPage() {
               {creditCards.map((card) => {
                 const isSelected = selectedCard?.id === card.id
                 return (
-                  <div
+                  <button
                     key={card.id}
-                    onClick={() => setSelectedCard(card)}
+                    type="button"
+                    onClick={() => setSelectedCardId(card.id)}
+                    aria-pressed={isSelected}
+                    aria-label={`Selecionar cartão ${card.name}`}
                     className={`relative cursor-pointer transition-all duration-200 rounded-xl p-1 border-2 ${
                       isSelected
                         ? 'border-primary shadow-md scale-[1.01]'
@@ -107,7 +97,7 @@ export default function CreditCardsPage() {
                       closingDay={card.closingDay}
                       color={card.color}
                     />
-                  </div>
+                  </button>
                 )
               })}
             </div>

@@ -59,10 +59,13 @@ export const AnalyticsHelper = {
   },
 
   // Agrupamento histórico mensal de receitas, despesas, investimentos e saldos
-  getMonthlyHistory(transactions: Transaction[], monthsCount: number): MonthlySummary[] {
-    const today = new Date()
-    const startDate = startOfMonth(subMonths(today, monthsCount - 1))
-    const endDate = endOfMonth(today)
+  getMonthlyHistory(
+    transactions: Transaction[],
+    monthsCount: number,
+    referenceDate: Date = new Date()
+  ): MonthlySummary[] {
+    const startDate = startOfMonth(subMonths(referenceDate, monthsCount - 1))
+    const endDate = endOfMonth(referenceDate)
 
     const months = eachMonthOfInterval({ start: startDate, end: endDate })
 
@@ -97,11 +100,13 @@ export const AnalyticsHelper = {
     })
 
     const history: MonthlySummary[] = []
+    let runningBalance = 0
     months.forEach((month) => {
       const key = format(month, 'yyyy-MM')
       const summary = monthlySummaryMap.get(key)
       if (summary) {
-        summary.balance = summary.income - summary.expense - summary.investment
+        runningBalance += summary.income - summary.expense - summary.investment
+        summary.balance = runningBalance
         history.push(summary)
       }
     })

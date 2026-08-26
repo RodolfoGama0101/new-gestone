@@ -35,11 +35,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({ token }),
+          }).then(async (response) => {
+            if (!response.ok) throw new Error(await response.text())
           })
         } else {
           // Clear session cookie first
           await fetch('/api/auth/session', {
             method: 'DELETE',
+          }).then(async (response) => {
+            if (!response.ok) throw new Error(await response.text())
           })
           setUser(null)
         }

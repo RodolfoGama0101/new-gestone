@@ -32,63 +32,67 @@ export const TransactionService = {
     return collection(db, 'users', userId, 'transactions')
   },
 
+  toTransaction(docSnap: QueryDocumentSnapshot<DocumentData>): Transaction {
+    const data = docSnap.data()
+    return {
+      id: docSnap.id,
+      type: data.type,
+      amount: data.amount,
+      description: data.description,
+      categoryId: data.categoryId,
+      date: data.date,
+      tags: data.tags ?? [],
+      notes: data.notes ?? null,
+      recurring: data.recurring ?? false,
+      creditCardId: data.creditCardId ?? null,
+      createdAt: data.createdAt,
+      updatedAt: data.updatedAt,
+    }
+  },
+
+  getQueryConstraints(filters: GetTransactionsFilters): QueryConstraint[] {
+    const constraints: QueryConstraint[] = []
+
+    if (filters.type) constraints.push(where('type', '==', filters.type))
+    if (filters.categoryId) constraints.push(where('categoryId', '==', filters.categoryId))
+    if (filters.creditCardId) constraints.push(where('creditCardId', '==', filters.creditCardId))
+
+    constraints.push(orderBy('date', 'desc'))
+    if (filters.lastVisible) constraints.push(startAfter(filters.lastVisible))
+
+    return constraints
+  },
+
   async getPaged(
     userId: string,
     filters: GetTransactionsFilters = {}
   ): Promise<{
     transactions: Transaction[]
     lastVisible: QueryDocumentSnapshot<DocumentData> | null
+    hasMore: boolean
   }> {
     const colRef = this.getCollection(userId)
-    const constraints: QueryConstraint[] = []
-
-    if (filters.type) {
-      constraints.push(where('type', '==', filters.type))
-    }
-    if (filters.categoryId) {
-      constraints.push(where('categoryId', '==', filters.categoryId))
-    }
-    if (filters.creditCardId) {
-      constraints.push(where('creditCardId', '==', filters.creditCardId))
-    }
-
-    constraints.push(orderBy('date', 'desc'))
-
-    if (filters.lastVisible) {
-      constraints.push(startAfter(filters.lastVisible))
-    }
+    const constraints = this.getQueryConstraints(filters)
 
     const limitVal = filters.limitCount || 20
-    constraints.push(limit(limitVal))
+    constraints.push(limit(limitVal + 1))
 
     const q = query(colRef, ...constraints)
     const snapshot = await getDocs(q)
-
-    const transactions: Transaction[] = []
-    snapshot.forEach((docSnap) => {
-      const data = docSnap.data()
-      transactions.push({
-        id: docSnap.id,
-        type: data.type,
-        amount: data.amount,
-        description: data.description,
-        categoryId: data.categoryId,
-        date: data.date,
-        tags: data.tags ?? [],
-        notes: data.notes ?? null,
-        recurring: data.recurring ?? false,
-        creditCardId: data.creditCardId ?? null,
-        createdAt: data.createdAt,
-        updatedAt: data.updatedAt,
-      })
-    })
-
-    const lastVisible = snapshot.docs[snapshot.docs.length - 1] || null
+    const pageDocs = snapshot.docs.slice(0, limitVal)
+    const lastVisible = pageDocs[pageDocs.length - 1] || null
 
     return {
-      transactions,
+      transactions: pageDocs.map((docSnap) => this.toTransaction(docSnap)),
       lastVisible,
+      hasMore: snapshot.docs.length > limitVal,
     }
+  },
+
+  async getAll(userId: string, filters: Omit<GetTransactionsFilters, 'lastVisible' | 'limitCount'> = {}) {
+    const q = query(this.getCollection(userId), ...this.getQueryConstraints(filters))
+    const snapshot = await getDocs(q)
+    return snapshot.docs.map((docSnap) => this.toTransaction(docSnap))
   },
 
   async create(userId: string, data: Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {

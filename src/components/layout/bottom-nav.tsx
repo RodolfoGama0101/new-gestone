@@ -46,7 +46,7 @@ export function BottomNav() {
   const isExtraActive = extraItems.some((item) => pathname === item.href)
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-20 flex h-12 border-t border-border/80 bg-background/80 backdrop-blur-md pb-safe md:hidden items-center justify-around">
+    <nav className="fixed bottom-0 left-0 right-0 z-20 flex h-14 items-center justify-around border-t border-border/80 bg-background/90 pb-safe backdrop-blur-md md:hidden" aria-label="Navegação principal">
       {mainItems.map((item) => {
         const isActive = pathname === item.href
         return (
@@ -59,7 +59,7 @@ export function BottomNav() {
             )}
           >
             <item.icon className="size-4 shrink-0" />
-            <span className={cn("text-[9px] font-medium leading-none", isActive && "font-semibold")}>
+            <span className={cn("text-[11px] font-medium leading-none", isActive && "font-semibold")}>
               {item.label}
             </span>
           </Link>
@@ -74,9 +74,10 @@ export function BottomNav() {
               'flex flex-1 flex-col items-center justify-center gap-0.5 text-muted-foreground/80 transition-colors relative cursor-pointer h-full border-none bg-transparent outline-hidden',
               isExtraActive && 'text-foreground dark:text-white'
             )}
+            aria-label="Mais opções de navegação"
           >
             <MoreHorizontal className="size-4 shrink-0" />
-            <span className={cn("text-[9px] font-medium leading-none", isExtraActive && "font-semibold")}>
+            <span className={cn("text-[11px] font-medium leading-none", isExtraActive && "font-semibold")}>
               Mais
             </span>
           </button>

@@ -1,5 +1,6 @@
 import { initializeApp, getApps, getApp } from 'firebase/app'
 import { getAuth } from 'firebase/auth'
+import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check'
 import { getFirestore } from 'firebase/firestore'
 
 const firebaseConfig = {
@@ -14,6 +15,15 @@ const firebaseConfig = {
 
 // Initialize Firebase with SSR check
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp()
+
+const appCheckSiteKey = process.env.NEXT_PUBLIC_FIREBASE_APP_CHECK_SITE_KEY
+if (typeof window !== 'undefined' && appCheckSiteKey) {
+  initializeAppCheck(app, {
+    provider: new ReCaptchaEnterpriseProvider(appCheckSiteKey),
+    isTokenAutoRefreshEnabled: true,
+  })
+}
+
 const auth = getAuth(app)
 const db = getFirestore(app)
 

@@ -49,7 +49,7 @@ export default function TransactionsPage() {
     deleteTransaction,
     error,
   } = useTransactions({
-    type: (type === 'income' || type === 'expense' ? type : undefined),
+    type: (type === 'income' || type === 'expense' || type === 'investment' ? type : undefined),
     categoryId: (categoryId || undefined),
   })
 
@@ -161,7 +161,13 @@ export default function TransactionsPage() {
         description="Consulte seu histórico completo de lançamentos financeiros."
         action={
           <div className="flex items-center gap-2">
-            <CsvExportButton transactions={filtered} />
+            <CsvExportButton
+              filters={{
+                type: type === 'income' || type === 'expense' || type === 'investment' ? type : undefined,
+                categoryId: categoryId || undefined,
+              }}
+              search={search}
+            />
             <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
               <DialogTrigger render={
                 <Button size="sm" className="gap-1.5 cursor-pointer">
@@ -255,6 +261,7 @@ export default function TransactionsPage() {
                               size="icon"
                               className="size-7 text-muted-foreground hover:text-foreground cursor-pointer rounded-md"
                               onClick={() => setEditingTx(tx)}
+                              aria-label={`Editar ${tx.description}`}
                             >
                               <Pencil className="size-3" />
                             </Button>
@@ -263,6 +270,7 @@ export default function TransactionsPage() {
                               size="icon"
                               className="size-7 text-muted-foreground hover:text-destructive cursor-pointer rounded-md"
                               onClick={() => setDeletingId(tx.id)}
+                              aria-label={`Excluir ${tx.description}`}
                             >
                               <Trash2 className="size-3" />
                             </Button>

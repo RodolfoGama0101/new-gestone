@@ -33,14 +33,10 @@ export default function DashboardPage() {
     return 'Boa noite'
   }, [])
 
-  const userFirstName = React.useMemo(
-    () => (user?.displayName ? user.displayName.split(' ')[0] : 'Usuário'),
-    [user?.displayName]
-  )
+  const userFirstName = user?.displayName ? user.displayName.split(' ')[0] : 'Usuário'
 
   // Seletor de Mês — memoizado para evitar recriar o JSX a cada re-render
-  const monthSelector = React.useMemo(
-    () => (
+  const monthSelector = (
       <div className="flex items-center gap-0.5 bg-background-100 dark:bg-card border border-border rounded-md p-0.5 shadow-sm">
         <Button
           variant="ghost"
@@ -69,10 +65,7 @@ export default function DashboardPage() {
           <ChevronRight className="size-3.5 text-muted-foreground" />
         </Button>
       </div>
-    ),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [selectedDate]
-  )
+    )
 
   return (
     <div className="space-y-7 animate-in fade-in duration-300">

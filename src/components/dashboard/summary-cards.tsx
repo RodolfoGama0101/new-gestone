@@ -37,6 +37,12 @@ export function SummaryCards({
     })
   }
 
+  const formatChange = (value: number) => {
+    if (!Number.isFinite(value)) return 'Sem base anterior'
+    const sign = value > 0 ? '+' : ''
+    return `${sign}${value.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}% vs. mês anterior`
+  }
+
   if (isLoading) {
     return (
       <div className="grid gap-4 sm:grid-cols-3">
@@ -72,8 +78,8 @@ export function SummaryCards({
           <span className="text-xl sm:text-2xl font-semibold tracking-tight text-green-700 dark:text-green-500">
             {formatBRL(income)}
           </span>
-          <p className="text-[10px] text-muted-foreground mt-1">
-            {incomeCount} {incomeCount === 1 ? 'recebimento' : 'recebimentos'}
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            {incomeCount} {incomeCount === 1 ? 'recebimento' : 'recebimentos'} · {formatChange(incomeChange)}
           </p>
         </CardContent>
       </Card>
@@ -92,8 +98,8 @@ export function SummaryCards({
           <span className="text-xl sm:text-2xl font-semibold tracking-tight text-red-700 dark:text-red-500">
             {formatBRL(expense)}
           </span>
-          <p className="text-[10px] text-muted-foreground mt-1">
-            {expenseCount} {expenseCount === 1 ? 'pagamento' : 'pagamentos'}
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            {expenseCount} {expenseCount === 1 ? 'pagamento' : 'pagamentos'} · {formatChange(expenseChange)}
           </p>
         </CardContent>
       </Card>
@@ -112,8 +118,8 @@ export function SummaryCards({
           <span className="text-xl sm:text-2xl font-semibold tracking-tight text-violet-700 dark:text-violet-500">
             {formatBRL(investment)}
           </span>
-          <p className="text-[10px] text-muted-foreground mt-1">
-            {investmentCount} {investmentCount === 1 ? 'aporte' : 'aportes'}
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            {investmentCount} {investmentCount === 1 ? 'aporte' : 'aportes'} · {formatChange(investmentChange)}
           </p>
         </CardContent>
       </Card>

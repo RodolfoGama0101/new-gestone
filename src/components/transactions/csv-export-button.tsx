@@ -3,30 +3,46 @@
 import * as React from 'react'
 import { Button } from '@/components/ui/button'
 import { Download, Loader2 } from 'lucide-react'
-import { Transaction } from '@/types/transaction'
 import { useCategories } from '@/hooks/use-categories'
+import { useAuth } from '@/contexts/auth-context'
+import { GetTransactionsFilters, TransactionService } from '@/services/transaction.service'
 import { format } from 'date-fns'
 import { Timestamp } from 'firebase/firestore'
 import { toast } from 'sonner'
 
 interface CsvExportButtonProps {
-  transactions: Transaction[]
+  filters?: Omit<GetTransactionsFilters, 'lastVisible' | 'limitCount'>
+  search?: string
   disabled?: boolean
 }
 
-export function CsvExportButton({ transactions, disabled = false }: CsvExportButtonProps) {
+function escapeCsvValue(value: unknown) {
+  const rawValue = String(value ?? '').replace(/[\r\n]+/g, ' ')
+  const safeValue = /^[=+\-@]/.test(rawValue) ? `'${rawValue}` : rawValue
+  return `"${safeValue.replace(/"/g, '""')}"`
+}
+
+export function CsvExportButton({ filters = {}, search = '', disabled = false }: CsvExportButtonProps) {
   const { categories } = useCategories()
+  const { user } = useAuth()
   const [isExporting, setIsExporting] = React.useState(false)
 
-  const handleExport = () => {
-    if (transactions.length === 0) {
+  const handleExport = async () => {
+    if (!user) return
+
+    setIsExporting(true)
+    try {
+      const allTransactions = await TransactionService.getAll(user.uid, filters)
+      const normalizedSearch = search.trim().toLocaleLowerCase('pt-BR')
+      const transactions = normalizedSearch
+        ? allTransactions.filter((tx) => tx.description.toLocaleLowerCase('pt-BR').includes(normalizedSearch))
+        : allTransactions
+
+      if (transactions.length === 0) {
       toast.error('Nenhuma transação disponível para exportar.')
       return
     }
 
-    setIsExporting(true)
-    try {
-      // Cabeçalhos CSV
       const headers = ['Data', 'Descrição', 'Categoria', 'Tipo', 'Valor', 'Tags', 'Anotações']
       
       const rows = transactions.map((tx) => {
@@ -46,25 +62,27 @@ export function CsvExportButton({ transactions, disabled = false }: CsvExportBut
 
         const formattedDate = format(d, 'dd/MM/yyyy')
         const categoryName = categories.find((c) => c.id === tx.categoryId)?.name ?? 'Sem Categoria'
-        const typeLabel = tx.type === 'income' ? 'Receita' : 'Despesa'
-        const decimalValue = (tx.amount / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })
+        const typeLabel = tx.type === 'income' ? 'Receita' : tx.type === 'investment' ? 'Investimento' : 'Despesa'
+        const decimalValue = (tx.amount / 100).toLocaleString('pt-BR', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })
         const tagsJoined = tx.tags ? tx.tags.join('; ') : ''
-        const sanitizedNotes = tx.notes ? tx.notes.replace(/"/g, '""').replace(/\n/g, ' ') : ''
 
         return [
           formattedDate,
-          `"${tx.description.replace(/"/g, '""')}"`,
-          `"${categoryName}"`,
+          tx.description,
+          categoryName,
           typeLabel,
           decimalValue,
-          `"${tagsJoined}"`,
-          `"${sanitizedNotes}"`
-        ]
+          tagsJoined,
+          tx.notes ?? '',
+        ].map(escapeCsvValue)
       })
 
       const csvContent = [
-        headers.join(','),
-        ...rows.map((row) => row.join(','))
+        headers.map(escapeCsvValue).join(';'),
+        ...rows.map((row) => row.join(';'))
       ].join('\n')
 
       const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csvContent], {

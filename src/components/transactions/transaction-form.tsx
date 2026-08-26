@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { useForm, Controller } from 'react-hook-form'
+import { useForm, Controller, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useCategories } from '@/hooks/use-categories'
@@ -47,6 +47,7 @@ export function TransactionForm({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions', userId] })
       queryClient.invalidateQueries({ queryKey: ['analytics', userId] })
+      queryClient.invalidateQueries({ queryKey: ['analyticsHistory', userId] })
       queryClient.invalidateQueries({ queryKey: ['creditCards', userId] })
       toast.success('Lançamento registrado com sucesso!')
     },
@@ -61,6 +62,7 @@ export function TransactionForm({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions', userId] })
       queryClient.invalidateQueries({ queryKey: ['analytics', userId] })
+      queryClient.invalidateQueries({ queryKey: ['analyticsHistory', userId] })
       queryClient.invalidateQueries({ queryKey: ['creditCards', userId] })
       toast.success('Lançamento atualizado com sucesso!')
     },
@@ -79,7 +81,6 @@ export function TransactionForm({
     register,
     handleSubmit,
     control,
-    watch,
     setValue,
     formState: { errors },
   } = useForm({
@@ -97,7 +98,7 @@ export function TransactionForm({
     },
   })
 
-  const watchType = watch('type')
+  const watchType = useWatch({ control, name: 'type' })
 
   // Filtra as categorias pelo tipo ativo da transação
   const filteredCategories = categories.filter(

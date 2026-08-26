@@ -2,9 +2,8 @@
 
 import * as React from 'react'
 import { useTheme } from 'next-themes'
-import { auth, db } from '@/lib/firebase/config'
-import { updateProfile, updatePassword, deleteUser } from 'firebase/auth'
-import { collection, getDocs, writeBatch, doc } from 'firebase/firestore'
+import { auth } from '@/lib/firebase/config'
+import { updateProfile, updatePassword } from 'firebase/auth'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -26,6 +25,7 @@ import {
   Loader2
 } from 'lucide-react'
 import { PageHeader } from '@/components/shared/page-header'
+import { passwordSchema } from '@/lib/validations/auth.schema'
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme()
@@ -80,8 +80,9 @@ export default function SettingsPage() {
   // Mudar Senha
   const handleSavePassword = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (newPassword.length < 6) {
-      toast.error('A senha deve ter pelo menos 6 caracteres.')
+    const passwordValidation = passwordSchema.safeParse(newPassword)
+    if (!passwordValidation.success) {
+      toast.error(passwordValidation.error.issues[0]?.message ?? 'Senha inválida.')
       return
     }
     if (newPassword !== confirmPassword) {
@@ -136,39 +137,20 @@ export default function SettingsPage() {
     }
   }
 
-  // Executar Exclusão em Cascata (Firestore + Auth)
+  // A exclusão é executada no servidor com Firebase Admin, inclusive subcoleções.
   const executeCascadeDelete = async () => {
     const currentUser = auth.currentUser
     if (!currentUser) return
 
     setIsDeletingAccount(true)
     try {
-      const userId = currentUser.uid
-      const batch = writeBatch(db)
-
-      // 1. Deletar todas as transações
-      const transactionsSnap = await getDocs(collection(db, 'users', userId, 'transactions'))
-      transactionsSnap.forEach((docSnap) => {
-        batch.delete(docSnap.ref)
-      })
-
-      // 2. Deletar todas as categorias
-      const categoriesSnap = await getDocs(collection(db, 'users', userId, 'categories'))
-      categoriesSnap.forEach((docSnap) => {
-        batch.delete(docSnap.ref)
-      })
-
-      // 3. Deletar documento do usuário
-      batch.delete(doc(db, 'users', userId))
-
-      // Commit das deleções do Firestore
-      await batch.commit()
-
-      // 4. Deletar conta do Firebase Auth
-      await deleteUser(currentUser)
+      const response = await fetch('/api/account', { method: 'DELETE' })
+      if (!response.ok) throw new Error(await response.text())
+      await auth.signOut()
 
       toast.success('Sua conta e dados foram completamente apagados.')
-      router.push('/register')
+      router.replace('/register')
+      router.refresh()
     } catch (error) {
       console.error(error)
       toast.error('Erro ao apagar conta. Tente novamente mais tarde.')
@@ -340,7 +322,7 @@ export default function SettingsPage() {
                   <Input
                     id="new-password"
                     type="password"
-                    placeholder="Mínimo 6 caracteres"
+                    placeholder="8+ caracteres, maiúscula, número e símbolo"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     required

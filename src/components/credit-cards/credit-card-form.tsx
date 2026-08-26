@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { useForm, Controller } from 'react-hook-form'
+import { useForm, Controller, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { CreditCardService } from '@/services/credit-card.service'
@@ -70,7 +70,6 @@ export function CreditCardForm({ onSuccess, editingCard }: CreditCardFormProps) 
     register,
     handleSubmit,
     control,
-    watch,
     setValue,
     formState: { errors },
   } = useForm({
@@ -87,12 +86,10 @@ export function CreditCardForm({ onSuccess, editingCard }: CreditCardFormProps) 
   })
 
   // Assistir os campos para o live preview
-  const watchName = watch('name')
-  const watchBankName = watch('bankName')
-  const watchBrand = watch('brand')
-  const watchHolderName = watch('holderName')
-  const watchClosingDay = watch('closingDay')
-  const watchColor = watch('color')
+  const [watchName, watchBankName, watchBrand, watchHolderName, watchClosingDay, watchColor] = useWatch({
+    control,
+    name: ['name', 'bankName', 'brand', 'holderName', 'closingDay', 'color'],
+  })
 
   const onSubmit = async (data: CreditCardInput) => {
     try {
@@ -263,6 +260,8 @@ export function CreditCardForm({ onSuccess, editingCard }: CreditCardFormProps) 
                 key={color}
                 type="button"
                 onClick={() => setValue('color', color)}
+                aria-label={`Selecionar cor ${color}`}
+                aria-pressed={watchColor === color}
                 className="size-9 rounded-full border border-border flex items-center justify-center cursor-pointer transition-transform hover:scale-105 active:scale-95 animate-transition"
                 style={{ backgroundColor: color }}
               >

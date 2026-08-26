@@ -12,17 +12,41 @@ export function useTransactions(filters: Omit<GetTransactionsFilters, 'lastVisib
   const userId = user?.uid ?? ''
 
   // Paginação
-  const [currentPage, setCurrentPage] = React.useState(1)
-  const [pageCursors, setPageCursors] = React.useState<Record<number, QueryDocumentSnapshot<DocumentData> | null>>({
-    1: null,
-  })
-
-  // Se os filtros mudarem, resetamos para a primeira página
   const filtersKey = `${filters.type || ''}-${filters.categoryId || ''}-${filters.creditCardId || ''}`
+  const [pagination, dispatchPagination] = React.useReducer(
+    (
+      state: {
+        filtersKey: string
+        currentPage: number
+        pageCursors: Record<number, QueryDocumentSnapshot<DocumentData> | null>
+      },
+      action:
+        | { type: 'reset'; filtersKey: string }
+        | { type: 'next'; cursor: QueryDocumentSnapshot<DocumentData> }
+        | { type: 'previous' }
+    ) => {
+      if (action.type === 'reset') return { filtersKey: action.filtersKey, currentPage: 1, pageCursors: { 1: null } }
+      if (action.type === 'next') {
+        return {
+          ...state,
+          currentPage: state.currentPage + 1,
+          pageCursors: { ...state.pageCursors, [state.currentPage + 1]: action.cursor },
+        }
+      }
+      return { ...state, currentPage: Math.max(1, state.currentPage - 1) }
+    },
+    { filtersKey, currentPage: 1, pageCursors: { 1: null } }
+  )
+
+  const hasChangedFilters = pagination.filtersKey !== filtersKey
+  const currentPage = hasChangedFilters ? 1 : pagination.currentPage
+  const pageCursors: Record<number, QueryDocumentSnapshot<DocumentData> | null> = hasChangedFilters
+    ? { 1: null }
+    : pagination.pageCursors
+
   React.useEffect(() => {
-    setCurrentPage(1)
-    setPageCursors({ 1: null })
-  }, [filtersKey])
+    if (hasChangedFilters) dispatchPagination({ type: 'reset', filtersKey })
+  }, [filtersKey, hasChangedFilters])
 
   const limitVal = filters.limitCount || (filters.creditCardId ? 100 : 10)
 
@@ -41,10 +65,10 @@ export function useTransactions(filters: Omit<GetTransactionsFilters, 'lastVisib
     mutationFn: (data: Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'>) =>
       TransactionService.create(userId, data),
     onSuccess: () => {
-      setCurrentPage(1)
-      setPageCursors({ 1: null })
+      dispatchPagination({ type: 'reset', filtersKey })
       queryClient.invalidateQueries({ queryKey: ['transactions', userId] })
       queryClient.invalidateQueries({ queryKey: ['analytics', userId] })
+      queryClient.invalidateQueries({ queryKey: ['analyticsHistory', userId] })
       queryClient.invalidateQueries({ queryKey: ['creditCards', userId] })
       toast.success('Lançamento registrado com sucesso!')
     },
@@ -64,6 +88,7 @@ export function useTransactions(filters: Omit<GetTransactionsFilters, 'lastVisib
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions', userId] })
       queryClient.invalidateQueries({ queryKey: ['analytics', userId] })
+      queryClient.invalidateQueries({ queryKey: ['analyticsHistory', userId] })
       queryClient.invalidateQueries({ queryKey: ['creditCards', userId] })
       toast.success('Lançamento atualizado com sucesso!')
     },
@@ -78,6 +103,7 @@ export function useTransactions(filters: Omit<GetTransactionsFilters, 'lastVisib
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions', userId] })
       queryClient.invalidateQueries({ queryKey: ['analytics', userId] })
+      queryClient.invalidateQueries({ queryKey: ['analyticsHistory', userId] })
       queryClient.invalidateQueries({ queryKey: ['creditCards', userId] })
       toast.success('Lançamento excluído com sucesso!')
     },
@@ -89,22 +115,18 @@ export function useTransactions(filters: Omit<GetTransactionsFilters, 'lastVisib
   const transactions = transactionsQuery.data?.transactions ?? []
   const lastVisible = transactionsQuery.data?.lastVisible ?? null
 
-  const hasNextPage = transactions.length === limitVal && !!lastVisible
+  const hasNextPage = Boolean(transactionsQuery.data?.hasMore && lastVisible)
   const hasPreviousPage = currentPage > 1
 
   const goToNextPage = () => {
     if (hasNextPage && lastVisible) {
-      setPageCursors((prev) => ({
-        ...prev,
-        [currentPage + 1]: lastVisible,
-      }))
-      setCurrentPage((prev) => prev + 1)
+      dispatchPagination({ type: 'next', cursor: lastVisible })
     }
   }
 
   const goToPreviousPage = () => {
     if (hasPreviousPage) {
-      setCurrentPage((prev) => prev - 1)
+      dispatchPagination({ type: 'previous' })
     }
   }
 

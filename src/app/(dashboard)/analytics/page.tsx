@@ -27,8 +27,12 @@ export default function AnalyticsPage() {
 
   // Quantidade de meses para exibição histórica (padrão: 6 meses)
   const [monthsCount, setMonthsCount] = React.useState(6)
+  const referenceDate = React.useMemo(() => new Date(), [])
 
-  const startDate = startOfMonth(subMonths(new Date(), monthsCount - 1))
+  const startDate = React.useMemo(
+    () => startOfMonth(subMonths(referenceDate, monthsCount - 1)),
+    [monthsCount, referenceDate]
+  )
 
   // Busca todos os lançamentos do período selecionado
   const transactionsQuery = useQuery({
@@ -73,8 +77,8 @@ export default function AnalyticsPage() {
   }, [transactions, categories])
 
   const monthlyHistory = React.useMemo(() => {
-    return AnalyticsHelper.getMonthlyHistory(transactions, monthsCount)
-  }, [transactions, monthsCount])
+    return AnalyticsHelper.getMonthlyHistory(transactions, monthsCount, referenceDate)
+  }, [transactions, monthsCount, referenceDate])
 
   const periodTotals = React.useMemo(() => {
     let income = 0
@@ -142,28 +146,28 @@ export default function AnalyticsPage() {
           <div className="grid gap-4 sm:grid-cols-4">
             {/* Total Receitas */}
             <Card className="border-border bg-card shadow-xs rounded-md p-4 flex flex-col justify-between h-20">
-              <span className="text-[11px] font-normal text-muted-foreground">Total Receitas (Período)</span>
+              <span className="text-xs font-normal text-muted-foreground">Total Receitas (Período)</span>
               <span className="text-xl font-semibold text-green-700 dark:text-green-500 tracking-tight leading-none">
                 {(periodTotals.income / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
               </span>
             </Card>
             {/* Total Despesas */}
             <Card className="border-border bg-card shadow-xs rounded-md p-4 flex flex-col justify-between h-20">
-              <span className="text-[11px] font-normal text-muted-foreground">Total Despesas (Período)</span>
+              <span className="text-xs font-normal text-muted-foreground">Total Despesas (Período)</span>
               <span className="text-xl font-semibold text-red-700 dark:text-red-500 tracking-tight leading-none">
                 {(periodTotals.expense / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
               </span>
             </Card>
             {/* Total Investimentos */}
             <Card className="border-border bg-card shadow-xs rounded-md p-4 flex flex-col justify-between h-20">
-              <span className="text-[11px] font-normal text-muted-foreground">Investido (Período)</span>
+              <span className="text-xs font-normal text-muted-foreground">Investido (Período)</span>
               <span className="text-xl font-semibold text-violet-700 dark:text-violet-500 tracking-tight leading-none">
                 {(periodTotals.investment / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
               </span>
             </Card>
             {/* Saldo Líquido */}
             <Card className="border-border bg-card shadow-xs rounded-md p-4 flex flex-col justify-between h-20">
-              <span className="text-[11px] font-normal text-muted-foreground">Saldo Líquido (Período)</span>
+              <span className="text-xs font-normal text-muted-foreground">Saldo Líquido (Período)</span>
               <span className={`text-xl font-semibold tracking-tight leading-none ${periodTotals.balance >= 0 ? 'text-green-700 dark:text-green-500' : 'text-red-700 dark:text-red-500'}`}>
                 {(periodTotals.balance / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
               </span>

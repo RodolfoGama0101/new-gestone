@@ -64,7 +64,7 @@ describe('AnalyticsHelper', () => {
   })
 
   test('deve agrupar histórico mensal de saldo, receitas e despesas corretamente', () => {
-    const history = AnalyticsHelper.getMonthlyHistory(transactions, 3)
+    const history = AnalyticsHelper.getMonthlyHistory(transactions, 3, new Date(2026, 6, 15))
     expect(history).toHaveLength(3)
     
     // O último mês representa o mês ativo das transações configuradas (Julho/26)

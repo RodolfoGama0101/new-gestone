@@ -11,6 +11,8 @@ const eslintConfig = [
       "postcss.config.mjs",
       "tailwind.config.ts",
       "playwright.config.ts",
+      "public/sw.js",
+      "public/workbox-*.js",
     ],
   },
   ...nextVitals,
