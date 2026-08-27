@@ -5,10 +5,13 @@ import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
-import { signInWithGoogle } from '@/lib/firebase/auth'
+import { useAuth } from '@/contexts/auth-context'
+import { useRouter } from 'next/navigation'
 
 export function GoogleAuthButton() {
   const [isLoading, setIsLoading] = React.useState(false)
+  const { signInWithGoogle } = useAuth()
+  const router = useRouter()
 
   const handleGoogleSignIn = async () => {
     try {
@@ -16,6 +19,8 @@ export function GoogleAuthButton() {
       const user = await signInWithGoogle()
       if (user) {
         toast.success('Login efetuado com sucesso via Google!')
+        router.replace('/')
+        router.refresh()
       }
     } catch (error) {
       setIsLoading(false)
@@ -23,9 +28,13 @@ export function GoogleAuthButton() {
       console.error('Google Sign-In Error:', error)
       if (authError.code === 'auth/unauthorized-domain') {
         toast.error('Este domínio ainda não foi autorizado no Firebase.')
+      } else if (authError.code === 'auth/session-service-unavailable') {
+        toast.error('O serviço de sessão está indisponível. Tente novamente em instantes.')
       } else {
         toast.error('Erro ao autenticar com o Google. Tente novamente.')
       }
+    } finally {
+      setIsLoading(false)
     }
   }
 

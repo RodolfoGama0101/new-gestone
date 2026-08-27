@@ -13,10 +13,13 @@ import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { GoogleAuthButton } from './google-auth-button'
 import { loginSchema, type LoginInput } from '@/lib/validations/auth.schema'
-import { signInWithEmail } from '@/lib/firebase/auth'
+import { useAuth } from '@/contexts/auth-context'
+import { useRouter } from 'next/navigation'
 
 export function LoginForm() {
   const [isLoading, setIsLoading] = React.useState(false)
+  const { signInWithEmail } = useAuth()
+  const router = useRouter()
 
   const {
     register,
@@ -35,6 +38,8 @@ export function LoginForm() {
     try {
       await signInWithEmail(data.email, data.password)
       toast.success('Login realizado com sucesso!')
+      router.replace('/')
+      router.refresh()
     } catch (error) {
       setIsLoading(false)
       const authError = error as { code?: string }
@@ -50,6 +55,9 @@ export function LoginForm() {
           break
         case 'auth/too-many-requests':
           toast.error('Muitas tentativas malsucedidas. Tente mais tarde.')
+          break
+        case 'auth/session-service-unavailable':
+          toast.error('O serviço de sessão está indisponível. Tente novamente em instantes.')
           break
         default:
           toast.error('Erro ao realizar o login. Verifique seus dados e tente novamente.')

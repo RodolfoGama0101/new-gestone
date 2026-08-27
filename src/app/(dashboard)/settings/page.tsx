@@ -26,10 +26,12 @@ import {
 } from 'lucide-react'
 import { PageHeader } from '@/components/shared/page-header'
 import { passwordSchema } from '@/lib/validations/auth.schema'
+import { useAuth } from '@/contexts/auth-context'
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme()
   const router = useRouter()
+  const { signOutUser } = useAuth()
   const user = auth.currentUser
 
   const [activeTab, setActiveTab] = React.useState<'profile' | 'preferences' | 'security' | 'danger'>('profile')
@@ -146,7 +148,7 @@ export default function SettingsPage() {
     try {
       const response = await fetch('/api/account', { method: 'DELETE' })
       if (!response.ok) throw new Error(await response.text())
-      await auth.signOut()
+      await signOutUser()
 
       toast.success('Sua conta e dados foram completamente apagados.')
       router.replace('/register')

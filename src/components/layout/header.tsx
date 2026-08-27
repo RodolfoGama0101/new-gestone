@@ -2,7 +2,6 @@
 
 import { usePathname } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
-import { signOutUser } from '@/lib/firebase/auth'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Logo } from '@/components/shared/logo'
 import { ThemeToggle } from '@/components/shared/theme-toggle'
@@ -31,7 +30,7 @@ const PAGE_TITLES: Record<string, string> = {
 
 export function Header() {
   const pathname = usePathname()
-  const { user } = useAuth()
+  const { user, signOutUser } = useAuth()
 
   const pageTitle = PAGE_TITLES[pathname] ?? 'GestOne'
 

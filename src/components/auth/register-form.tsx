@@ -12,11 +12,14 @@ import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { GoogleAuthButton } from './google-auth-button'
 import { registerSchema, type RegisterInput } from '@/lib/validations/auth.schema'
-import { signUpWithEmail } from '@/lib/firebase/auth'
+import { useAuth } from '@/contexts/auth-context'
 import { CategoryService } from '@/services/category.service'
+import { useRouter } from 'next/navigation'
 
 export function RegisterForm() {
   const [isLoading, setIsLoading] = React.useState(false)
+  const { signUpWithEmail } = useAuth()
+  const router = useRouter()
 
   const {
     register,
@@ -39,6 +42,8 @@ export function RegisterForm() {
         await CategoryService.seedDefaultCategories(user.uid)
       }
       toast.success('Conta criada com sucesso! Bem-vindo(a).')
+      router.replace('/')
+      router.refresh()
     } catch (error) {
       setIsLoading(false)
       const authError = error as { code?: string }
@@ -52,6 +57,9 @@ export function RegisterForm() {
           break
         case 'auth/weak-password':
           toast.error('A senha fornecida é muito fraca.')
+          break
+        case 'auth/session-service-unavailable':
+          toast.error('A conta foi criada, mas o serviço de sessão está indisponível. Tente fazer login novamente.')
           break
         default:
           toast.error('Erro ao criar a conta. Tente novamente.')
