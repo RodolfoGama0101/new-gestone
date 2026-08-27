@@ -39,7 +39,6 @@ export function RegisterForm() {
         await CategoryService.seedDefaultCategories(user.uid)
       }
       toast.success('Conta criada com sucesso! Bem-vindo(a).')
-      // Mantém o estado de carregamento ativo até que o AuthProvider redirecione
     } catch (error) {
       setIsLoading(false)
       const authError = error as { code?: string }
@@ -57,6 +56,8 @@ export function RegisterForm() {
         default:
           toast.error('Erro ao criar a conta. Tente novamente.')
       }
+    } finally {
+      setIsLoading(false)
     }
   }
 

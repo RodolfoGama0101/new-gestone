@@ -1,8 +1,9 @@
 'use client'
 
 import * as React from 'react'
-import { User, onAuthStateChanged } from 'firebase/auth'
+import { User, onAuthStateChanged, signOut } from 'firebase/auth'
 import { auth } from '@/lib/firebase/config'
+import { syncSessionCookie } from '@/lib/firebase/auth'
 import { useRouter, usePathname } from 'next/navigation'
 
 interface AuthContextType {
@@ -26,18 +27,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         setIsLoading(true)
         if (firebaseUser) {
+          await syncSessionCookie(firebaseUser)
           setUser(firebaseUser)
-          // Sync session cookie with server
-          const token = await firebaseUser.getIdToken()
-          await fetch('/api/auth/session', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ token }),
-          }).then(async (response) => {
-            if (!response.ok) throw new Error(await response.text())
-          })
         } else {
           // Clear session cookie first
           await fetch('/api/auth/session', {
@@ -49,6 +40,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (error) {
         console.error('Failed to sync auth session:', error)
+        setUser(null)
+        if (firebaseUser) {
+          await signOut(auth)
+        }
       } finally {
         setIsLoading(false)
       }

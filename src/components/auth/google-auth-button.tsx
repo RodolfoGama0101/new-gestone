@@ -12,29 +12,17 @@ export function GoogleAuthButton() {
 
   const handleGoogleSignIn = async () => {
     try {
-      // Abre o pop-up imediatamente para aproveitar o gesto do usuário e evitar bloqueios pelo navegador
-      const signInPromise = signInWithGoogle()
-
-      // Altera o estado de loading após a chamada síncrona de abertura do pop-up
       setIsLoading(true)
-
-      const user = await signInPromise
+      const user = await signInWithGoogle()
       if (user) {
         toast.success('Login efetuado com sucesso via Google!')
-        // Mantém o estado de carregamento ativo até que o AuthProvider redirecione
-      } else {
-        setIsLoading(false)
       }
     } catch (error) {
       setIsLoading(false)
       const authError = error as { code?: string }
       console.error('Google Sign-In Error:', error)
-      if (authError.code === 'auth/popup-blocked') {
-        toast.error(
-          'O pop-up de login foi bloqueado pelo seu navegador. Por favor, ative os pop-ups para este site e tente novamente.'
-        )
-      } else if (authError.code === 'auth/popup-closed-by-user') {
-        toast.error('O pop-up foi fechado antes de completar o login.')
+      if (authError.code === 'auth/unauthorized-domain') {
+        toast.error('Este domínio ainda não foi autorizado no Firebase.')
       } else {
         toast.error('Erro ao autenticar com o Google. Tente novamente.')
       }

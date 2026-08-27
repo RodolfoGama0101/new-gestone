@@ -35,7 +35,6 @@ export function LoginForm() {
     try {
       await signInWithEmail(data.email, data.password)
       toast.success('Login realizado com sucesso!')
-      // Mantém o estado de carregamento ativo até que o AuthProvider redirecione
     } catch (error) {
       setIsLoading(false)
       const authError = error as { code?: string }
@@ -55,6 +54,8 @@ export function LoginForm() {
         default:
           toast.error('Erro ao realizar o login. Verifique seus dados e tente novamente.')
       }
+    } finally {
+      setIsLoading(false)
     }
   }
 
