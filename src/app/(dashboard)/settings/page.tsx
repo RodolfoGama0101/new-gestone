@@ -3,6 +3,7 @@
 import * as React from 'react'
 import { useTheme } from 'next-themes'
 import { auth } from '@/lib/firebase/config'
+import { AccountDeletionError, deleteAccount } from '@/lib/firebase/account'
 import { updateProfile, updatePassword } from 'firebase/auth'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -146,16 +147,19 @@ export default function SettingsPage() {
 
     setIsDeletingAccount(true)
     try {
-      const response = await fetch('/api/account', { method: 'DELETE' })
-      if (!response.ok) throw new Error(await response.text())
+      await deleteAccount(currentUser)
       await signOutUser()
 
       toast.success('Sua conta e dados foram completamente apagados.')
       router.replace('/register')
       router.refresh()
     } catch (error) {
-      console.error(error)
-      toast.error('Erro ao apagar conta. Tente novamente mais tarde.')
+      if (error instanceof AccountDeletionError && error.code === 'auth/requires-recent-login') {
+        setReauthAction('delete')
+        toast.error('A confirmação expirou. Confirme sua identidade novamente.')
+      } else {
+        toast.error(error instanceof AccountDeletionError ? error.message : 'Erro ao apagar conta. Tente novamente mais tarde.')
+      }
     } finally {
       setIsDeletingAccount(false)
     }
