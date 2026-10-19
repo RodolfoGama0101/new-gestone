@@ -5,6 +5,7 @@ export interface Category {
   icon: string // Nome do ícone Lucide (ex: 'ShoppingCart')
   color: string // Cor HSL, HEX ou OKLCH
   isDefault: boolean
+  archived?: boolean
   createdAt: unknown
   updatedAt: unknown
 }

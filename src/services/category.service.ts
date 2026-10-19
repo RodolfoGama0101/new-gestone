@@ -4,7 +4,6 @@ import {
   getDocs,
   addDoc,
   updateDoc,
-  deleteDoc,
   writeBatch,
   serverTimestamp,
 } from 'firebase/firestore'
@@ -55,6 +54,7 @@ export const CategoryService = {
         icon: data.icon,
         color: data.color,
         isDefault: data.isDefault ?? false,
+        archived: data.archived ?? false,
         createdAt: data.createdAt,
         updatedAt: data.updatedAt,
       })
@@ -157,8 +157,10 @@ export const CategoryService = {
   },
 
   async delete(userId: string, categoryId: string): Promise<void> {
-    const docRef = doc(db, 'users', userId, 'categories', categoryId)
-    await deleteDoc(docRef)
+    // O servidor verifica vínculos e arquiva/exclui de forma transacional.
+    void userId
+    const response = await fetch(`/api/categories/${encodeURIComponent(categoryId)}`, { method: 'DELETE', credentials: 'same-origin' })
+    if (!response.ok) throw new Error('Não foi possível remover a categoria.')
   },
 
   async seedDefaultCategories(userId: string): Promise<void> {

@@ -102,7 +102,7 @@ export function TransactionForm({
 
   // Filtra as categorias pelo tipo ativo da transação
   const filteredCategories = categories.filter(
-    (c) => c.type === watchType || c.type === 'both'
+    (c) => (!c.archived || c.id === editingTransaction?.categoryId) && (c.type === watchType || c.type === 'both')
   )
 
   // Mapeia categorias filtradas para o formato esperado pelo Select do Base UI

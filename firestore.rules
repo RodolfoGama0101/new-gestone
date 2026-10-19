@@ -37,7 +37,9 @@ service cloud.firestore {
 
     function hasCompatibleCategory(userId, data) {
       let category = getAfter(/databases/$(database)/documents/users/$(userId)/categories/$(data.categoryId)).data;
-      return category.type == data.type || category.type == 'both';
+      return (category.type == data.type || category.type == 'both')
+        && (!category.get('archived', false) || (request.method == 'update'
+          && resource.data.categoryId == data.categoryId && resource.data.type == data.type));
     }
 
     function hasValidCard(userId, data) {
@@ -77,7 +79,8 @@ service cloud.firestore {
     }
 
     function isValidCategory(data) {
-      return hasOnlyKeys(data, ['name', 'type', 'icon', 'color', 'isDefault', 'createdAt', 'updatedAt'])
+      return hasOnlyKeys(data, ['name', 'type', 'icon', 'color', 'isDefault', 'archived', 'createdAt', 'updatedAt'])
+        && data.get('archived', false) is bool
         && data.name is string && data.name.size() >= 2 && data.name.size() <= 60
         && data.type in ['income', 'expense', 'investment', 'both']
         && data.icon is string && data.icon.size() > 0 && data.icon.size() <= 80
@@ -120,10 +123,13 @@ service cloud.firestore {
       }
 
       match /categories/{categoryId} {
-        allow read, delete: if isOwner(userId);
-        allow create: if isOwner(userId) && isValidCategory(request.resource.data);
+        allow read: if isOwner(userId);
+        allow delete: if false;
+        allow create: if isOwner(userId) && isValidCategory(request.resource.data)
+          && request.resource.data.get('archived', false) == false;
         allow update: if isOwner(userId)
           && isValidCategory(request.resource.data)
+          && request.resource.data.get('archived', false) == resource.data.get('archived', false)
           && request.resource.data.createdAt == resource.data.createdAt;
       }
 

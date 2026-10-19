@@ -163,7 +163,7 @@ export default function CategoriesPage() {
     try {
       await deleteCategory(deletingId)
       setDeletingId(null)
-      toast.success('Categoria excluída com sucesso!')
+      toast.success('Categoria removida. O histórico foi preservado.')
     } catch (error) {
       console.error(error)
       toast.error('Erro ao excluir categoria. Tente novamente.')
@@ -173,9 +173,9 @@ export default function CategoriesPage() {
   }
 
   // Filtrar categorias
-  const incomes = categories.filter((c) => c.type === 'income' || c.type === 'both')
-  const expenses = categories.filter((c) => c.type === 'expense' || c.type === 'both')
-  const investments = categories.filter((c) => c.type === 'investment' || c.type === 'both')
+  const incomes = categories.filter((c) => !c.archived).filter((c) => c.type === 'income' || c.type === 'both')
+  const expenses = categories.filter((c) => !c.archived).filter((c) => c.type === 'expense' || c.type === 'both')
+  const investments = categories.filter((c) => !c.archived).filter((c) => c.type === 'investment' || c.type === 'both')
 
   if (isLoading) {
     return (
@@ -659,7 +659,7 @@ export default function CategoriesPage() {
         onClose={() => setDeletingId(null)}
         onConfirm={handleDeleteConfirm}
         title="Excluir Categoria?"
-        description="Esta ação é permanente e removerá a categoria do Firestore. Lançamentos existentes associados a esta categoria precisarão ser reclassificados manualmente."
+        description="Categorias com lançamentos serão arquivadas para preservar o histórico e deixarão de aparecer em novas compras. Categorias sem lançamentos serão excluídas."
         confirmText="Excluir"
         isDestructive
         isLoading={isDeleting}

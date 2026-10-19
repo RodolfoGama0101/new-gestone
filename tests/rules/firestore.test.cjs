@@ -389,6 +389,27 @@ describe('valores, tags e campos de lançamentos', () => {
 })
 
 describe('perfis, categorias e cartões', () => {
+  test('categoria arquivada preserva edições do histórico e nega novos vínculos', async () => {
+    await environment.withSecurityRulesDisabled(async (context) => {
+      await updateDoc(doc(context.firestore(), 'users/owner/categories/expense'), { archived: true })
+    })
+    await assertSucceeds(updateDoc(doc(owner, 'users/owner/transactions/existing'), { description: 'Histórico preservado' }))
+    await assertFails(setDoc(doc(owner, 'users/owner/transactions/new'), transaction()))
+    await assertFails(deleteDoc(doc(owner, 'users/owner/categories/expense')))
+    await assertFails(updateDoc(doc(owner, 'users/owner/categories/expense'), { archived: false }))
+  })
+
+  test('cliente não exclui categoria vazia nem forja arquivamento', async () => {
+    await assertFails(deleteDoc(doc(owner, 'users/owner/categories/income')))
+    await assertFails(updateDoc(doc(owner, 'users/owner/categories/income'), { archived: true }))
+  })
+
+  test('fechamento registrado é preservado ao alterar o cadastro do cartão', async () => {
+    await assertSucceeds(setDoc(doc(owner, 'users/owner/transactions/snapshot'), { ...transaction(), creditCardId: 'card', cardClosingDay: 15 }))
+    await assertSucceeds(updateDoc(doc(owner, 'users/owner/creditCards/card'), { closingDay: 20 }))
+    await assertFails(updateDoc(doc(owner, 'users/owner/transactions/snapshot'), { cardClosingDay: 20 }))
+    await assertSucceeds(updateDoc(doc(owner, 'users/owner/transactions/snapshot'), { description: 'Preserva competência' }))
+  })
   test('aceita criação de perfil mínimo do próprio usuário', async () => {
     const db = environment.authenticatedContext('new-user').firestore()
     await assertSucceeds(

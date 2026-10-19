@@ -58,7 +58,7 @@ export function useCategories() {
     mutationFn: (categoryId: string) => CategoryService.delete(userId, categoryId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories', userId] })
-      toast.success('Categoria excluída com sucesso!')
+      toast.success('Categoria removida. O histórico foi preservado.')
     },
     onError: () => {
       toast.error('Erro ao excluir categoria.')

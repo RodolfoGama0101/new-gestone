@@ -17,3 +17,7 @@ Todas as consultas analíticas têm início e fim. A comparação mensal inclui 
 ## ROD-102 — Renovação da sessão
 
 Inicialização e login sincronizam a sessão; renovações de token do mesmo usuário renovam o cookie no máximo uma vez por dia, antes do limite de cinco dias. Web Locks serializa operações entre abas e localStorage guarda somente UID/data, nunca tokens. Sem essas APIs, a fila existente e a marca em memória mantêm funcionamento por aba (pode haver uma chamada extra entre abas). Falha não grava sucesso; revogação é verificada no servidor e o fluxo existente encerra a autenticação em falhas. Logout continua na mesma fila e remove a marca quando o UID ainda está disponível. Novo login força sincronização independentemente da marca.
+
+## ROD-103 — Remoção de categorias
+
+O endpoint autenticado deriva o UID da sessão, nunca do payload. Primeiro uma transação do Admin arquiva a categoria, fechando a entrada de novos vínculos pelas regras; depois outra consulta seus vínculos e exclui somente se vazia. Categoria utilizada permanece arquivada, sem trocar ID/nome. Falha entre as fases deixa um arquivo seguro e permite repetir a operação. Clientes não podem excluir categorias diretamente nem mudar seu estado de arquivamento. Categorias arquivadas não aceitam novos vínculos, mas permitem editar lançamentos que já as utilizam. Relatórios, filtros e CSV continuam recebendo o cadastro completo; apenas a lista de categorias ativas e o formulário de novos lançamentos ocultam as arquivadas.
