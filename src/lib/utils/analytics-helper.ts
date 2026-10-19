@@ -2,7 +2,8 @@ import { Transaction } from '@/types/transaction'
 import { Category } from '@/types/category'
 import { subMonths, format, startOfMonth, endOfMonth, isWithinInterval, eachMonthOfInterval } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { Timestamp } from 'firebase/firestore'
+import type { CreditCard } from '@/types/credit-card'
+import { getTransactionDate } from './transaction-date'
 
 export interface CategoryShare {
   name: string
@@ -16,17 +17,6 @@ export interface MonthlySummary {
   expense: number // em centavos
   investment: number // em centavos (NOVO)
   balance: number // em centavos
-}
-
-function parseToDate(dateVal: unknown): Date {
-  if (!dateVal) return new Date()
-  if (dateVal instanceof Date || (dateVal && typeof dateVal === 'object' && 'getTime' in dateVal)) return dateVal as Date
-  if (dateVal instanceof Timestamp) return dateVal.toDate()
-  const record = dateVal as { seconds?: number }
-  if (record && typeof record.seconds === 'number') {
-    return new Date(record.seconds * 1000)
-  }
-  return new Date(dateVal as string | number)
 }
 
 export const AnalyticsHelper = {
@@ -62,7 +52,8 @@ export const AnalyticsHelper = {
   getMonthlyHistory(
     transactions: Transaction[],
     monthsCount: number,
-    referenceDate: Date = new Date()
+    referenceDate: Date = new Date(),
+    creditCards: CreditCard[] = []
   ): MonthlySummary[] {
     const startDate = startOfMonth(subMonths(referenceDate, monthsCount - 1))
     const endDate = endOfMonth(referenceDate)
@@ -83,7 +74,7 @@ export const AnalyticsHelper = {
     })
 
     transactions.forEach((tx) => {
-      const txDate = parseToDate(tx.date)
+      const txDate = getTransactionDate(tx, creditCards)
       if (isWithinInterval(txDate, { start: startDate, end: endDate })) {
         const key = format(txDate, 'yyyy-MM')
         const summary = monthlySummaryMap.get(key)

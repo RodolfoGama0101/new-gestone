@@ -8,8 +8,9 @@ import {
   subMonths,
   format,
 } from 'date-fns'
-import { Timestamp } from 'firebase/firestore'
-import { getEffectiveDebitMonth } from '@/lib/utils/credit-card-billing'
+import { parseFirestoreDate as parseToDate } from '@/lib/utils/parse-date'
+import { getTransactionDate } from '@/lib/utils/transaction-date'
+
 
 export interface DailyBalancePoint {
   date: string // Formato "dd/MM"
@@ -34,22 +35,6 @@ export interface PeriodSummary {
   investmentCount: number
 }
 
-// Auxiliar para converter timestamps Firestore em datas reais
-function parseToDate(dateVal: unknown): Date {
-  if (!dateVal) return new Date()
-  if (
-    dateVal instanceof Date ||
-    (dateVal && typeof dateVal === 'object' && 'getTime' in dateVal)
-  )
-    return dateVal as Date
-  if (dateVal instanceof Timestamp) return dateVal.toDate()
-  const record = dateVal as { seconds?: number }
-  if (record && typeof record.seconds === 'number') {
-    return new Date(record.seconds * 1000)
-  }
-  return new Date(dateVal as string | number)
-}
-
 export const AnalyticsService = {
   calculateSummary(
     transactions: Transaction[],
@@ -65,10 +50,6 @@ export const AnalyticsService = {
 
     const startOfPrevious = startOfMonth(subMonths(selectedDate, 1))
     const endOfPrevious = endOfMonth(subMonths(selectedDate, 1))
-
-    // Cria um mapa de cartões para busca rápida de closingDay
-    const cardClosingDays = new Map<string, number>()
-    creditCards.forEach((c) => cardClosingDays.set(c.id, c.closingDay))
 
     let income = 0
     let expense = 0
@@ -88,20 +69,8 @@ export const AnalyticsService = {
     transactions.forEach((tx) => {
       const txDate = parseToDate(tx.date)
 
-      // Se for uma despesa de cartão de crédito
-      let effectiveDate = txDate
-      let isCardExpense = false
-      let closingDay = 10 // Padrão caso o cartão não seja encontrado
-
-      if (tx.type === 'expense' && tx.creditCardId) {
-        isCardExpense = true
-        closingDay = cardClosingDays.get(tx.creditCardId) ?? 10
-
-        // Calcula o mês efetivo em que essa despesa debita
-        const { month, year } = getEffectiveDebitMonth(closingDay, txDate)
-        // Cria uma data correspondente para ver se cai no mês selecionado
-        effectiveDate = new Date(year, month, 15) // Dia 15 para evitar problemas de fuso horário
-      }
+      const effectiveDate = getTransactionDate(tx, creditCards)
+      const isCardExpense = tx.type === 'expense' && !!tx.creditCardId
 
       const isCurrent = isWithinInterval(effectiveDate, {
         start: startOfCurrent,
@@ -159,14 +128,7 @@ export const AnalyticsService = {
     // Filtra transações do mês ativo ordenadas por data crescente
     const currentMonthTxs = transactions
       .filter((tx) => {
-        const txDate = parseToDate(tx.date)
-        let effectiveDate = txDate
-
-        if (tx.type === 'expense' && tx.creditCardId) {
-          const closingDay = cardClosingDays.get(tx.creditCardId) ?? 10
-          const { month, year } = getEffectiveDebitMonth(closingDay, txDate)
-          effectiveDate = new Date(year, month, 15)
-        }
+        const effectiveDate = getTransactionDate(tx, creditCards)
 
         return isWithinInterval(effectiveDate, {
           start: startOfCurrent,
@@ -174,8 +136,8 @@ export const AnalyticsService = {
         })
       })
       .sort((a, b) => {
-        const dateA = parseToDate(a.date).getTime()
-        const dateB = parseToDate(b.date).getTime()
+        const dateA = getTransactionDate(a, creditCards).getTime()
+        const dateB = getTransactionDate(b, creditCards).getTime()
         return dateA - dateB
       })
 
@@ -185,7 +147,7 @@ export const AnalyticsService = {
 
     // Percorre e acumula o saldo diário
     currentMonthTxs.forEach((tx) => {
-      const dayKey = format(parseToDate(tx.date), 'dd/MM')
+      const dayKey = format(getTransactionDate(tx, creditCards), 'dd/MM')
       if (tx.type === 'income') {
         runningBalance += tx.amount
       } else {

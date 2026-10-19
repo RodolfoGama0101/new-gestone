@@ -15,8 +15,11 @@ import { PageHeader } from '@/components/shared/page-header'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { EmptyState } from '@/components/shared/empty-state'
-import { startOfMonth, subMonths } from 'date-fns'
+import { startOfMonth, subMonths, endOfMonth } from 'date-fns'
 import { BarChart3, Loader2 } from 'lucide-react'
+
+import { useCreditCards } from '@/hooks/use-credit-cards'
+import { filterTransactionPeriod } from '@/lib/utils/transaction-date'
 
 const EMPTY_ARRAY: Transaction[] = []
 
@@ -24,6 +27,8 @@ export default function AnalyticsPage() {
   const { user } = useAuth()
   const userId = user?.uid ?? ''
   const { categories, isLoading: isCategoriesLoading } = useCategories()
+
+  const { creditCards, isLoading: isCardsLoading } = useCreditCards()
 
   // Quantidade de meses para exibição histórica (padrão: 6 meses)
   const [monthsCount, setMonthsCount] = React.useState(6)
@@ -41,7 +46,7 @@ export default function AnalyticsPage() {
       const colRef = collection(db, 'users', userId, 'transactions')
       const q = query(
         colRef,
-        where('date', '>=', Timestamp.fromDate(startDate)),
+        where('date', '>=', Timestamp.fromDate(subMonths(startDate, 1))),
         orderBy('date', 'asc')
       )
       const snapshot = await getDocs(q)
@@ -59,6 +64,7 @@ export default function AnalyticsPage() {
           notes: data.notes ?? null,
           recurring: data.recurring ?? false,
           creditCardId: data.creditCardId ?? null,
+          cardClosingDay: data.cardClosingDay ?? null,
           createdAt: data.createdAt,
           updatedAt: data.updatedAt,
         })
@@ -68,8 +74,8 @@ export default function AnalyticsPage() {
     enabled: !!userId,
   })
 
-  const isLoading = transactionsQuery.isLoading || isCategoriesLoading
-  const transactions = transactionsQuery.data ?? EMPTY_ARRAY
+  const isLoading = transactionsQuery.isLoading || isCategoriesLoading || isCardsLoading
+  const transactions = React.useMemo(() => filterTransactionPeriod(transactionsQuery.data ?? EMPTY_ARRAY, startDate, endOfMonth(referenceDate), creditCards), [transactionsQuery.data, startDate, referenceDate, creditCards])
 
   // Prepara os dados para os gráficos
   const donutData = React.useMemo(() => {
@@ -77,8 +83,8 @@ export default function AnalyticsPage() {
   }, [transactions, categories])
 
   const monthlyHistory = React.useMemo(() => {
-    return AnalyticsHelper.getMonthlyHistory(transactions, monthsCount, referenceDate)
-  }, [transactions, monthsCount, referenceDate])
+    return AnalyticsHelper.getMonthlyHistory(transactions, monthsCount, referenceDate, creditCards)
+  }, [transactions, monthsCount, referenceDate, creditCards])
 
   const periodTotals = React.useMemo(() => {
     let income = 0

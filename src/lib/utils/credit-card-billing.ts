@@ -1,4 +1,4 @@
-import { addMonths, setDate, setMonth, setYear } from 'date-fns'
+import { addMonths } from 'date-fns'
 
 /**
  * Retorna o mês e ano em que a compra será efetivamente faturada/debitada,
@@ -31,14 +31,11 @@ export function getDebitLimitDate(closingDay: number, purchaseDate: Date): Date 
   const { month, year } = getEffectiveDebitMonth(closingDay, purchaseDate)
   
   // Cria uma data no dia de fechamento daquele mês/ano
-  let limitDate = new Date(purchaseDate)
-  limitDate = setYear(limitDate, year)
-  limitDate = setMonth(limitDate, month)
   
   // Tratamento de segurança caso o dia de fechamento seja maior do que os dias do mês
   const lastDayOfMonth = new Date(year, month + 1, 0).getDate()
   const actualClosingDay = Math.min(closingDay, lastDayOfMonth)
-  limitDate = setDate(limitDate, actualClosingDay)
+  const limitDate = new Date(year, month, actualClosingDay)
   
   // Zera as horas para comparação justa de datas
   limitDate.setHours(0, 0, 0, 0)

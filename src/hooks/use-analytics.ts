@@ -46,6 +46,7 @@ export function useAnalytics(selectedDate: Date) {
           notes: data.notes ?? null,
           recurring: data.recurring ?? false,
           creditCardId: data.creditCardId ?? null,
+          cardClosingDay: data.cardClosingDay ?? null,
           createdAt: data.createdAt,
           updatedAt: data.updatedAt,
         })

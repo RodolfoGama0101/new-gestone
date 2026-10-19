@@ -2,6 +2,7 @@ import {
   collection,
   doc,
   getDocs,
+  getDoc,
   addDoc,
   updateDoc,
   deleteDoc,
@@ -45,6 +46,7 @@ export const TransactionService = {
       notes: data.notes ?? null,
       recurring: data.recurring ?? false,
       creditCardId: data.creditCardId ?? null,
+      cardClosingDay: data.cardClosingDay ?? null,
       createdAt: data.createdAt,
       updatedAt: data.updatedAt,
     }
@@ -103,6 +105,9 @@ export const TransactionService = {
 
     const docRef = await addDoc(colRef, {
       ...data,
+      cardClosingDay: data.type === 'expense' && data.creditCardId
+        ? (await getDoc(doc(db, 'users', userId, 'creditCards', data.creditCardId))).data()?.closingDay ?? 10
+        : null,
       date: txDate,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
@@ -122,6 +127,14 @@ export const TransactionService = {
       ...data, 
       updatedAt: serverTimestamp() 
     }
+    const existing = (await getDoc(docRef)).data()
+    const nextCardId = data.creditCardId === undefined ? existing?.creditCardId : data.creditCardId
+    const nextType = data.type ?? existing?.type
+    updateData.cardClosingDay = nextType === 'expense' && nextCardId
+      ? (nextCardId === existing?.creditCardId && existing?.cardClosingDay != null
+        ? existing.cardClosingDay
+        : (await getDoc(doc(db, 'users', userId, 'creditCards', nextCardId))).data()?.closingDay ?? 10)
+      : null
     
     if (data.date instanceof Date) {
       updateData.date = Timestamp.fromDate(data.date)

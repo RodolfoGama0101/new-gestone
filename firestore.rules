@@ -50,7 +50,7 @@ service cloud.firestore {
     function isValidTransaction(userId, data) {
       return hasOnlyKeys(data, [
         'type', 'amount', 'description', 'categoryId', 'date', 'tags', 'notes',
-        'recurring', 'creditCardId', 'createdAt', 'updatedAt'
+        'recurring', 'creditCardId', 'cardClosingDay', 'createdAt', 'updatedAt'
       ])
         && data.type in ['income', 'expense', 'investment']
         && data.amount is int && data.amount > 0 && data.amount <= 9007199254740991
@@ -60,6 +60,9 @@ service cloud.firestore {
         && isValidTags(data.tags)
         && (data.notes == null || (data.notes is string && data.notes.size() <= 500))
         && data.recurring is bool
+        && (data.get('cardClosingDay', null) == null || (data.type == 'expense'
+          && data.get('creditCardId', null) != null && data.cardClosingDay is int
+          && data.cardClosingDay >= 1 && data.cardClosingDay <= 31))
         && data.createdAt is timestamp && data.updatedAt is timestamp
         && hasCompatibleCategory(userId, data)
         && hasValidCard(userId, data);
@@ -109,6 +112,10 @@ service cloud.firestore {
         allow create: if isOwner(userId) && isValidTransaction(userId, request.resource.data);
         allow update: if isOwner(userId)
           && isValidTransaction(userId, request.resource.data)
+          && (resource.data.get('cardClosingDay', null) == null
+            || request.resource.data.get('creditCardId', null) != resource.data.get('creditCardId', null)
+            || request.resource.data.type != resource.data.type
+            || request.resource.data.get('cardClosingDay', null) == resource.data.cardClosingDay)
           && request.resource.data.createdAt == resource.data.createdAt;
       }
 

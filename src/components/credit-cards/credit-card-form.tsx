@@ -204,6 +204,7 @@ export function CreditCardForm({ onSuccess, editingCard }: CreditCardFormProps) 
         {/* Dia de Fechamento */}
         <div className="space-y-1.5">
           <Label htmlFor="closingDay">Dia de Fechamento (1-31)</Label>
+          {editingCard && <p className="text-xs text-muted-foreground">Novas compras registram este fechamento. Compras antigas sem fechamento registrado usam a configuração atual e podem mudar de fatura ao alterá-la.</p>}
           <Input
             id="closingDay"
             type="number"
