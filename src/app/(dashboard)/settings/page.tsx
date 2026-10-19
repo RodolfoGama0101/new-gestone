@@ -172,7 +172,7 @@ export default function SettingsPage() {
       return
     }
     setIsDeleteConfirmOpen(false)
-    setReauthAction('delete') // Abre modal de senha antes da exclusão
+    setReauthAction('delete') // Confirma a identidade antes da exclusão
   }
 
   return (
@@ -422,7 +422,7 @@ export default function SettingsPage() {
         isDestructive
       />
 
-      {/* Modal de Reautenticação via Senha */}
+      {/* Confirmação de identidade pelos provedores vinculados */}
       <ReauthDialog
         isOpen={reauthAction !== null}
         onClose={() => setReauthAction(null)}
@@ -430,8 +430,8 @@ export default function SettingsPage() {
         title={reauthAction === 'delete' ? 'Confirmar Exclusão de Conta' : 'Redefinição de Senha'}
         description={
           reauthAction === 'delete' 
-            ? 'Para apagar sua conta definitivamente, insira a senha atual por motivos de segurança.' 
-            : 'Confirme sua senha atual para autorizar a alteração segura da senha.'
+            ? 'Para apagar sua conta definitivamente, confirme sua identidade.'
+            : 'Confirme sua identidade para autorizar a alteração segura da senha.'
         }
       />
     </div>
