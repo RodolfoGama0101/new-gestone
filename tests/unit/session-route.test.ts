@@ -16,6 +16,13 @@ function sessionRequest(init?: RequestInit) {
 }
 
 describe('session route', () => {
+  test('token revogado não cria cookie de sessão', async () => {
+    jest.clearAllMocks()
+    mockVerifyIdToken.mockRejectedValue({ code: 'auth/id-token-revoked' })
+    const response = await POST(sessionRequest({ method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: 'revoked' }) }))
+    expect(response.status).toBe(401)
+    expect(mockCreateSessionCookie).not.toHaveBeenCalled()
+  })
   beforeEach(() => {
     jest.clearAllMocks()
   })
@@ -37,7 +44,7 @@ describe('session route', () => {
     )
 
     expect(response.status).toBe(200)
-    expect(mockVerifyIdToken).toHaveBeenCalledWith('valid-id-token')
+    expect(mockVerifyIdToken).toHaveBeenCalledWith('valid-id-token', true)
     expect(mockCreateSessionCookie).toHaveBeenCalledWith('valid-id-token', {
       expiresIn: 60 * 60 * 24 * 5 * 1000,
     })

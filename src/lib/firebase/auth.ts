@@ -8,6 +8,17 @@ import {
   type User,
 } from 'firebase/auth'
 import { auth } from './config'
+import { createSessionRenewal } from './session-renewal'
+
+const sessionRenewal = createSessionRenewal({
+  storage: () => typeof window === 'undefined' ? undefined : window.localStorage,
+  lock: async (operation) => {
+    if (typeof navigator !== 'undefined' && navigator.locks) {
+      return await navigator.locks.request('gestone-session-cookie', async () => await operation())
+    }
+    return await operation()
+  },
+})
 
 const googleProvider = new GoogleAuthProvider()
 googleProvider.setCustomParameters({ prompt: 'select_account' })
@@ -38,8 +49,11 @@ async function getSessionError(response: Response) {
   }
 }
 
-export async function syncSessionCookie(user: User) {
+export async function syncSessionCookie(user: User, force = true) {
+  return sessionRenewal.renew(user.uid, async () => {
+  if (auth.currentUser?.uid !== user.uid) return
   const token = await user.getIdToken()
+  if (auth.currentUser?.uid !== user.uid) return
   const response = await fetch('/api/auth/session', {
     method: 'POST',
     credentials: 'same-origin',
@@ -52,9 +66,11 @@ export async function syncSessionCookie(user: User) {
   if (!response.ok) {
     throw await getSessionError(response)
   }
+  }, force)
 }
 
 export async function clearSessionCookie() {
+  return sessionRenewal.clear(auth.currentUser?.uid, async () => {
   const response = await fetch('/api/auth/session', {
     method: 'DELETE',
     credentials: 'same-origin',
@@ -63,6 +79,7 @@ export async function clearSessionCookie() {
   if (!response.ok) {
     throw await getSessionError(response)
   }
+  })
 }
 
 export async function signInWithEmail(email: string, password: string) {

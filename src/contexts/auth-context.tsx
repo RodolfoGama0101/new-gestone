@@ -139,6 +139,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setIsLoading(true)
             await queueSessionOperation(() => syncSessionCookie(firebaseUser))
             synchronizedUserIdRef.current = firebaseUser.uid
+          } else if (firebaseUser) {
+            await queueSessionOperation(() => syncSessionCookie(firebaseUser, false))
           } else if (!firebaseUser) {
             await queueSessionOperation(clearSessionCookie)
             synchronizedUserIdRef.current = null

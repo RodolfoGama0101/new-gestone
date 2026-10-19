@@ -67,7 +67,7 @@ export async function POST(request: Request) {
       )
     }
 
-    await adminAuth.verifyIdToken(body.token)
+    await adminAuth.verifyIdToken(body.token, true)
 
     const sessionCookie = await adminAuth.createSessionCookie(body.token, {
       expiresIn: SESSION_MAX_AGE_SECONDS * 1000,
@@ -79,7 +79,7 @@ export async function POST(request: Request) {
     setSessionCookie(response, sessionCookie, SESSION_MAX_AGE_SECONDS)
     return response
   } catch (error) {
-    console.error('Erro ao criar cookie de sessão:', error)
+    console.error('Erro ao criar cookie de sessão:', (error as { code?: string })?.code ?? 'auth/session-failed')
     return sessionError(error)
   }
 }
