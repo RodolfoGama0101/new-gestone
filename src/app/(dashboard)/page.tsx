@@ -87,6 +87,7 @@ export default function DashboardPage() {
             isLoading={isLoading}
             futureCardExpenses={summary?.futureCardExpenses ?? 0}
             availableBalance={summary?.availableBalance ?? 0}
+            referenceDate={summary?.reservationReferenceDate}
           />
           <SummaryCards
             income={summary?.income ?? 0}

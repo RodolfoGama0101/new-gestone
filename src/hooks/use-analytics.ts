@@ -12,13 +12,14 @@ export function useAnalytics(selectedDate: Date) {
   const userId = user?.uid ?? ''
 
   const startOfPrevious = startOfMonth(subMonths(selectedDate, 1))
+  const referenceDate = new Date()
+  const referenceDayKey = format(referenceDate, 'yyyy-MM-dd')
 
-  // Usa apenas o mês/ano na queryKey para evitar cache misses causados por re-renders
-  // que criam novos objetos Date com milissegundos diferentes para o mesmo mês
+  // A chave separa mês selecionado e dia de referência, sem variar com milissegundos.
   const monthKey = format(selectedDate, 'yyyy-MM')
 
   const analyticsQuery = useQuery({
-    queryKey: ['analytics', userId, monthKey],
+    queryKey: ['analytics', userId, monthKey, referenceDayKey],
     queryFn: async (): Promise<PeriodSummary> => {
       const colRef = collection(db, 'users', userId, 'transactions')
 
@@ -53,7 +54,7 @@ export function useAnalytics(selectedDate: Date) {
       // Busca cartões de crédito para calcular ciclos de faturamento no analytics
       const cards = await CreditCardService.getAll(userId)
 
-      return AnalyticsService.calculateSummary(transactions, selectedDate, cards)
+      return AnalyticsService.calculateSummary(transactions, selectedDate, cards, referenceDate)
     },
     enabled: !!userId,
     // Dados de analytics são invalidados explicitamente após mutações de transações.

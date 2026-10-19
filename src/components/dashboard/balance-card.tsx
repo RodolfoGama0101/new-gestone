@@ -17,6 +17,7 @@ interface BalanceCardProps {
   isLoading?: boolean
   futureCardExpenses?: number
   availableBalance?: number
+  referenceDate?: Date
 }
 
 export function BalanceCard({
@@ -25,7 +26,8 @@ export function BalanceCard({
   data,
   isLoading = false,
   futureCardExpenses = 0,
-  availableBalance = 0,
+  availableBalance = balance,
+  referenceDate,
 }: BalanceCardProps) {
   const formattedBalance = (balance / 100).toLocaleString('pt-BR', {
     style: 'currency',
@@ -39,7 +41,7 @@ export function BalanceCard({
 
   if (isLoading) {
     return (
-      <Card className="border-border bg-card shadow-xs rounded-md p-5 h-[142px] flex flex-col justify-between">
+      <Card className="border-border bg-card flex h-[142px] flex-col justify-between rounded-md p-5 shadow-xs">
         <div className="space-y-2">
           <Skeleton className="h-3 w-20" />
           <Skeleton className="h-7 w-48" />
@@ -53,42 +55,62 @@ export function BalanceCard({
   const chartColor = isPositive ? 'var(--income)' : 'var(--expense)'
 
   return (
-    <Card className="border-border bg-card overflow-hidden shadow-xs hover:shadow-sm transition-all duration-200 rounded-md">
-      <CardHeader className="pb-1 pt-4 px-5">
-        <CardTitle className="text-xs font-normal text-muted-foreground">
-          Saldo Líquido
+    <Card className="border-border bg-card overflow-hidden rounded-md shadow-xs transition-all duration-200 hover:shadow-sm">
+      <CardHeader className="px-5 pt-4 pb-1">
+        <CardTitle className="text-muted-foreground text-xs font-normal">
+          Saldo projetado do mês
         </CardTitle>
       </CardHeader>
-      <CardContent className="pb-0 px-5">
+      <CardContent className="px-5 pb-0">
         <div className="flex items-baseline justify-between gap-4">
-          <span
-            className="text-3xl font-semibold tracking-tight text-foreground"
-          >
+          <span className="text-foreground text-3xl font-semibold tracking-tight">
             {formattedBalance}
           </span>
         </div>
         <div className="mt-0.5 mb-2 flex min-h-[16px] flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-          <span className="text-[11px] text-muted-foreground">{changeLabel}</span>
-          {futureCardExpenses > 0 && (
-            <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
-              <span>Faturas:</span>
-              <span className="font-semibold text-red-600 dark:text-red-400">
-                {(futureCardExpenses / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-              </span>
-              <span className="text-muted-foreground/30">•</span>
-              <span>Disponível:</span>
-              <span className="font-semibold text-foreground">
-                {(availableBalance / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-              </span>
-            </div>
-          )}
+          <span className="text-muted-foreground text-[11px]">
+            {changeLabel}
+          </span>
+        </div>
+        <p className="text-muted-foreground text-[11px]">
+          Receitas menos despesas e investimentos do mês, incluindo a fatura
+          deste mês.
+        </p>
+        <div className="text-muted-foreground mt-2 space-y-1 text-[11px]">
+          <div className="flex flex-wrap items-center gap-1">
+            <span>Reserva para faturas após este mês:</span>
+            <span className="font-semibold text-red-600 dark:text-red-400">
+              {(futureCardExpenses / 100).toLocaleString('pt-BR', {
+                style: 'currency',
+                currency: 'BRL',
+              })}
+            </span>
+          </div>
+          <div className="flex flex-wrap items-center gap-1">
+            <span>Disponível após reservas:</span>
+            <span className="text-foreground font-semibold">
+              {(availableBalance / 100).toLocaleString('pt-BR', {
+                style: 'currency',
+                currency: 'BRL',
+              })}
+            </span>
+          </div>
+          <p>
+            {referenceDate
+              ? `Reservas de compras realizadas até ${referenceDate.toLocaleDateString('pt-BR')}.`
+              : 'Reservas de compras realizadas para faturas dos próximos meses.'}{' '}
+            Projeção dos lançamentos cadastrados.
+          </p>
         </div>
       </CardContent>
 
       {/* Sparkline with minimalist line */}
-      <div className="h-12 w-full mt-2">
+      <div className="mt-2 h-12 w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={data} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+          <AreaChart
+            data={data}
+            margin={{ top: 0, right: 0, left: 0, bottom: 0 }}
+          >
             <defs>
               <linearGradient id="balanceGradient" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor={chartColor} stopOpacity={0.15} />
