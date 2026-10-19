@@ -19,12 +19,17 @@ import {
 } from 'firebase/firestore'
 import { db } from '@/lib/firebase/config'
 import { Transaction } from '@/types/transaction'
+import type { CreditCard } from '@/types/credit-card'
+import { startOfMonth, endOfMonth, subMonths } from 'date-fns'
+import { filterTransactionPeriod } from '@/lib/utils/transaction-date'
 
 export interface GetTransactionsFilters {
   type?: 'income' | 'expense' | 'investment'
   categoryId?: string
   creditCardId?: string
   limitCount?: number
+  startDate?: Date
+  endDate?: Date
   lastVisible?: QueryDocumentSnapshot<DocumentData>
 }
 
@@ -58,6 +63,8 @@ export const TransactionService = {
     if (filters.type) constraints.push(where('type', '==', filters.type))
     if (filters.categoryId) constraints.push(where('categoryId', '==', filters.categoryId))
     if (filters.creditCardId) constraints.push(where('creditCardId', '==', filters.creditCardId))
+    if (filters.startDate) constraints.push(where('date', '>=', Timestamp.fromDate(filters.startDate)))
+    if (filters.endDate) constraints.push(where('date', '<=', Timestamp.fromDate(filters.endDate)))
 
     constraints.push(orderBy('date', 'desc'))
     if (filters.lastVisible) constraints.push(startAfter(filters.lastVisible))
@@ -95,6 +102,13 @@ export const TransactionService = {
     const q = query(this.getCollection(userId), ...this.getQueryConstraints(filters))
     const snapshot = await getDocs(q)
     return snapshot.docs.map((docSnap) => this.toTransaction(docSnap))
+  },
+
+  async getInvoice(userId: string, card: CreditCard, month: Date) {
+    const start = startOfMonth(month)
+    const end = endOfMonth(month)
+    const purchases = await this.getAll(userId, { creditCardId: card.id, startDate: subMonths(start, 1), endDate: end })
+    return filterTransactionPeriod(purchases.filter((tx) => tx.type === 'expense'), start, end, [card])
   },
 
   async create(userId: string, data: Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
