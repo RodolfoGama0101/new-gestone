@@ -2,8 +2,8 @@
 
 import * as React from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { collection, getDocs, query, where, orderBy, Timestamp } from 'firebase/firestore'
-import { db } from '@/lib/firebase/config'
+
+
 import { useAuth } from '@/contexts/auth-context'
 import { useCategories } from '@/hooks/use-categories'
 import { Transaction } from '@/types/transaction'
@@ -21,6 +21,10 @@ import { BarChart3, Loader2 } from 'lucide-react'
 import { useCreditCards } from '@/hooks/use-credit-cards'
 import { filterTransactionPeriod } from '@/lib/utils/transaction-date'
 
+import { AnalyticsDataService } from '@/services/analytics-data.service'
+import { useCurrentDate } from '@/hooks/use-current-date'
+import { format } from 'date-fns'
+
 const EMPTY_ARRAY: Transaction[] = []
 
 export default function AnalyticsPage() {
@@ -32,7 +36,7 @@ export default function AnalyticsPage() {
 
   // Quantidade de meses para exibição histórica (padrão: 6 meses)
   const [monthsCount, setMonthsCount] = React.useState(6)
-  const referenceDate = React.useMemo(() => new Date(), [])
+  const referenceDate = useCurrentDate()
 
   const startDate = React.useMemo(
     () => startOfMonth(subMonths(referenceDate, monthsCount - 1)),
@@ -41,36 +45,9 @@ export default function AnalyticsPage() {
 
   // Busca todos os lançamentos do período selecionado
   const transactionsQuery = useQuery({
-    queryKey: ['analyticsHistory', userId, monthsCount],
-    queryFn: async (): Promise<Transaction[]> => {
-      const colRef = collection(db, 'users', userId, 'transactions')
-      const q = query(
-        colRef,
-        where('date', '>=', Timestamp.fromDate(subMonths(startDate, 1))),
-        orderBy('date', 'asc')
-      )
-      const snapshot = await getDocs(q)
-      const txs: Transaction[] = []
-      snapshot.forEach((docSnap) => {
-        const data = docSnap.data()
-        txs.push({
-          id: docSnap.id,
-          type: data.type,
-          amount: data.amount,
-          description: data.description,
-          categoryId: data.categoryId,
-          date: data.date,
-          tags: data.tags ?? [],
-          notes: data.notes ?? null,
-          recurring: data.recurring ?? false,
-          creditCardId: data.creditCardId ?? null,
-          cardClosingDay: data.cardClosingDay ?? null,
-          createdAt: data.createdAt,
-          updatedAt: data.updatedAt,
-        })
-      })
-      return txs
-    },
+    queryKey: ['analyticsHistory', userId, monthsCount, format(referenceDate, 'yyyy-MM-dd')],
+    queryFn: () => AnalyticsDataService.getHistory(userId, monthsCount, referenceDate),
+    staleTime: 60000,
     enabled: !!userId,
   })
 

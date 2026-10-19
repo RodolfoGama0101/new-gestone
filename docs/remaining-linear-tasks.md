@@ -9,3 +9,7 @@ Novas compras guardam `cardClosingDay`; alterações posteriores no cartão não
 ## ROD-100 — Faturas completas
 
 A fatura consulta todas as compras de um intervalo limitado a dois meses de compra e filtra pela competência selecionada. O SDK entrega o resultado completo, sem o limite de 100 itens da lista comum. A paginação visual de 20 itens não altera o total. Navegação usa datas reais (inclusive dezembro/janeiro), com estados de erro e nova tentativa separados do vazio. Consultas usam o índice existente de cartão/data.
+
+## ROD-101 — Períodos e referência temporal
+
+Todas as consultas analíticas têm início e fim. A comparação mensal inclui dois meses anteriores de compras para abranger a fatura do mês comparativo. Reservas têm consulta própria limitada às compras do mês selecionado até a referência. Relatórios incluem margem de um mês anterior e filtram por competência antes de somar KPIs, distribuição e histórico. O relógio de referência atualiza à meia-noite e no retorno à aba; período e dia compõem as chaves, com staleTime de um minuto. A seleção manual do mês do dashboard é preservada, e relatórios acompanham o mês da nova referência.

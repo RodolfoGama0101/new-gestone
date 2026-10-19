@@ -41,6 +41,7 @@ export const AnalyticsService = {
     selectedDate: Date,
     creditCards: CreditCard[],
     referenceDate: Date,
+    reservationTransactions: Transaction[] = transactions,
   ): PeriodSummary {
     const startOfCurrent = startOfMonth(selectedDate)
     const endOfCurrent = endOfMonth(selectedDate)
@@ -101,13 +102,20 @@ export const AnalyticsService = {
       // Faturas do mês já fazem parte de expense. Reserve somente compras conhecidas
       // na referência cuja competência é posterior, sem misturar o mês com "hoje".
       if (
-        isCardExpense &&
+        reservationTransactions === transactions && isCardExpense &&
         effectiveDate > endOfCurrent &&
         txDate <= reservationReferenceDate
       ) {
         futureCardExpenses += tx.amount
       }
     })
+
+    if (reservationTransactions !== transactions) {
+      futureCardExpenses = reservationTransactions.reduce((sum, tx) => sum + (
+        tx.type === 'expense' && tx.creditCardId && parseToDate(tx.date) <= reservationReferenceDate
+        && getTransactionDate(tx, creditCards) > endOfCurrent ? tx.amount : 0
+      ), 0)
+    }
 
     const balance = income - expense - investment
     const prevBalance = prevIncome - prevExpense - prevInvestment
