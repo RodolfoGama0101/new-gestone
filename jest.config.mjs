@@ -9,7 +9,7 @@ const config = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
   },
-  testPathIgnorePatterns: ['<rootDir>/tests/e2e/'],
+  testPathIgnorePatterns: ['<rootDir>/tests/e2e/', '<rootDir>/tests/rules/'],
 }
 
 export default createJestConfig(config)

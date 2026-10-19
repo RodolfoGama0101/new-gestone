@@ -41,3 +41,6 @@ next-env.d.ts
 
 # generated review artifacts
 /dogfood-output/
+
+# Firebase emulator logs
+*-debug.log

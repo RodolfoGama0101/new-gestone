@@ -39,4 +39,7 @@ npm run lint
 npx tsc --noEmit
 npm test
 npm run build
+npm run test:rules
 ```
+
+Os testes de regras requerem Java 21 ou superior e iniciam somente o emulador Firestore em `127.0.0.1:8080`, com o projeto fictício `demo-gestone-rules`. Não exigem login Firebase nem credenciais. A configuração de teste é separada da hospedagem e a suíte falha se o emulador não estiver configurado. As regras também são verificadas no CI e antes dos deploys. Consulte [a política e os limites dos dados](docs/firestore-security.md).

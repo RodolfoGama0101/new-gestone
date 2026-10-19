@@ -10,20 +10,66 @@ service cloud.firestore {
       return data.keys().hasOnly(allowedKeys);
     }
 
-    function isValidTransaction(data) {
+    function isDocumentId(value) {
+      return value is string && value.size() > 0 && value.size() <= 1500
+        && value.matches('^[^/]+$');
+    }
+
+    function isValidTagAt(tags, index) {
+      return tags.size() <= index
+        || (tags[index] is string && tags[index].size() > 0 && tags[index].size() <= 40);
+    }
+
+    function isValidTags(tags) {
+      // Rules não oferece laços: todos os índices permitidos precisam ser validados.
+      return tags is list && tags.size() <= 20
+        && isValidTagAt(tags, 0) && isValidTagAt(tags, 1)
+        && isValidTagAt(tags, 2) && isValidTagAt(tags, 3)
+        && isValidTagAt(tags, 4) && isValidTagAt(tags, 5)
+        && isValidTagAt(tags, 6) && isValidTagAt(tags, 7)
+        && isValidTagAt(tags, 8) && isValidTagAt(tags, 9)
+        && isValidTagAt(tags, 10) && isValidTagAt(tags, 11)
+        && isValidTagAt(tags, 12) && isValidTagAt(tags, 13)
+        && isValidTagAt(tags, 14) && isValidTagAt(tags, 15)
+        && isValidTagAt(tags, 16) && isValidTagAt(tags, 17)
+        && isValidTagAt(tags, 18) && isValidTagAt(tags, 19);
+    }
+
+    function hasCompatibleCategory(userId, data) {
+      let category = getAfter(/databases/$(database)/documents/users/$(userId)/categories/$(data.categoryId)).data;
+      return category.type == data.type || category.type == 'both';
+    }
+
+    function hasValidCard(userId, data) {
+      let cardId = data.get('creditCardId', null);
+      // Cartões inativos continuam válidos para preservar a edição do histórico.
+      return cardId == null || (data.type == 'expense' && isDocumentId(cardId)
+        && getAfter(/databases/$(database)/documents/users/$(userId)/creditCards/$(cardId)).data is map);
+    }
+
+    function isValidTransaction(userId, data) {
       return hasOnlyKeys(data, [
         'type', 'amount', 'description', 'categoryId', 'date', 'tags', 'notes',
         'recurring', 'creditCardId', 'createdAt', 'updatedAt'
       ])
         && data.type in ['income', 'expense', 'investment']
-        && data.amount is int && data.amount > 0
+        && data.amount is int && data.amount > 0 && data.amount <= 9007199254740991
         && data.description is string && data.description.size() >= 3 && data.description.size() <= 200
-        && data.categoryId is string && data.categoryId.size() > 0
+        && isDocumentId(data.categoryId)
         && data.date is timestamp
-        && data.tags is list && data.tags.size() <= 20
+        && isValidTags(data.tags)
         && (data.notes == null || (data.notes is string && data.notes.size() <= 500))
         && data.recurring is bool
-        && (data.creditCardId == null || data.creditCardId is string)
+        && data.createdAt is timestamp && data.updatedAt is timestamp
+        && hasCompatibleCategory(userId, data)
+        && hasValidCard(userId, data);
+    }
+
+    function isValidProfile(data) {
+      // Nome/e-mail de autenticação continuam no Firebase Auth; não aceitamos claims no perfil.
+      return hasOnlyKeys(data, ['displayName', 'createdAt', 'updatedAt'])
+        && (data.get('displayName', null) == null || (data.displayName is string
+          && data.displayName.size() > 0 && data.displayName.size() <= 50))
         && data.createdAt is timestamp && data.updatedAt is timestamp;
     }
 
@@ -53,13 +99,16 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      allow read, create, update, delete: if isOwner(userId);
+      allow read, delete: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidProfile(request.resource.data);
+      allow update: if isOwner(userId) && isValidProfile(request.resource.data)
+        && request.resource.data.createdAt == resource.data.createdAt;
 
       match /transactions/{transactionId} {
         allow read, delete: if isOwner(userId);
-        allow create: if isOwner(userId) && isValidTransaction(request.resource.data);
+        allow create: if isOwner(userId) && isValidTransaction(userId, request.resource.data);
         allow update: if isOwner(userId)
-          && isValidTransaction(request.resource.data)
+          && isValidTransaction(userId, request.resource.data)
           && request.resource.data.createdAt == resource.data.createdAt;
       }
 

@@ -361,6 +361,7 @@ export function TransactionForm({
             }}
             defaultValue={formatTags(editingTransaction?.tags)}
           />
+          {errors.tags && <p className="text-sm text-destructive">{errors.tags.message ?? 'Use até 20 tags, com no máximo 40 caracteres cada.'}</p>}
         </div>
 
         {/* Notas adicionais */}

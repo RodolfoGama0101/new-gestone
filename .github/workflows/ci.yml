@@ -31,6 +31,15 @@ jobs:
       - name: Run unit tests
         run: npm run test
 
+      - name: Set up Java for Firestore emulator
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Test Firestore security rules
+        run: npm run test:rules
+
       - name: Build Next.js app
         run: npm run build
         env:
