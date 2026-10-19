@@ -13,7 +13,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ConfirmDialog } from '@/components/shared/confirm-dialog'
 import { ReauthDialog } from '@/components/auth/reauth-dialog'
 import { toast } from 'sonner'
-import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { 
   Sun, 
@@ -31,7 +30,6 @@ import { useAuth } from '@/contexts/auth-context'
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme()
-  const router = useRouter()
   const { signOutUser } = useAuth()
   const user = auth.currentUser
 
@@ -151,8 +149,8 @@ export default function SettingsPage() {
       await signOutUser()
 
       toast.success('Sua conta e dados foram completamente apagados.')
-      router.replace('/register')
-      router.refresh()
+      // Uma navegação completa evita disputa com os redirecionamentos do layout após logout.
+      window.location.replace('/register')
     } catch (error) {
       if (error instanceof AccountDeletionError && error.code === 'auth/requires-recent-login') {
         setReauthAction('delete')

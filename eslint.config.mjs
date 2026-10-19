@@ -13,6 +13,8 @@ const eslintConfig = [
       "playwright.config.ts",
       "public/sw.js",
       "public/workbox-*.js",
+      "playwright-report/**",
+      "test-results/**",
     ],
   },
   ...nextVitals,

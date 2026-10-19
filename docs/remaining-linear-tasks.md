@@ -21,3 +21,15 @@ Inicialização e login sincronizam a sessão; renovações de token do mesmo us
 ## ROD-103 — Remoção de categorias
 
 O endpoint autenticado deriva o UID da sessão, nunca do payload. Primeiro uma transação do Admin arquiva a categoria, fechando a entrada de novos vínculos pelas regras; depois outra consulta seus vínculos e exclui somente se vazia. Categoria utilizada permanece arquivada, sem trocar ID/nome. Falha entre as fases deixa um arquivo seguro e permite repetir a operação. Clientes não podem excluir categorias diretamente nem mudar seu estado de arquivamento. Categorias arquivadas não aceitam novos vínculos, mas permitem editar lançamentos que já as utilizam. Relatórios, filtros e CSV continuam recebendo o cadastro completo; apenas a lista de categorias ativas e o formulário de novos lançamentos ocultam as arquivadas.
+
+## ROD-105 — Regressões e E2E no CI
+
+O runner isola Authentication/Firestore em projetos `demo-`, sobrescreve as variáveis públicas e limpa credenciais explícitas herdadas. O cliente recusa ativar emuladores com projeto real; o servidor exige os endereços locais esperados. O SDK Admin usa o suporte padrão ao emulador. Detecção de metadados GCP fica desabilitada no processo de teste.
+
+Playwright testa cadastro, login em contexto novo, criação/edição/exclusão de despesa, filtros, exportação CSV com categoria arquivada, rejeição da exclusão de conta sem prova recente, reautenticação e exclusão real nos emuladores. Também verifica fatura com 105 compras, saldo, cinco corridas entre inserção e remoção de categoria e isolamento entre usuários. O fluxo revelou e corrigiu disputa de navegação após exclusão de conta, descartando o estado autenticado com navegação completa.
+
+CI tem job E2E independente, sem secrets, com Java 21, Chromium e artefatos de relatório/screenshot/trace. Diretórios de evidências são ignorados pelo Git e ESLint. A execução remota do CI continua dependendo de push e execução do GitHub Actions; nenhuma regra foi publicada nem houve leitura de dados reais.
+
+Validação conjunta local: 101 testes de domínio/interface/rotas, 117 testes de regras e 4 E2E aprovados. Lint, TypeScript e build de produção também são verificados antes de encerrar o lote. Permanecem fora deste lote: migração dos fechamentos antigos, migração idempotente de categorias (ROD-104), políticas de cache PWA e itens em Backlog.
+
+No Windows com o launcher Oracle javapath, o Java do Firestore pode permanecer aberto após o encerramento do Firebase CLI. Nesta validação, o processo foi identificado pelo projeto fictício e pelo arquivo de regras deste repositório e encerrado; outras JVMs não foram afetadas. Se uma nova execução indicar porta ocupada, confira o processo desse emulador antes de repeti-la.

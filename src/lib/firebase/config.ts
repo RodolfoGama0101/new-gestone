@@ -1,7 +1,10 @@
 import { initializeApp, getApps, getApp } from 'firebase/app'
-import { getAuth } from 'firebase/auth'
-import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check'
-import { getFirestore } from 'firebase/firestore'
+import { getAuth, connectAuthEmulator } from 'firebase/auth'
+import {
+  initializeAppCheck,
+  ReCaptchaEnterpriseProvider,
+} from 'firebase/app-check'
+import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore'
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || '',
@@ -26,5 +29,20 @@ if (typeof window !== 'undefined' && appCheckSiteKey) {
 
 const auth = getAuth(app)
 const db = getFirestore(app)
+
+if (process.env.NEXT_PUBLIC_USE_EMULATORS === 'true') {
+  if (!firebaseConfig.projectId.startsWith('demo-'))
+    throw new Error('Emuladores exigem um projeto demo-.')
+  // Uma instância por carregamento do módulo; o SDK mantém as conexões no HMR.
+  if (!auth.emulatorConfig)
+    connectAuthEmulator(auth, 'http://127.0.0.1:9099', {
+      disableWarnings: true,
+    })
+  try {
+    connectFirestoreEmulator(db, '127.0.0.1', 8081)
+  } catch (error) {
+    if ((error as { code?: string }).code !== 'failed-precondition') throw error
+  }
+}
 
 export { app, auth, db }

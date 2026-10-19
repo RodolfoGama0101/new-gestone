@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:e2e": "playwright test",
+    "test:e2e": "node scripts/run-e2e.mjs",
     "test:rules": "firebase emulators:exec --config firebase.rules-test.json --only firestore --project demo-gestone-rules \"jest --config jest.rules.config.mjs --runInBand\""
   },
   "dependencies": {
