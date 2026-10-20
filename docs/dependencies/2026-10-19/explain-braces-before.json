@@ -1,0 +1,259 @@
+[
+  {
+    "name": "braces",
+    "version": "3.0.3",
+    "location": "node_modules/braces",
+    "isWorkspace": false,
+    "dependents": [
+      {
+        "type": "prod",
+        "name": "braces",
+        "spec": "~3.0.2",
+        "from": {
+          "name": "chokidar",
+          "version": "3.6.0",
+          "location": "node_modules/chokidar",
+          "isWorkspace": false,
+          "dependents": [
+            {
+              "type": "prod",
+              "name": "chokidar",
+              "spec": "^3.6.0",
+              "from": {
+                "name": "firebase-tools",
+                "version": "15.34.0",
+                "location": "node_modules/firebase-tools",
+                "isWorkspace": false,
+                "dependents": [
+                  {
+                    "type": "dev",
+                    "name": "firebase-tools",
+                    "spec": "15.34.0",
+                    "from": {
+                      "location": "C:\\projects\\new-gestone"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "type": "prod",
+        "name": "braces",
+        "spec": "^3.0.3",
+        "from": {
+          "name": "micromatch",
+          "version": "4.0.8",
+          "location": "node_modules/micromatch",
+          "isWorkspace": false,
+          "dependents": [
+            {
+              "type": "prod",
+              "name": "micromatch",
+              "spec": "^4.0.4",
+              "from": {
+                "name": "fast-glob",
+                "version": "3.3.2",
+                "location": "node_modules/@ducanh2912/next-pwa/node_modules/fast-glob",
+                "isWorkspace": false,
+                "dependents": [
+                  {
+                    "type": "prod",
+                    "name": "fast-glob",
+                    "spec": "3.3.2",
+                    "from": {
+                      "name": "@ducanh2912/next-pwa",
+                      "version": "10.2.9",
+                      "location": "node_modules/@ducanh2912/next-pwa",
+                      "isWorkspace": false,
+                      "dependents": [
+                        {
+                          "type": "prod",
+                          "name": "@ducanh2912/next-pwa",
+                          "spec": "^10.2.9",
+                          "from": {
+                            "location": "C:\\projects\\new-gestone"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "type": "prod",
+              "name": "micromatch",
+              "spec": "^4.0.4",
+              "from": {
+                "name": "fast-glob",
+                "version": "3.3.1",
+                "location": "node_modules/@next/eslint-plugin-next/node_modules/fast-glob",
+                "isWorkspace": false,
+                "dependents": [
+                  {
+                    "type": "prod",
+                    "name": "fast-glob",
+                    "spec": "3.3.1",
+                    "from": {
+                      "name": "@next/eslint-plugin-next",
+                      "version": "16.4.2",
+                      "location": "node_modules/@next/eslint-plugin-next",
+                      "isWorkspace": false,
+                      "dependents": [
+                        {
+                          "type": "prod",
+                          "name": "@next/eslint-plugin-next",
+                          "spec": "16.4.2",
+                          "from": {
+                            "name": "eslint-config-next",
+                            "version": "16.4.2",
+                            "location": "node_modules/eslint-config-next",
+                            "isWorkspace": false,
+                            "dependents": [
+                              {
+                                "type": "dev",
+                                "name": "eslint-config-next",
+                                "spec": "16.4.2",
+                                "from": {
+                                  "location": "C:\\projects\\new-gestone"
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "type": "prod",
+              "name": "micromatch",
+              "spec": "^4.0.8",
+              "from": {
+                "name": "fast-glob",
+                "version": "3.3.3",
+                "location": "node_modules/fast-glob",
+                "isWorkspace": false,
+                "dependents": [
+                  {
+                    "type": "prod",
+                    "name": "fast-glob",
+                    "spec": "^3.3.3",
+                    "from": {
+                      "name": "@shadcn/registry",
+                      "version": "0.2.0",
+                      "location": "node_modules/@shadcn/registry",
+                      "isWorkspace": false,
+                      "dependents": [
+                        {
+                          "type": "prod",
+                          "name": "@shadcn/registry",
+                          "spec": "0.2.0",
+                          "from": {
+                            "name": "shadcn",
+                            "version": "4.22.1",
+                            "location": "node_modules/shadcn",
+                            "isWorkspace": false,
+                            "dependents": [
+                              {
+                                "type": "dev",
+                                "name": "shadcn",
+                                "spec": "^4.22.1",
+                                "from": {
+                                  "location": "C:\\projects\\new-gestone"
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "type": "prod",
+                    "name": "fast-glob",
+                    "spec": "^3.3.3",
+                    "from": {
+                      "name": "@ts-morph/common",
+                      "version": "0.27.0",
+                      "location": "node_modules/@ts-morph/common",
+                      "isWorkspace": false,
+                      "dependents": [
+                        {
+                          "type": "prod",
+                          "name": "@ts-morph/common",
+                          "spec": "~0.27.0",
+                          "from": {
+                            "name": "ts-morph",
+                            "version": "26.0.0",
+                            "location": "node_modules/ts-morph",
+                            "isWorkspace": false,
+                            "dependents": [
+                              {
+                                "type": "prod",
+                                "name": "ts-morph",
+                                "spec": "^26.0.0",
+                                "from": {
+                                  "name": "shadcn",
+                                  "version": "4.22.1",
+                                  "location": "node_modules/shadcn",
+                                  "isWorkspace": false,
+                                  "dependents": [
+                                    {
+                                      "type": "dev",
+                                      "name": "shadcn",
+                                      "spec": "^4.22.1",
+                                      "from": {
+                                        "location": "C:\\projects\\new-gestone"
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "type": "prod",
+                    "name": "fast-glob",
+                    "spec": "^3.3.3",
+                    "from": {
+                      "name": "shadcn",
+                      "version": "4.22.1",
+                      "location": "node_modules/shadcn",
+                      "isWorkspace": false,
+                      "dependents": [
+                        {
+                          "type": "dev",
+                          "name": "shadcn",
+                          "spec": "^4.22.1",
+                          "from": {
+                            "location": "C:\\projects\\new-gestone"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "dev": false,
+    "optional": false,
+    "devOptional": false,
+    "peer": false,
+    "bundled": false,
+    "overridden": false
+  }
+]
