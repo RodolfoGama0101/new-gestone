@@ -46,15 +46,15 @@ export function useCreditCards() {
     },
   })
 
-  const deleteCardMutation = useMutation({
-    mutationFn: (cardId: string) => CreditCardService.delete(userId, cardId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['creditCards', userId] })
-      queryClient.invalidateQueries({ queryKey: ['analytics', userId] })
-      toast.success('Cartão de crédito excluído com sucesso!')
+  const archiveCardMutation = useMutation({
+    mutationFn: (cardId: string) => CreditCardService.archive(userId, cardId),
+    onSuccess: async () => {
+      await Promise.all(['creditCards', 'transactions', 'analytics', 'analyticsHistory'].map((key) =>
+        queryClient.invalidateQueries({ queryKey: [key, userId] })))
+      toast.success('Cartão arquivado. O histórico foi preservado.')
     },
     onError: (error: unknown) => {
-      const message = error instanceof Error ? error.message : 'Erro ao excluir cartão de crédito.'
+      const message = error instanceof Error ? error.message : 'Erro ao arquivar cartão de crédito.'
       toast.error(message)
     },
   })
@@ -67,7 +67,7 @@ export function useCreditCards() {
     isCreating: createCardMutation.isPending,
     updateCreditCard: updateCardMutation.mutateAsync,
     isUpdating: updateCardMutation.isPending,
-    deleteCreditCard: deleteCardMutation.mutateAsync,
-    isDeleting: deleteCardMutation.isPending,
+    archiveCreditCard: archiveCardMutation.mutateAsync,
+    isArchiving: archiveCardMutation.isPending,
   }
 }

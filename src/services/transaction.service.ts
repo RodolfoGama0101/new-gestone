@@ -22,6 +22,11 @@ import { Transaction } from '@/types/transaction'
 import type { CreditCard } from '@/types/credit-card'
 import { startOfMonth, endOfMonth, subMonths } from 'date-fns'
 import { filterTransactionPeriod } from '@/lib/utils/transaction-date'
+import { matchesTransactionSearch, normalizeTransactionSearch } from '@/lib/utils/transaction-search'
+
+// Uma busca lê no máximo 100 candidatos e um documento de lookahead por página.
+// O cursor permite continuar mesmo se esse lote não contiver correspondências.
+export const TRANSACTION_SEARCH_BATCH_SIZE = 100
 
 export interface GetTransactionsFilters {
   type?: 'income' | 'expense' | 'investment'
@@ -30,6 +35,7 @@ export interface GetTransactionsFilters {
   limitCount?: number
   startDate?: Date
   endDate?: Date
+  search?: string
   lastVisible?: QueryDocumentSnapshot<DocumentData>
 }
 
@@ -67,6 +73,8 @@ export const TransactionService = {
     if (filters.endDate) constraints.push(where('date', '<=', Timestamp.fromDate(filters.endDate)))
 
     constraints.push(orderBy('date', 'desc'))
+    // O snapshot inclui o ID usado pelo Firestore para desempatar datas iguais.
+    // Usar apenas a data no cursor omitiria compras com o mesmo timestamp.
     if (filters.lastVisible) constraints.push(startAfter(filters.lastVisible))
 
     return constraints
@@ -84,24 +92,37 @@ export const TransactionService = {
     const constraints = this.getQueryConstraints(filters)
 
     const limitVal = filters.limitCount || 20
-    constraints.push(limit(limitVal + 1))
+    const search = normalizeTransactionSearch(filters.search ?? '')
+    const scanLimit = search ? TRANSACTION_SEARCH_BATCH_SIZE : limitVal
+    constraints.push(limit(scanLimit + 1))
 
     const q = query(colRef, ...constraints)
     const snapshot = await getDocs(q)
-    const pageDocs = snapshot.docs.slice(0, limitVal)
-    const lastVisible = pageDocs[pageDocs.length - 1] || null
+    const candidates = snapshot.docs.slice(0, scanLimit)
+    const pageDocs: QueryDocumentSnapshot<DocumentData>[] = []
+    let scanned = 0
+    for (const candidate of candidates) {
+      scanned++
+      if (!search || matchesTransactionSearch(candidate.data().description, search)) {
+        pageDocs.push(candidate)
+      }
+      if (pageDocs.length === limitVal) break
+    }
+    const lastVisible = candidates[scanned - 1] ?? null
 
     return {
       transactions: pageDocs.map((docSnap) => this.toTransaction(docSnap)),
       lastVisible,
-      hasMore: snapshot.docs.length > limitVal,
+      hasMore: snapshot.docs.length > scanned,
     }
   },
 
   async getAll(userId: string, filters: Omit<GetTransactionsFilters, 'lastVisible' | 'limitCount'> = {}) {
     const q = query(this.getCollection(userId), ...this.getQueryConstraints(filters))
     const snapshot = await getDocs(q)
-    return snapshot.docs.map((docSnap) => this.toTransaction(docSnap))
+    return snapshot.docs
+      .map((docSnap) => this.toTransaction(docSnap))
+      .filter((transaction) => matchesTransactionSearch(transaction.description, filters.search ?? ''))
   },
 
   async getInvoice(userId: string, card: CreditCard, month: Date) {

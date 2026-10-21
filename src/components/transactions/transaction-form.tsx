@@ -20,6 +20,7 @@ import { Loader2, TrendingUp, TrendingDown, Coins } from 'lucide-react'
 import { Transaction } from '@/types/transaction'
 import { parseFirestoreDate } from '@/lib/utils/parse-date'
 import { toast } from 'sonner'
+import { invalidateTransactionData } from '@/lib/transaction-cache'
 
 interface TransactionFormProps {
   onSuccess?: () => void
@@ -44,11 +45,8 @@ export function TransactionForm({
   const createMutation = useMutation({
     mutationFn: (data: Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'>) =>
       TransactionService.create(userId, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['transactions', userId] })
-      queryClient.invalidateQueries({ queryKey: ['analytics', userId] })
-      queryClient.invalidateQueries({ queryKey: ['analyticsHistory', userId] })
-      queryClient.invalidateQueries({ queryKey: ['creditCards', userId] })
+    onSuccess: async () => {
+      await invalidateTransactionData(queryClient, userId)
       toast.success('Lançamento registrado com sucesso!')
     },
     onError: () => toast.error('Erro ao registrar lançamento.'),
@@ -59,11 +57,8 @@ export function TransactionForm({
       transactionId: string
       data: Partial<Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'>>
     }) => TransactionService.update(userId, transactionId, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['transactions', userId] })
-      queryClient.invalidateQueries({ queryKey: ['analytics', userId] })
-      queryClient.invalidateQueries({ queryKey: ['analyticsHistory', userId] })
-      queryClient.invalidateQueries({ queryKey: ['creditCards', userId] })
+    onSuccess: async () => {
+      await invalidateTransactionData(queryClient, userId)
       toast.success('Lançamento atualizado com sucesso!')
     },
     onError: () => toast.error('Erro ao atualizar lançamento.'),
@@ -113,15 +108,15 @@ export function TransactionForm({
     }))
   }, [filteredCategories])
 
-  const cardSelectItems = React.useMemo(() => {
-    return [
-      { value: 'none', label: 'Não usar cartão (Débito)' },
-      ...creditCards.map((c) => ({
-        value: c.id,
-        label: `${c.name} (${c.bankName})`,
-      })),
-    ]
-  }, [creditCards])
+  const selectableCards = creditCards.filter((card) => !card.archived
+    || (editingTransaction?.type === 'expense' && editingTransaction.creditCardId === card.id))
+  const cardSelectItems = [
+    { value: 'none', label: 'Não usar cartão (Débito)' },
+    ...selectableCards.map((card) => ({
+      value: card.id,
+      label: `${card.name} (${card.bankName})${card.archived ? ' — arquivado' : ''}`,
+    })),
+  ]
 
   const onSubmit = async (data: TransactionInput) => {
     const amountVal = typeof data.amount === 'string' ? parseInt(data.amount) : data.amount
@@ -332,9 +327,9 @@ export function TransactionForm({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Não usar cartão (Débito)</SelectItem>
-                    {creditCards.map((card) => (
+                    {selectableCards.map((card) => (
                       <SelectItem key={card.id} value={card.id}>
-                        {card.name} ({card.bankName})
+                        {card.name} ({card.bankName}){card.archived ? ' — arquivado' : ''}
                       </SelectItem>
                     ))}
                   </SelectContent>

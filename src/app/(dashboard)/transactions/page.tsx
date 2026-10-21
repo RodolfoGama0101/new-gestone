@@ -49,6 +49,7 @@ export default function TransactionsPage() {
     deleteTransaction,
     error,
   } = useTransactions({
+    search,
     type: (type === 'income' || type === 'expense' || type === 'investment' ? type : undefined),
     categoryId: (categoryId || undefined),
   })
@@ -71,14 +72,6 @@ export default function TransactionsPage() {
   const getCategoryDetails = (catId: string) => {
     return categories.find((c) => c.id === catId)
   }
-
-  // Filtragem textual local por descrição
-  const filtered = transactions.filter((tx) => {
-    if (search && !tx.description.toLowerCase().includes(search.toLowerCase())) {
-      return false
-    }
-    return true
-  })
 
   // Agrupamento por data (YYYY-MM-DD)
   const formatDateKey = (dateVal: unknown): string => {
@@ -107,7 +100,7 @@ export default function TransactionsPage() {
   }
 
   // Agrupa as transações
-  const groupedTransactions = filtered.reduce((groups: Record<string, Transaction[]>, tx) => {
+  const groupedTransactions = transactions.reduce((groups: Record<string, Transaction[]>, tx) => {
     const key = formatDateKey(tx.date)
     if (!groups[key]) groups[key] = []
     groups[key].push(tx)
@@ -129,14 +122,6 @@ export default function TransactionsPage() {
     } finally {
       setIsDeleting(false)
     }
-  }
-
-  if (isLoading) {
-    return (
-      <div className="flex min-h-[400px] items-center justify-center">
-        <Loader2 className="size-8 animate-spin text-primary" />
-      </div>
-    )
   }
 
   if (error) {
@@ -193,10 +178,16 @@ export default function TransactionsPage() {
       <TransactionFilters />
 
       {/* Lista do Extrato */}
-      {filtered.length === 0 ? (
+      {isLoading ? (
+        <div className="flex min-h-[280px] items-center justify-center" role="status" aria-label="Buscando lançamentos">
+          <Loader2 className="size-8 animate-spin text-primary" />
+        </div>
+      ) : transactions.length === 0 ? (
         <EmptyState
-          title="Nenhum lançamento encontrado"
-          description="Nenhuma transação atende aos critérios dos filtros selecionados no momento."
+          title={hasNextPage ? 'Continue a busca' : 'Nenhum lançamento encontrado'}
+          description={hasNextPage
+            ? 'Há mais lançamentos para pesquisar. Continue a busca ou ajuste os filtros.'
+            : 'Nenhuma transação atende aos critérios dos filtros selecionados no momento.'}
           icon={WalletIcon}
         />
       ) : (
@@ -284,34 +275,35 @@ export default function TransactionsPage() {
             </div>
           ))}
 
-          {/* Paginação */}
-          {(hasNextPage || hasPreviousPage) && (
-            <div className="flex items-center justify-between pt-2 px-1">
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={!hasPreviousPage}
-                onClick={goToPreviousPage}
-                className="gap-1.5 cursor-pointer text-xs h-8"
-              >
-                <ChevronLeft className="size-3.5" />
-                Anterior
-              </Button>
-              <span className="text-xs text-muted-foreground font-medium">
-                Página {currentPage}
-              </span>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={!hasNextPage}
-                onClick={goToNextPage}
-                className="gap-1.5 cursor-pointer text-xs h-8"
-              >
-                Próximo
-                <ChevronRight className="size-3.5" />
-              </Button>
-            </div>
-          )}
+        </div>
+      )}
+
+      {/* A navegação permanece acessível mesmo em páginas sem correspondências. */}
+      {(hasNextPage || hasPreviousPage) && (
+        <div className="flex items-center justify-between pt-2 px-1">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={isLoading || !hasPreviousPage}
+            onClick={goToPreviousPage}
+            className="gap-1.5 cursor-pointer text-xs h-8"
+          >
+            <ChevronLeft className="size-3.5" />
+            Anterior
+          </Button>
+          <span className="text-xs text-muted-foreground font-medium">
+            Página {currentPage}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={isLoading || !hasNextPage}
+            onClick={goToNextPage}
+            className="gap-1.5 cursor-pointer text-xs h-8"
+          >
+            {search.trim() ? 'Continuar busca' : 'Próximo'}
+            <ChevronRight className="size-3.5" />
+          </Button>
         </div>
       )}
 

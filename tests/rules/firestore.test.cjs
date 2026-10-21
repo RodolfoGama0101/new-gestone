@@ -389,6 +389,75 @@ describe('valores, tags e campos de lançamentos', () => {
 })
 
 describe('perfis, categorias e cartões', () => {
+  test('cartão arquivado conserva histórico, fechamento e permite repetir arquivamento', async () => {
+    const ref = doc(owner, 'users/owner/creditCards/card')
+    const purchase = doc(owner, 'users/owner/transactions/card-history')
+    await assertSucceeds(setDoc(purchase, { ...transaction(), creditCardId: 'card', cardClosingDay: 15 }))
+    await assertSucceeds(updateDoc(ref, { archived: true, isActive: false, updatedAt: serverTimestamp() }))
+    await assertSucceeds(updateDoc(ref, { archived: true, isActive: false, updatedAt: serverTimestamp() }))
+    await assertSucceeds(updateDoc(purchase, { description: 'Histórico preservado', amount: 12345 }))
+    expect((await getDoc(purchase)).data().cardClosingDay).toBe(15)
+    expect((await getDoc(ref)).data().closingDay).toBe(15)
+    await assertFails(updateDoc(purchase, { cardClosingDay: 20 }))
+    await assertFails(updateDoc(ref, { archived: false }))
+    await assertFails(updateDoc(ref, { isActive: true }))
+    await assertFails(updateDoc(ref, { closingDay: 20 }))
+    await assertFails(setDoc(ref, card()))
+    await assertFails(deleteDoc(ref))
+  })
+
+  test('cartão arquivado nega novas compras e troca de vínculo, mas permite desvincular histórico', async () => {
+    const purchase = doc(owner, 'users/owner/transactions/card-history')
+    await assertSucceeds(setDoc(purchase, { ...transaction(), creditCardId: 'card', cardClosingDay: 15 }))
+    await assertSucceeds(updateDoc(doc(owner, 'users/owner/creditCards/card'), { archived: true, isActive: false }))
+    await assertFails(setDoc(doc(owner, 'users/owner/transactions/new'), { ...transaction(), creditCardId: 'card' }))
+    await assertFails(updateDoc(doc(owner, 'users/owner/transactions/existing'), { creditCardId: 'card' }))
+    await assertSucceeds(updateDoc(purchase, { creditCardId: null, cardClosingDay: null }))
+    await assertFails(updateDoc(purchase, { creditCardId: 'card', cardClosingDay: 15 }))
+  })
+
+  test('cartão vazio também é arquivado e não pode ser excluído diretamente', async () => {
+    const ref = doc(owner, 'users/owner/creditCards/card')
+    await assertFails(deleteDoc(ref))
+    await assertFails(updateDoc(ref, { archived: true }))
+    await assertSucceeds(updateDoc(ref, { archived: true, isActive: false }))
+    expect((await getDoc(ref)).data().archived).toBe(true)
+    await assertFails(setDoc(doc(owner, 'users/owner/creditCards/new'), { ...card(), archived: true, isActive: false }))
+  })
+
+  test('lote não pode arquivar cartão e adicionar novo vínculo ao mesmo tempo', async () => {
+    const batch = writeBatch(owner)
+    batch.update(doc(owner, 'users/owner/creditCards/card'), { archived: true, isActive: false })
+    batch.set(doc(owner, 'users/owner/transactions/new'), { ...transaction(), creditCardId: 'card' })
+    await assertFails(batch.commit())
+  })
+
+  test('arquivamento concorrente à criação nunca remove a referência', async () => {
+    // Instâncias distintas evitam que a fila de gravações do SDK serialize a corrida.
+    const archiver = environment.authenticatedContext('owner').firestore()
+    for (let index = 0; index < 5; index++) {
+      const id = `race-${index}`
+      const ref = doc(owner, `users/owner/creditCards/${id}`)
+      const purchase = doc(owner, `users/owner/transactions/${id}`)
+      await assertSucceeds(setDoc(ref, card()))
+      const [archival, creation] = await Promise.allSettled([
+        updateDoc(doc(archiver, `users/owner/creditCards/${id}`), { archived: true, isActive: false }),
+        setDoc(purchase, { ...transaction(), creditCardId: id, cardClosingDay: 15 }),
+      ])
+      expect(archival.status).toBe('fulfilled')
+      const preserved = await getDoc(ref)
+      expect(preserved.exists()).toBe(true)
+      expect(preserved.data().archived).toBe(true)
+      if (creation.status === 'fulfilled') {
+        expect((await getDoc(purchase)).data().creditCardId).toBe(id)
+        expect((await getDoc(purchase)).data().cardClosingDay).toBe(15)
+      } else {
+        expect(creation.reason.code).toBe('permission-denied')
+        expect((await getDoc(purchase)).exists()).toBe(false)
+      }
+    }
+  })
+
   test('categoria arquivada preserva edições do histórico e nega novos vínculos', async () => {
     await environment.withSecurityRulesDisabled(async (context) => {
       await updateDoc(doc(context.firestore(), 'users/owner/categories/expense'), { archived: true })

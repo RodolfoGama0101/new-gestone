@@ -4,10 +4,6 @@ import {
   getDocs,
   addDoc,
   updateDoc,
-  deleteDoc,
-  query,
-  where,
-  limit,
   serverTimestamp,
 } from 'firebase/firestore'
 import { db } from '@/lib/firebase/config'
@@ -34,6 +30,7 @@ export const CreditCardService = {
         closingDay: data.closingDay,
         color: data.color,
         isActive: data.isActive ?? true,
+        archived: data.archived ?? false,
         createdAt: data.createdAt,
         updatedAt: data.updatedAt,
       })
@@ -64,17 +61,9 @@ export const CreditCardService = {
     })
   },
 
-  async delete(userId: string, cardId: string): Promise<void> {
-    // Verifica se existem transações vinculadas
-    const txColRef = collection(db, 'users', userId, 'transactions')
-    const q = query(txColRef, where('creditCardId', '==', cardId), limit(1))
-    const snapshot = await getDocs(q)
-
-    if (!snapshot.empty) {
-      throw new Error('Não é possível excluir um cartão que possui despesas vinculadas.')
-    }
-
+  async archive(userId: string, cardId: string): Promise<void> {
+    // Uma única gravação fecha novos vínculos sem remover a referência histórica.
     const docRef = doc(db, 'users', userId, 'creditCards', cardId)
-    await deleteDoc(docRef)
+    await updateDoc(docRef, { archived: true, isActive: false, updatedAt: serverTimestamp() })
   },
 }

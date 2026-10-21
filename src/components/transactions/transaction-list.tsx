@@ -203,34 +203,35 @@ export function TransactionList({
             </CardContent>
           </Card>
 
-          {/* Paginação */}
-          {(hasNextPage || hasPreviousPage) && (
-            <div className="flex items-center justify-between pt-2 px-1">
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={!hasPreviousPage}
-                onClick={goToPreviousPage}
-                className="gap-1.5 cursor-pointer text-xs h-8"
-              >
-                <ChevronLeft className="size-3.5" />
-                Anterior
-              </Button>
-              <span className="text-xs text-muted-foreground font-medium">
-                Página {currentPage}
-              </span>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={!hasNextPage}
-                onClick={goToNextPage}
-                className="gap-1.5 cursor-pointer text-xs h-8"
-              >
-                Próximo
-                <ChevronRight className="size-3.5" />
-              </Button>
-            </div>
-          )}
+        </div>
+      )}
+
+      {/* A navegação permanece disponível mesmo após uma página ficar vazia. */}
+      {(hasNextPage || hasPreviousPage) && (
+        <div className="flex items-center justify-between pt-2 px-1">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={!hasPreviousPage}
+            onClick={goToPreviousPage}
+            className="gap-1.5 cursor-pointer text-xs h-8"
+          >
+            <ChevronLeft className="size-3.5" />
+            Anterior
+          </Button>
+          <span className="text-xs text-muted-foreground font-medium">
+            Página {currentPage}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={!hasNextPage}
+            onClick={goToNextPage}
+            className="gap-1.5 cursor-pointer text-xs h-8"
+          >
+            Próximo
+            <ChevronRight className="size-3.5" />
+          </Button>
         </div>
       )}
 

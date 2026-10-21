@@ -196,6 +196,49 @@ test('fatura com 105 compras e saldo consistente no dashboard', async ({
   for (let i = 0; i < 5; i++)
     await page.getByRole('button', { name: 'Mais compras' }).click()
   await expect(page.getByText('Página 6 de 6')).toBeVisible()
+  await page.getByRole('button', { name: 'Excluir lançamento', exact: true }).first().click()
+  const confirmation = page.getByRole('dialog', { name: 'Excluir compra?' })
+  await expect(confirmation).toContainText('Compra')
+  await expect(confirmation).toContainText('1,00')
+  expect((await db.collection(`users/${uid}/transactions`).where('type', '==', 'expense').get()).size).toBe(105)
+  await confirmation.getByRole('button', { name: 'Cancelar', exact: true }).click()
+  await expect(confirmation).not.toBeVisible()
+  await expect(page.getByText(/Total:.*105,00/)).toBeVisible()
+  await page.getByRole('button', { name: 'Excluir lançamento', exact: true }).first().click()
+  await confirmation.getByRole('button', { name: 'Excluir', exact: true }).click()
+  await expect(confirmation).not.toBeVisible()
+  await expect(page.getByText(/Total:.*104,00/)).toBeVisible()
+  expect((await db.collection(`users/${uid}/transactions`).where('type', '==', 'expense').get()).size).toBe(104)
+  await page.goto('/')
+  await expect(page.getByText('Disponível após reservas:').locator('..')).toContainText('896,00')
+  await page.goto('/credit-cards')
+  await page.getByRole('button', { name: 'Arquivar', exact: true }).click()
+  const archival = page.getByRole('dialog', { name: 'Arquivar cartão de crédito?' })
+  await archival.getByRole('button', { name: 'Arquivar', exact: true }).click()
+  await expect(archival).not.toBeVisible()
+  await expect(page.getByText('Arquivado · histórico disponível')).toBeVisible()
+  await expect(page.getByText(/Total:.*104,00/)).toBeVisible()
+  const preservedCard = (await db.doc(`users/${uid}/creditCards/card`).get()).data()!
+  expect(preservedCard.archived).toBe(true)
+  expect(preservedCard.closingDay).toBe(31)
+  expect((await db.collection(`users/${uid}/transactions`).where('creditCardId', '==', 'card').get()).size).toBe(104)
+  await page.goto('/expenses')
+  await page.getByRole('button', { name: 'Nova Despesa', exact: true }).click()
+  const expenseDialog = page.getByRole('dialog')
+  await expenseDialog.getByLabel('Forma de Pagamento (Cartão)').click()
+  await expect(page.getByRole('option', { name: 'Não usar cartão (Débito)', exact: true })).toBeVisible()
+  await expect(page.getByRole('option', { name: /Cartão E2E/ })).toHaveCount(0)
+  await page.getByRole('option', { name: 'Não usar cartão (Débito)', exact: true }).click()
+  await expenseDialog.getByRole('button', { name: 'Close', exact: true }).click()
+  await page.getByRole('button', { name: 'Editar lançamento' }).first().click()
+  await expect(page.getByRole('dialog').getByLabel('Forma de Pagamento (Cartão)')).toContainText('arquivado')
+  await page.getByRole('dialog').getByLabel('Descrição', { exact: true }).fill('Compra arquivada editada')
+  await page.getByRole('dialog').getByRole('button', { name: 'Salvar Lançamento' }).click()
+  await expect(page.getByRole('dialog')).not.toBeVisible()
+  const historical = await db.collection(`users/${uid}/transactions`).where('description', '==', 'Compra arquivada editada').get()
+  expect(historical.size).toBe(1)
+  expect(historical.docs[0].data().creditCardId).toBe('card')
+  expect(historical.docs[0].data().cardClosingDay).toBe(31)
 })
 
 test('remoção concorrente de categoria preserva vínculos e isolamento', async ({
@@ -271,4 +314,182 @@ test('remoção concorrente de categoria preserva vínculos e isolamento', async
     { headers: { Authorization: `Bearer ${idToken}` } },
   )
   expect(denied.status).toBe(403)
+})
+
+for (const route of ['/transactions', '/expenses']) {
+  test(`paginação recupera exclusão, edição de data e criação pelo formulário em ${route}`, async ({ page }) => {
+    const { uid } = await register(page)
+    const now = new Date()
+    const timestamp = Timestamp.fromDate(now)
+    const categoryId = 'pagination-recovery'
+    const batch = db.batch()
+    batch.set(db.doc(`users/${uid}/categories/${categoryId}`), {
+      name: 'Paginação', type: 'expense', icon: 'Wallet', color: '#2563eb',
+      isDefault: false, createdAt: timestamp, updatedAt: timestamp,
+    })
+    for (let index = 1; index <= 11; index++) {
+      batch.set(db.doc(`users/${uid}/transactions/recovery-${index}`), {
+        description: `Registro ${String(index).padStart(2, '0')}`, amount: 100,
+        type: 'expense', categoryId, creditCardId: null, cardClosingDay: null,
+        date: Timestamp.fromMillis(now.getTime() - index * 86400000),
+        tags: [], notes: null, recurring: false, createdAt: timestamp, updatedAt: timestamp,
+      })
+    }
+    await batch.commit()
+    await page.goto(route)
+    const records = page.getByText(/^Registro \d{2}$/)
+    await expect(records).toHaveCount(10)
+    await page.getByRole('button', { name: 'Próximo', exact: true }).click()
+    await expect(page.getByText('Registro 11', { exact: true })).toBeVisible()
+    await page.getByRole('button', { name: route === '/expenses' ? 'Excluir lançamento' : 'Excluir Registro 11', exact: true }).click()
+    await page.getByRole('dialog').getByRole('button', { name: 'Excluir', exact: true }).click()
+    await expect(records).toHaveCount(10)
+    await expect(page.getByText('Registro 11', { exact: true })).not.toBeVisible()
+    await expect(page.getByText('Página 2', { exact: true })).not.toBeVisible()
+
+    const add = async (description: string) => {
+      await page.getByRole('button', { name: route === '/expenses' ? 'Nova Despesa' : 'Novo Lançamento', exact: true }).click()
+      const dialog = page.getByRole('dialog')
+      await dialog.getByLabel('Valor', { exact: true }).fill('100')
+      await dialog.getByLabel('Descrição', { exact: true }).fill(description)
+      await dialog.getByLabel('Categoria', { exact: true }).click()
+      await page.getByRole('option', { name: 'Paginação', exact: true }).click()
+      await dialog.getByRole('button', { name: 'Confirmar Lançamento' }).click()
+      await expect(page.getByText(description, { exact: true })).toBeVisible()
+      await expect(page.getByText('Página 1', { exact: true })).toBeVisible()
+    }
+    await add('Novo pelo formulário A')
+    await page.getByRole('button', { name: 'Próximo', exact: true }).click()
+    await expect(page.getByText('Registro 10', { exact: true })).toBeVisible()
+    await page.getByRole('button', { name: route === '/expenses' ? 'Editar lançamento' : 'Editar Registro 10', exact: true }).click()
+    const edit = page.getByRole('dialog')
+    await edit.getByLabel('Descrição', { exact: true }).fill('Movido pela edição de data')
+    await edit.getByLabel('Data', { exact: true }).click()
+    const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1)
+    await page.locator(`button[data-day="${tomorrow.toLocaleDateString('pt-BR')}"]`).click()
+    await edit.getByRole('button', { name: 'Salvar Lançamento' }).click()
+    await expect(page.getByText('Movido pela edição de data', { exact: true })).toBeVisible()
+    await expect(page.getByText('Página 1', { exact: true })).toBeVisible()
+    await page.getByRole('button', { name: 'Próximo', exact: true }).click()
+    await expect(page.getByText('Registro 09', { exact: true })).toBeVisible()
+    await add('Novo pelo formulário B')
+
+    const descriptions = page.getByText(/^(Registro \d{2}|Novo pelo formulário [AB]|Movido pela edição de data)$/)
+    await expect(descriptions).toHaveCount(10)
+    const first = await descriptions.allTextContents()
+    await page.getByRole('button', { name: 'Próximo', exact: true }).click()
+    await expect(descriptions).toHaveCount(2)
+    expect([...first, ...await descriptions.allTextContents()].sort()).toEqual([
+      ...Array.from({ length: 9 }, (_, index) => `Registro ${String(index + 1).padStart(2, '0')}`),
+      'Novo pelo formulário A', 'Novo pelo formulário B', 'Movido pela edição de data',
+    ].sort())
+    await page.getByRole('button', { name: 'Anterior', exact: true }).click()
+    await expect(descriptions).toHaveText(first)
+  })
+}
+
+test('paginação com datas iguais mantém todos os lançamentos ao navegar do dashboard ao extrato', async ({ page }) => {
+  const { uid } = await register(page)
+  const now = Timestamp.now()
+  const categoryId = 'pagination-category'
+  const batch = db.batch()
+  batch.set(db.doc(`users/${uid}/categories/${categoryId}`), {
+    name: 'Paginação E2E', type: 'expense', icon: 'Wallet', color: '#2563eb',
+    isDefault: false, createdAt: now, updatedAt: now,
+  })
+  // IDs em ordem diferente da inserção e timestamp idêntico em todas as páginas.
+  const descriptions = Array.from({ length: 23 }, (_, index) => `Empate ${String(index).padStart(2, '0')}`)
+  for (let index = descriptions.length - 1; index >= 0; index--) {
+    batch.set(db.doc(`users/${uid}/transactions/tie-${String(index).padStart(2, '0')}`), {
+      description: descriptions[index], type: 'expense', amount: 100, categoryId,
+      date: now, creditCardId: null, cardClosingDay: null, tags: [], notes: null,
+      recurring: false, createdAt: now, updatedAt: now,
+    })
+  }
+  await batch.commit()
+  await page.reload()
+  await expect(page.getByText(/^Empate \d{2}$/)).toHaveCount(5)
+  await page.getByRole('link', { name: 'Ver todos', exact: true }).click()
+  const rows = page.getByText(/^Empate \d{2}$/)
+  const pages: string[][] = []
+  for (const count of [10, 10, 3]) {
+    await expect(rows).toHaveCount(count)
+    pages.push(await rows.allTextContents())
+    if (pages.length < 3) {
+      await page.getByRole('button', { name: 'Próximo', exact: true }).click()
+      await expect(page.getByText(`Página ${pages.length + 1}`, { exact: true })).toBeVisible()
+    }
+  }
+  expect(pages.flat().sort()).toEqual(descriptions)
+  await expect(page.getByRole('button', { name: 'Próximo', exact: true })).toBeDisabled()
+  for (const index of [1, 0]) {
+    await page.getByRole('button', { name: 'Anterior', exact: true }).click()
+    await expect(page.getByText(`Página ${index + 1}`, { exact: true })).toBeVisible()
+    await expect(rows).toHaveText(pages[index])
+  }
+  await expect(page.getByRole('button', { name: 'Anterior', exact: true })).toBeDisabled()
+})
+
+test('busca global do extrato, reinício da página, CSV e continuação de busca esparsa', async ({ page }) => {
+  const { uid } = await register(page)
+  const now = Timestamp.now()
+  const categoryId = 'search-category'
+  await db.doc(`users/${uid}/categories/${categoryId}`).set({
+    name: 'Busca E2E', type: 'expense', icon: 'Wallet', color: '#2563eb',
+    isDefault: false, createdAt: now, updatedAt: now,
+  })
+  const transaction = (index: number, description: string) => ({
+    description, type: 'expense', amount: 100, categoryId,
+    creditCardId: null, cardClosingDay: null,
+    date: Timestamp.fromMillis(now.toMillis() - index * 60000),
+    tags: [], notes: null, recurring: false, createdAt: now, updatedAt: now,
+  })
+  const initial = db.batch()
+  for (let index = 1; index <= 25; index++) {
+    initial.set(db.doc(`users/${uid}/transactions/search-${index}`), transaction(index,
+      index === 21 ? 'Compra exclusiva ÁRVORE' : `Registro ${String(index).padStart(2, '0')}`,
+    ))
+  }
+  await initial.commit()
+  await page.goto('/transactions')
+  await expect(page.getByText('Registro 01', { exact: true })).toBeVisible()
+  const search = page.getByPlaceholder('Buscar por descrição...')
+  await search.fill('  EXCLUSIVA árvore  ')
+  await expect(page.getByText('Compra exclusiva ÁRVORE', { exact: true })).toBeVisible()
+  await expect(page.getByText('Registro 01', { exact: true })).not.toBeVisible()
+  await expect(search).toBeFocused()
+  const downloading = page.waitForEvent('download')
+  await page.getByRole('button', { name: 'Exportar CSV' }).click()
+  const csv = await readFile((await (await downloading).path())!, 'utf8')
+  expect(csv).toContain('Compra exclusiva ÁRVORE')
+  expect(csv).not.toContain('Registro 01')
+
+  await page.getByRole('button', { name: 'Limpar Filtros' }).click()
+  await page.getByRole('button', { name: 'Próximo', exact: true }).click()
+  await expect(page.getByText('Página 2', { exact: true })).toBeVisible()
+  await search.fill('registro 24')
+  await expect(page.getByText('Registro 24', { exact: true })).toBeVisible()
+  await expect(page.getByText('Registro 11', { exact: true })).not.toBeVisible()
+  await expect(page.getByText('Página 2', { exact: true })).not.toBeVisible()
+  await search.fill('termo inexistente')
+  await expect(page.getByText('Nenhum lançamento encontrado')).toBeVisible()
+  await expect(search).toBeVisible()
+  await page.getByRole('button', { name: 'Limpar Filtros' }).click()
+  await expect(page.getByText('Registro 01', { exact: true })).toBeVisible()
+
+  const sparse = db.batch()
+  for (let index = 26; index <= 130; index++) {
+    sparse.set(db.doc(`users/${uid}/transactions/search-${index}`), transaction(index,
+      index === 130 ? 'Alvo distante' : `Registro ${index}`,
+    ))
+  }
+  await sparse.commit()
+  await search.fill('alvo distante')
+  await expect(page.getByRole('heading', { name: 'Continue a busca' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Continuar busca', exact: true })).toBeEnabled()
+  await page.getByRole('button', { name: 'Continuar busca', exact: true }).click()
+  await expect(page.getByText('Alvo distante', { exact: true })).toBeVisible()
+  await page.getByRole('button', { name: 'Anterior', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Continue a busca' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Continuar busca', exact: true })).toBeEnabled()
 })

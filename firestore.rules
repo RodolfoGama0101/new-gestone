@@ -44,9 +44,15 @@ service cloud.firestore {
 
     function hasValidCard(userId, data) {
       let cardId = data.get('creditCardId', null);
-      // Cartões inativos continuam válidos para preservar a edição do histórico.
       return cardId == null || (data.type == 'expense' && isDocumentId(cardId)
-        && getAfter(/databases/$(database)/documents/users/$(userId)/creditCards/$(cardId)).data is map);
+        && hasAvailableCard(userId, cardId, data));
+    }
+
+    function hasAvailableCard(userId, cardId, data) {
+      let card = getAfter(/databases/$(database)/documents/users/$(userId)/creditCards/$(cardId)).data;
+      return card is map && (!card.get('archived', false)
+        || (request.method == 'update' && resource.data.type == data.type
+          && resource.data.get('creditCardId', null) == cardId));
     }
 
     function isValidTransaction(userId, data) {
@@ -92,8 +98,10 @@ service cloud.firestore {
     function isValidCreditCard(data) {
       return hasOnlyKeys(data, [
         'name', 'bankName', 'brand', 'holderName', 'closingDay', 'color', 'isActive',
-        'createdAt', 'updatedAt'
+        'archived', 'createdAt', 'updatedAt'
       ])
+        && data.get('archived', false) is bool
+        && (!data.get('archived', false) || data.isActive == false)
         && data.name is string && data.name.size() >= 2 && data.name.size() <= 50
         && data.bankName is string && data.bankName.size() >= 2 && data.bankName.size() <= 50
         && data.brand in ['visa', 'mastercard', 'elo', 'other']
@@ -134,10 +142,14 @@ service cloud.firestore {
       }
 
       match /creditCards/{cardId} {
-        allow read, delete: if isOwner(userId);
-        allow create: if isOwner(userId) && isValidCreditCard(request.resource.data);
+        allow read: if isOwner(userId);
+        allow delete: if false;
+        allow create: if isOwner(userId) && isValidCreditCard(request.resource.data)
+          && request.resource.data.get('archived', false) == false;
         allow update: if isOwner(userId)
           && isValidCreditCard(request.resource.data)
+          && (!resource.data.get('archived', false)
+            || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['updatedAt']))
           && request.resource.data.createdAt == resource.data.createdAt;
       }
     }

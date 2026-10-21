@@ -1,18 +1,38 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient, skipToken } from '@tanstack/react-query'
 import { TransactionService, GetTransactionsFilters } from '@/services/transaction.service'
 import { useAuth } from '@/contexts/auth-context'
 import { Transaction } from '@/types/transaction'
 import { toast } from 'sonner'
 import { DocumentData, QueryDocumentSnapshot } from 'firebase/firestore'
 import * as React from 'react'
+import { normalizeTransactionSearch } from '@/lib/utils/transaction-search'
+import { invalidateTransactionData, transactionPaginationKey } from '@/lib/transaction-cache'
 
 export function useTransactions(filters: Omit<GetTransactionsFilters, 'lastVisible'> = {}) {
   const { user } = useAuth()
   const queryClient = useQueryClient()
   const userId = user?.uid ?? ''
+  // Estado compartilhado no QueryClient, sem consulta de rede. Toda mutação de
+  // lançamentos muda a revisão, inclusive quando executada fora deste hook.
+  const { data: revision } = useQuery({
+    queryKey: transactionPaginationKey(userId),
+    queryFn: skipToken,
+    initialData: 0,
+  })
 
   // Paginação
-  const filtersKey = `${filters.type || ''}-${filters.categoryId || ''}-${filters.creditCardId || ''}`
+  const search = normalizeTransactionSearch(filters.search ?? '')
+  const [settledSearch, setSettledSearch] = React.useState(search)
+  React.useEffect(() => {
+    const timeout = setTimeout(() => setSettledSearch(search), 300)
+    return () => clearTimeout(timeout)
+  }, [search])
+  const limitVal = filters.limitCount || (filters.creditCardId ? 100 : 10)
+  const filtersKey = JSON.stringify([
+    userId, filters.type ?? null, filters.categoryId ?? null,
+    filters.creditCardId ?? null, filters.startDate?.getTime() ?? null,
+    filters.endDate?.getTime() ?? null, limitVal, search, revision,
+  ])
   const [pagination, dispatchPagination] = React.useReducer(
     (
       state: {
@@ -48,28 +68,23 @@ export function useTransactions(filters: Omit<GetTransactionsFilters, 'lastVisib
     if (hasChangedFilters) dispatchPagination({ type: 'reset', filtersKey })
   }, [filtersKey, hasChangedFilters])
 
-  const limitVal = filters.limitCount || (filters.creditCardId ? 100 : 10)
-
   const transactionsQuery = useQuery({
-    queryKey: ['transactions', userId, filters.type, filters.categoryId, filters.creditCardId, currentPage, pageCursors[currentPage]],
+    queryKey: ['transactions', userId, filtersKey, currentPage, pageCursors[currentPage]?.id ?? null],
     queryFn: () =>
       TransactionService.getPaged(userId, {
         ...filters,
+        search,
         limitCount: limitVal,
         lastVisible: pageCursors[currentPage] ?? undefined,
       }),
-    enabled: !!userId,
+    enabled: !!userId && search === settledSearch,
   })
 
   const createMutation = useMutation({
     mutationFn: (data: Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'>) =>
       TransactionService.create(userId, data),
-    onSuccess: () => {
-      dispatchPagination({ type: 'reset', filtersKey })
-      queryClient.invalidateQueries({ queryKey: ['transactions', userId] })
-      queryClient.invalidateQueries({ queryKey: ['analytics', userId] })
-      queryClient.invalidateQueries({ queryKey: ['analyticsHistory', userId] })
-      queryClient.invalidateQueries({ queryKey: ['creditCards', userId] })
+    onSuccess: async () => {
+      await invalidateTransactionData(queryClient, userId)
       toast.success('Lançamento registrado com sucesso!')
     },
     onError: () => {
@@ -85,11 +100,8 @@ export function useTransactions(filters: Omit<GetTransactionsFilters, 'lastVisib
       transactionId: string
       data: Partial<Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'>>
     }) => TransactionService.update(userId, transactionId, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['transactions', userId] })
-      queryClient.invalidateQueries({ queryKey: ['analytics', userId] })
-      queryClient.invalidateQueries({ queryKey: ['analyticsHistory', userId] })
-      queryClient.invalidateQueries({ queryKey: ['creditCards', userId] })
+    onSuccess: async () => {
+      await invalidateTransactionData(queryClient, userId)
       toast.success('Lançamento atualizado com sucesso!')
     },
     onError: () => {
@@ -100,11 +112,8 @@ export function useTransactions(filters: Omit<GetTransactionsFilters, 'lastVisib
   const deleteMutation = useMutation({
     mutationFn: (transactionId: string) =>
       TransactionService.delete(userId, transactionId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['transactions', userId] })
-      queryClient.invalidateQueries({ queryKey: ['analytics', userId] })
-      queryClient.invalidateQueries({ queryKey: ['analyticsHistory', userId] })
-      queryClient.invalidateQueries({ queryKey: ['creditCards', userId] })
+    onSuccess: async () => {
+      await invalidateTransactionData(queryClient, userId)
       toast.success('Lançamento excluído com sucesso!')
     },
     onError: () => {
@@ -132,7 +141,7 @@ export function useTransactions(filters: Omit<GetTransactionsFilters, 'lastVisib
 
   return {
     transactions,
-    isLoading: transactionsQuery.isLoading || transactionsQuery.isFetching,
+    isLoading: search !== settledSearch || transactionsQuery.isLoading || transactionsQuery.isFetching,
     hasNextPage,
     hasPreviousPage,
     goToNextPage,
