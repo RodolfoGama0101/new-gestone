@@ -30,6 +30,34 @@ async function register(page: Page) {
   return { email, uid: (await auth.getUserByEmail(email)).uid }
 }
 
+test('inicialização e migração concorrentes preservam IDs e não duplicam categorias', async ({ page }) => {
+  const { uid } = await register(page)
+  const collection = db.collection(`users/${uid}/categories`)
+  const marker = db.doc(`users/${uid}/internal/category-initialization-v1`)
+  await db.recursiveDelete(collection)
+  await marker.delete()
+  const responses = await Promise.all(Array.from({ length: 4 }, () => page.request.post('/api/categories/initialize')))
+  expect(responses.every((response) => response.ok())).toBe(true)
+  expect((await collection.get()).size).toBe(19)
+  const before = (await collection.get()).docs.map((item) => ({ id: item.id, ...item.data() }))
+  await page.request.post('/api/categories/initialize')
+  expect((await collection.get()).docs.map((item) => ({ id: item.id, ...item.data() }))).toEqual(before)
+
+  await db.recursiveDelete(collection)
+  await marker.delete()
+  const legacy = { name: 'Investimentos', type: 'income', icon: 'Wallet', color: '#7c3aed', isDefault: true, createdAt: Timestamp.now(), updatedAt: Timestamp.now() }
+  await collection.doc('legacy-linked').set(legacy)
+  await collection.doc('custom').set({ ...legacy, name: 'Personalizada', isDefault: false })
+  const migrations = await Promise.all(Array.from({ length: 4 }, () => page.request.post('/api/categories/initialize')))
+  expect(migrations.every((response) => response.ok())).toBe(true)
+  expect((await collection.get()).size).toBe(6)
+  expect((await collection.doc('legacy-linked').get()).data()?.type).toBe('investment')
+  expect((await collection.doc('custom').get()).data()?.name).toBe('Personalizada')
+  await collection.doc('default-v1-14').delete()
+  await page.request.post('/api/categories/initialize')
+  expect((await collection.doc('default-v1-14').get()).exists).toBe(false)
+})
+
 test('cadastro, CRUD, busca, CSV, login e exclusão segura de conta', async ({
   page,
   browser,
