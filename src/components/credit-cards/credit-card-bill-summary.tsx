@@ -1,5 +1,8 @@
 'use client'
 
+import { useInvoicePayment } from '@/hooks/use-invoice-payment'
+import { invoiceCycle } from '@/lib/utils/invoice-cycle'
+import { useCurrentDate } from '@/hooks/use-current-date'
 import { formatMoney } from '@/lib/utils/format-money'
 
 import * as React from 'react'
@@ -19,6 +22,18 @@ import { toast } from 'sonner'
 
 export function CreditCardBillSummary({ card, onEditTransaction }: { card: CreditCard; onEditTransaction?: (tx: Transaction) => void }) {
   const [month, setMonth] = React.useState(() => startOfMonth(new Date()))
+  const payment = useInvoicePayment(card.id, month)
+  const today = useCurrentDate()
+  const cycle = invoiceCycle(card, month)
+  const [paymentAction, setPaymentAction] = React.useState<'pay' | 'reverse' | null>(null)
+  const paymentPending = React.useRef(false)
+  const handlePayment = async () => {
+    if (!paymentAction || paymentPending.current) return
+    paymentPending.current = true
+    try { await payment.save(paymentAction === 'pay' ? total : null); setPaymentAction(null); toast.success('Registro de quitação atualizado.') }
+    catch (error) { toast.error(error instanceof Error ? error.message : 'Não foi possível atualizar a quitação.') }
+    finally { paymentPending.current = false }
+  }
   const [page, setPage] = React.useState(1)
   const [deletingTransaction, setDeletingTransaction] = React.useState<Transaction | null>(null)
   const [isDeleting, setIsDeleting] = React.useState(false)
@@ -59,6 +74,14 @@ export function CreditCardBillSummary({ card, onEditTransaction }: { card: Credi
       <CardDescription>Fechamento dia {card.closingDay}. Total de todas as compras do ciclo.</CardDescription>
     </CardHeader>
     <CardContent>
+      <div className="mb-4 space-y-2 text-sm">
+        <p>Ciclo: {format(cycle.start, 'dd/MM/yyyy')} a {format(cycle.closing, 'dd/MM/yyyy')} · Fechamento: {format(cycle.closing, 'dd/MM/yyyy')}</p>
+        <p>Vencimento: {cycle.due ? format(cycle.due, 'dd/MM/yyyy') : 'não definido — configure no cartão'}</p>
+        <p>Status: {payment.isPending ? 'Carregando quitação…' : payment.error ? 'Quitação indisponível' : payment.data ? payment.data.amount === total ? 'Quitada' : 'Alterada após quitação — revise e estorne o registro' : today <= cycle.closesAt ? 'Aberta' : 'Fechada'}</p>
+        <p className="text-muted-foreground">Quitação integral apenas. O registro não cria nova despesa nem altera o saldo por competência. Pagamentos parciais não estão disponíveis.</p>
+        {payment.error && <Button variant="outline" onClick={() => payment.refetch()}>Tentar carregar quitação</Button>}
+        {!invoice.isPending && !invoice.error && !payment.error && !payment.isPending && <Button variant="outline" disabled={payment.saving || (!payment.data && (total <= 0 || today <= cycle.closesAt))} onClick={() => setPaymentAction(payment.data ? 'reverse' : 'pay')}>{payment.data ? 'Estornar quitação' : 'Registrar pagamento integral'}</Button>}
+      </div>
       {invoice.isPending ? <Loader2 className="size-6 animate-spin" aria-label="Carregando fatura" />
         : invoice.isError ? <div role="alert">Não foi possível carregar a fatura. <Button onClick={() => void invoice.refetch()}>Tentar novamente</Button></div>
           : <>
@@ -72,6 +95,7 @@ export function CreditCardBillSummary({ card, onEditTransaction }: { card: Credi
             </div>
           </>}
     </CardContent>
+    <ConfirmDialog isOpen={paymentAction !== null} onClose={() => { if (!payment.saving) setPaymentAction(null) }} onConfirm={() => void handlePayment()} title={paymentAction === 'reverse' ? 'Estornar quitação?' : 'Registrar pagamento integral?'} description={paymentAction === 'reverse' ? 'Remove somente o registro de quitação. As compras e os indicadores permanecem iguais.' : 'Confirme o pagamento externo de ' + formatMoney(total) + '. Este registro não movimenta dinheiro nem cria outra despesa.'} confirmText="Confirmar" isLoading={payment.saving} />
     <ConfirmDialog
       isOpen={deletingTransaction !== null}
       onClose={closeDeletion}

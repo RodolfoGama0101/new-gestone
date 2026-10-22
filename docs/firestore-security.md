@@ -42,9 +42,10 @@ A inclusão do Firebase CLI acrescentou pacotes de desenvolvimento e levou o aud
 
 `/users/{uid}/budgets/{yyyy-MM}` guarda a meta em centavos e `updatedAt`. Seus documentos `limits/{categoryId}` guardam nome, limite inteiro e atualização. Somente o dono pode acessar; gravar limites exige categoria ativa de despesa ou `both` do mesmo UID. Valores, campos extras e mês são validados pelas regras. Arquivar categoria preserva leitura e remoção dos limites. Consulte [o contrato de orçamentos](features/budgets.md).
 
-## Séries
-
+## Séries, parcelas e pagamentos
 
 As séries ficam em /users/{uid}/transactionSeries/{id}, com payload financeiro validado, cursor monotônico, início/fim e corte de cancelamento. Alterações não podem trocar a âncora, o tipo ou o tamanho do plano. Cancelamento permanece permitido quando uma referência muda, sem permitir alterar outros campos. Exclusão direta da série é negada; cancelar preserva o histórico anterior ao corte.
 
 Ocorrências podem conter seriesId, occurrenceIndex, installmentTotal e installmentMonth. A série deve existir sob o próprio UID; vínculo, posição e competência não podem ser alterados depois da criação. As regras mantêm validação das categorias/cartões e valores em centavos. Documentos antigos sem metadados continuam válidos.
+
+Quitações são documentos imutáveis em /users/{uid}/creditCards/{cardId}/payments/{yyyy-MM}; somente o dono pode ler, criar e remover. As regras exigem cartão existente, mês válido, valor inteiro positivo e paidAt. Esses documentos não são despesas nem entram nos indicadores. Consulte [séries](features/transaction-series.md), [parcelas](features/installments.md) e [quitação](features/invoice-payments.md).

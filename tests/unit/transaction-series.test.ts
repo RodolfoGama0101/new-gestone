@@ -3,6 +3,7 @@ import {
   installmentAmount,
   installmentMonth,
 } from '@/lib/utils/transaction-series'
+import { invoiceCycle } from '@/lib/utils/invoice-cycle'
 import { getTransactionDate } from '@/lib/utils/transaction-date'
 import type { Transaction } from '@/types/transaction'
 
@@ -39,6 +40,23 @@ it('distribui centavos sem perda inclusive no limite seguro', () => {
   ])
     expect(() => installmentAmount(amount, count, 0)).toThrow()
 })
+it('define ciclo e vencimento em meses curtos e viradas de ano', () => {
+  const february = invoiceCycle(
+    { closingDay: 31, dueDay: 5 },
+    new Date(2024, 1, 1),
+  )
+  expect(february.closing.getDate()).toBe(29)
+  expect(february.start).toEqual(new Date(2024, 1, 1))
+  expect(february.due).toEqual(new Date(2024, 2, 5))
+  expect(
+    invoiceCycle({ closingDay: 28, dueDay: 31 }, new Date(2025, 1, 1)).due,
+  ).toEqual(new Date(2025, 1, 28))
+  expect(
+    invoiceCycle({ closingDay: 31, dueDay: 5 }, new Date(2026, 11, 1)).due,
+  ).toEqual(new Date(2027, 0, 5))
+  expect(invoiceCycle({ closingDay: 10 }, new Date()).due).toBeNull()
+})
+
 it('não acumula parcelas no mesmo ciclo quando fevereiro encurta a data da compra', () => {
   const start = new Date(2026, 0, 31)
   const months = [0, 1, 2].map((i) => installmentMonth(start, i, 28))

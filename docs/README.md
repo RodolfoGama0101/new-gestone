@@ -31,3 +31,4 @@
 
 - [Recorrência mensal](features/transaction-series.md)
 - [Compras parceladas](features/installments.md)
+- [Vencimento e quitação de faturas](features/invoice-payments.md)

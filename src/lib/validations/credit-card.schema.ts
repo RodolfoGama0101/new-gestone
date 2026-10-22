@@ -6,6 +6,7 @@ export const creditCardSchema = z.object({
   brand: z.enum(['visa', 'mastercard', 'elo', 'other']),
   holderName: z.string().min(2, 'O nome do titular deve ter pelo menos 2 caracteres').max(100),
   closingDay: z.number().int().min(1, 'Dia inválido').max(31, 'Dia inválido'),
+  dueDay: z.number().int().min(1).max(31).nullable().optional(),
   color: z.string().min(1, 'Selecione uma cor'),
   isActive: z.boolean().default(true),
 })

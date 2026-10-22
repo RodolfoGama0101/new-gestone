@@ -691,7 +691,23 @@ describe('séries e quitação de faturas', () => {
     await assertFails(updateDoc(doc(owner, path), { amount: 1 }))
     await assertFails(setDoc(doc(owner, 'users/owner/transactionSeries/bad'), { ...series(), timezoneOffset: 9999 }))
   })
-
+  it('permite quitação imutável e estorno do dono, sem criação de despesa adicional', async () => {
+    const path = 'users/owner/creditCards/card/payments/2026-10'
+    const payment = { amount: 12345, paidAt: timestamp }
+    await assertSucceeds(setDoc(doc(owner, path), payment))
+    await assertFails(setDoc(doc(other, path), payment))
+    await assertFails(getDoc(doc(other, path)))
+    await assertFails(getDoc(doc(anonymous, path)))
+    await assertFails(updateDoc(doc(owner, path), { amount: 1 }))
+    await assertFails(setDoc(doc(owner, 'users/owner/creditCards/card/payments/2026-13'), payment))
+    await assertFails(setDoc(doc(owner, 'users/owner/creditCards/missing/payments/2026-10'), payment))
+    await assertFails(setDoc(doc(owner, 'users/owner/creditCards/card/payments/2026-11'), { ...payment, amount: 1.5 }))
+    await assertSucceeds(deleteDoc(doc(owner, path)))
+  })
+  it('aceita cartões antigos sem vencimento e valida novo campo', async () => {
+    await assertSucceeds(updateDoc(doc(owner, 'users/owner/creditCards/card'), { dueDay: 31 }))
+    await assertFails(updateDoc(doc(owner, 'users/owner/creditCards/card'), { dueDay: 32 }))
+  })
 })
 
 describe('metadados das ocorrências', () => {

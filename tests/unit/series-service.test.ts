@@ -1,4 +1,5 @@
 import { TransactionSeriesService } from '@/services/transaction-series.service'
+import { InvoicePaymentService } from '@/services/invoice-payment.service'
 import { runTransaction, getDocs } from 'firebase/firestore'
 import type { Transaction } from '@/types/transaction'
 
@@ -149,6 +150,22 @@ it('retoma parcelas após falha e mantém total e ciclos exatos', async () => {
     '2026-04',
   ])
 })
+it('quita uma única vez e estorna sem escrever transações financeiras', async () => {
+  const month = new Date(2026, 1, 1)
+  await InvoicePaymentService.pay('alice', 'card', month, 10000)
+  const first = stored.get('users/alice/creditCards/card/payments/2026-02')
+  await InvoicePaymentService.pay('alice', 'card', month, 10000)
+  expect(stored.get('users/alice/creditCards/card/payments/2026-02')).toBe(
+    first,
+  )
+  await expect(
+    InvoicePaymentService.pay('alice', 'card', month, 20000),
+  ).rejects.toThrow('alterada')
+  await InvoicePaymentService.reverse('alice', 'card', month)
+  await InvoicePaymentService.reverse('alice', 'card', month)
+  expect(stored.size).toBe(0)
+})
+
 it('cancela futuras sem apagar parcelas anteriores nem recriar as canceladas', async () => {
   await TransactionSeriesService.create('alice', 'plan', data(), 'installment', 3)
   await TransactionSeriesService.cancel('alice', 'plan', new Date(2026, 2, 31))

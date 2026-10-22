@@ -82,6 +82,7 @@ export function CreditCardForm({ onSuccess, editingCard }: CreditCardFormProps) 
       brand: editingCard?.brand ?? 'visa',
       holderName: editingCard?.holderName ?? '',
       closingDay: editingCard?.closingDay ?? 10,
+      dueDay: editingCard?.dueDay ?? null,
       color: editingCard?.color ?? '#820ad1',
       isActive: editingCard?.isActive ?? true,
     },
@@ -224,6 +225,16 @@ export function CreditCardForm({ onSuccess, editingCard }: CreditCardFormProps) 
           )}
         </div>
 
+        <div className="space-y-1.5">
+          <Label htmlFor="dueDay">Dia de vencimento (opcional)</Label>
+          <Controller name="dueDay" control={control} render={({ field }) => (
+            <Input id="dueDay" type="number" min={1} max={31} value={field.value ?? ''}
+              onChange={e => field.onChange(e.target.value ? Number(e.target.value) : null)}
+              disabled={isLoading} {...fieldErrorProps('dueDay', errors.dueDay)} />
+          )} />
+          {errors.dueDay && <p id="dueDay-error" role="alert" className="text-sm text-destructive">Informe um dia de 1 a 31.</p>}
+          <p className="text-sm text-muted-foreground">Se o vencimento for igual ou anterior ao fechamento, vence no mês seguinte. Meses curtos usam o último dia.</p>
+        </div>
         {/* Status (Ativo/Inativo) - apenas no edit */}
         {isEditMode && (
           <div className="space-y-1.5">

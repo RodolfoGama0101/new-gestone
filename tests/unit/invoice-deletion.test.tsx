@@ -11,6 +11,7 @@ import type { CreditCard } from '@/types/credit-card'
 
 jest.mock('@/services/transaction.service', () => ({ TransactionService: { getInvoice: jest.fn(), delete: jest.fn() } }))
 jest.mock('@/contexts/auth-context', () => ({ useAuth: jest.fn() }))
+jest.mock('@/hooks/use-invoice-payment', () => ({ useInvoicePayment: () => ({ data: null, isPending: false, error: null, saving: false }) }))
 jest.mock('@/hooks/use-categories', () => ({ useCategories: () => ({ categories: [] }) }))
 jest.mock('sonner', () => ({ toast: { success: jest.fn(), error: jest.fn() } }))
 

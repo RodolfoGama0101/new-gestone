@@ -28,6 +28,7 @@ export const CreditCardService = {
         brand: data.brand,
         holderName: data.holderName,
         closingDay: data.closingDay,
+        dueDay: data.dueDay ?? null,
         color: data.color,
         isActive: data.isActive ?? true,
         archived: data.archived ?? false,

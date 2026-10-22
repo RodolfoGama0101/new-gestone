@@ -106,7 +106,7 @@ service cloud.firestore {
     function isValidCreditCard(data) {
       return hasOnlyKeys(data, [
         'name', 'bankName', 'brand', 'holderName', 'closingDay', 'color', 'isActive',
-        'archived', 'createdAt', 'updatedAt'
+        'archived', 'createdAt', 'updatedAt', 'dueDay'
       ])
         && data.get('archived', false) is bool
         && (!data.get('archived', false) || data.isActive == false)
@@ -114,6 +114,7 @@ service cloud.firestore {
         && data.bankName is string && data.bankName.size() >= 2 && data.bankName.size() <= 50
         && data.brand in ['visa', 'mastercard', 'elo', 'other']
         && data.holderName is string && data.holderName.size() >= 2 && data.holderName.size() <= 100
+        && (data.get('dueDay', null) == null || (data.dueDay is int && data.dueDay >= 1 && data.dueDay <= 31))
         && data.closingDay is int && data.closingDay >= 1 && data.closingDay <= 31
         && data.color is string && data.color.size() > 0 && data.color.size() <= 32
         && data.isActive is bool
@@ -212,6 +213,15 @@ service cloud.firestore {
       }
 
       match /creditCards/{cardId} {
+        match /payments/{month} {
+          allow read, delete: if isOwner(userId);
+          allow create: if isOwner(userId) && month.matches('^[0-9]{4}-(0[1-9]|1[0-2])$')
+            && exists(/databases/$(database)/documents/users/$(userId)/creditCards/$(cardId))
+            && hasOnlyKeys(request.resource.data, ['amount', 'paidAt'])
+            && request.resource.data.amount is int && request.resource.data.amount > 0 && request.resource.data.amount <= 9007199254740991
+            && request.resource.data.paidAt is timestamp;
+          allow update: if false;
+        }
         allow read: if isOwner(userId);
         allow delete: if false;
         allow create: if isOwner(userId) && isValidCreditCard(request.resource.data)

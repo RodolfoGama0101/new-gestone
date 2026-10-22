@@ -5,6 +5,7 @@ import { CreditCardBillSummary } from '@/components/credit-cards/credit-card-bil
 import { useCardInvoice } from '@/hooks/use-card-invoice'
 import type { CreditCard } from '@/types/credit-card'
 jest.mock('@/hooks/use-card-invoice', () => ({ useCardInvoice: jest.fn() }))
+jest.mock('@/hooks/use-invoice-payment', () => ({ useInvoicePayment: () => ({ data: null, isPending: false, error: null, saving: false }) }))
 jest.mock('@/hooks/use-categories', () => ({ useCategories: () => ({ categories: [] }) }))
 jest.mock('@/components/transactions/transaction-row', () => ({ TransactionRow: ({ transaction }: { transaction: { description: string } }) => <p>{transaction.description}</p> }))
 const card = { id: 'card', closingDay: 20 } as CreditCard
