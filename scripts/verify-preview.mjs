@@ -2,24 +2,28 @@ import { randomUUID } from 'node:crypto'
 import { pathToFileURL } from 'node:url'
 
 export function previewConfiguration(env) {
-  const required = ['PREVIEW_ORIGIN', 'PREVIEW_PROJECT_ID', 'PREVIEW_API_KEY', 'PREVIEW_TEST_EMAIL', 'PREVIEW_TEST_PASSWORD']
+  const required = ['PREVIEW_ORIGIN', 'PREVIEW_ALLOWED_HOST', 'PREVIEW_PROJECT_ID', 'PREVIEW_API_KEY', 'PREVIEW_TEST_EMAIL', 'PREVIEW_TEST_PASSWORD']
   if (required.some((key) => !env[key]?.trim())) throw new Error(`Configure ${required.join(', ')} no ambiente.`)
   const origin = new URL(env.PREVIEW_ORIGIN)
   const project = env.PREVIEW_PROJECT_ID
   if (!/^[a-z][a-z0-9-]+$/.test(project) || origin.protocol !== 'https:' || origin.port
     || origin.username || origin.password || origin.pathname !== '/' || origin.search || origin.hash
-    || !origin.hostname.startsWith(`${project}--`) || !origin.hostname.endsWith('.web.app')
-    || !/^[a-z0-9-]+\.web\.app$/.test(origin.hostname)) {
-    throw new Error('Use somente a origem HTTPS de um canal Firebase de preview do projeto informado.')
+    || origin.hostname !== env.PREVIEW_ALLOWED_HOST
+    || !/^[a-z0-9-]+-git-[a-z0-9-]+\.vercel\.app$/.test(origin.hostname)
+    || /-git-(main|master|production)(-|\.)/.test(origin.hostname)) {
+    throw new Error('Use a URL HTTPS de preview de branch Vercel e confirme seu hostname em PREVIEW_ALLOWED_HOST.')
   }
-  return { origin: origin.origin, project, apiKey: env.PREVIEW_API_KEY, email: env.PREVIEW_TEST_EMAIL, password: env.PREVIEW_TEST_PASSWORD }
+  return { origin: origin.origin, project, apiKey: env.PREVIEW_API_KEY, email: env.PREVIEW_TEST_EMAIL, password: env.PREVIEW_TEST_PASSWORD, bypass: env.VERCEL_AUTOMATION_BYPASS_SECRET }
 }
 
 export async function verifyPreview(env, fetchImpl = fetch) {
   const config = previewConfiguration(env)
   const request = async (url, options, label) => {
     try {
-      return await fetchImpl(url, { ...options, redirect: 'error', signal: AbortSignal.timeout(20000) })
+      const headers = new Headers(options?.headers)
+      // O segredo de automação fica restrito ao preview; nunca vai para o Firebase.
+      if (new URL(url).origin === config.origin && config.bypass) headers.set('x-vercel-protection-bypass', config.bypass)
+      return await fetchImpl(url, { ...options, headers, redirect: 'error', signal: AbortSignal.timeout(20000) })
     } catch {
       // Não incluir resposta, credenciais ou URLs com chaves no erro/log.
       throw new Error(`${label}: falha de conexão ou redirecionamento inesperado.`)

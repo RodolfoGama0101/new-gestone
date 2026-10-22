@@ -1,33 +1,42 @@
-# Verificação de publicação — ROD-107
+# CI, Vercel e Firestore — ROD-107
 
-A infraestrutura de manutenção foi implementada no commit `edd6fac`: Actions por SHA, Node/npm explícitos, Firebase CLI pelo lockfile, Dependabot semanal, verificação compartilhada, contrato JSON/ADC e rollback documentado. O fato de o commit existir localmente não comprova execução no GitHub ou funcionamento do runtime hospedado.
+O app Next.js é hospedado na Vercel. Firebase Authentication e Firestore continuam como autenticação e dados. Os workflows de Hosting eram legados e foram removidos; `firebase.json` descreve somente Firestore.
 
-## Verificação do preview
+## Responsabilidades
 
-Use uma conta de teste existente de e-mail/senha e um canal Firebase Hosting de preview. Configure no ambiente do processo, sem colocar valores em comandos versionados ou logs:
+- GitHub Actions: instalação pelo lockfile, lint, tipos, unitários, testes do verificador de preview, regras e build; E2E em job independente sem secrets.
+- Vercel Git: builds, previews de branches e produção a partir de `main`. `vercel.json` usa npm 12.0.2 + `npm ci` e `npm run build`, preservando webpack/PWA. Runtime Node 24.x; patches da plataforma podem diferir do Node 24.15.0 fixado no CI.
+- `firestore-deploy.yml`: testa regras no emulador e publica somente regras/índices, usando o CLI do lockfile. Executa na `main` por mudança nos arquivos pertinentes ou execução manual na `main`. Não publica Hosting, Functions ou a aplicação.
+- Dependabot: configuração semanal npm/Actions na branch padrão, sem auto-merge. Ativação e PRs reais dependem da promoção dessa configuração para a branch padrão.
 
-- `PREVIEW_ORIGIN`: origem HTTPS completa do canal, no formato `https://new-gestone--CANAL.web.app`.
-- `PREVIEW_PROJECT_ID`: `new-gestone`.
-- `PREVIEW_API_KEY`: chave pública Firebase do projeto.
-- `PREVIEW_TEST_EMAIL` e `PREVIEW_TEST_PASSWORD`: credenciais da conta de teste.
+Vercel e Firestore publicam independentemente. Mudanças incompatíveis exigem liberação coordenada; não suponha ordem entre workflows. O rollback Vercel não reverte regras/índices. Consulte o README.
 
-Execute `npm run test:preview`. O script não carrega `.env.local`, não cria contas e rejeita o domínio de produção, URLs com credenciais, caminhos e redirecionamentos. Não use conta pessoal ou dados financeiros reais.
+## Configuração Vercel
 
-A verificação faz login no Firebase cliente, cria cookie de sessão HttpOnly/Secure/SameSite=Lax com resposta não cacheável, lê o perfil da conta com ID token, verifica a recusa de acesso anônimo e valida o cookie no servidor. Para verificar também o transporte/permissões do Admin Firestore, chama a rota de remoção de categoria com um ID de sondagem novo, gerado por UUID aleatório. O resultado esperado é 404 após a leitura transacional de um documento inexistente; nenhum documento é criado ou removido. Falhas de IAM/ADC, autenticação ou transporte não são aceitas como sucesso. O script solicita ainda renovação do cookie e o expira ao terminar, inclusive após falha. Tokens, cookies, senha e respostas não são salvos em arquivos ou impressos.
+Conecte o repositório, mantenha o preset Next.js e a branch de produção `main`. Configure as variáveis `NEXT_PUBLIC_FIREBASE_*` nos ambientes Preview/Production. Para o servidor, o código aceita `FIREBASE_SERVICE_ACCOUNT_KEY` com JSON de uma conta de runtime com permissões mínimas de Auth/Firestore; nunca use prefixo público. ADC do Google não aparece automaticamente na Vercel: exige federação/identidade explicitamente configurada. O secret GitHub de publicação de regras não configura o servidor Vercel.
 
-Um perfil inexistente pode responder 404 ao cliente, pois o aplicativo não exige o documento `/users/{uid}`; 403 não é aceito. O teste não substitui uma verificação visual de login Google, que depende dos domínios autorizados e de interação com a conta de teste.
+Autorize no Firebase Authentication os domínios usados pelo login Google; a verificação por senha/API não substitui o teste visual desse provedor. Configure no GitHub os checks exigidos de qualidade/E2E e Vercel; remova qualquer requisito manual legado de Firebase Hosting.
 
-Confirme separadamente no runtime que `FIREBASE_SERVICE_ACCOUNT_KEY` não está definida e que a identidade de serviço possui as permissões necessárias. O script comprova as operações Admin, mas uma resposta HTTP não distingue ADC de um JSON de conta de serviço. Não copie credenciais de deploy para o bundle, workflow ou documentação.
+## Preview autenticado
 
-## Evidências para encerrar
+Use uma conta de teste e a URL de **branch** informada pelo bot Vercel no PR (`https://PROJETO-git-BRANCH-ESCOPO.vercel.app`). Configure somente no ambiente do processo:
 
-1. Publicar a branch de revisão e abrir PR; registrar SHA, URL e resultados dos jobs de qualidade, E2E e preview.
-2. No preview, executar a verificação acima com conta de teste e confirmar a configuração ADC do runtime; registrar apenas origem, SHA, verificações e resultados, sem dados da conta.
-3. Após o Dependabot passar a executar na branch padrão, registrar um PR real e seus checks. Um arquivo de configuração ou PR manual não comprova que o bot abriu uma atualização.
-4. A promoção para a `main` executa publicação de regras/índices e Hosting. Não confundir o preview com essa promoção. O rollback permanece descrito no README.
+- `PREVIEW_ORIGIN`: origem HTTPS do preview.
+- `PREVIEW_ALLOWED_HOST`: hostname exato dessa origem, copiado do deployment do PR, confirmando o destino.
+- `PREVIEW_PROJECT_ID` e `PREVIEW_API_KEY`: projeto e chave pública Firebase da conta de teste.
+- `PREVIEW_TEST_EMAIL` e `PREVIEW_TEST_PASSWORD`: conta de teste, sem dados reais.
+- `VERCEL_AUTOMATION_BYPASS_SECRET`: se houver Deployment Protection, segredo de automação autorizado para o projeto, sem prefixo público.
 
-## Estado confirmado em 21/10/2026
+Execute `npm run test:preview`. O script rejeita hosts não confirmados, aliases de produção comuns, domínios fora da Vercel, URLs com credenciais/caminhos e redirecionamentos. Confirme também na Vercel que o deployment é Preview: a URL sozinha não comprova o ambiente. O script não carrega `.env.local`, não cria contas e não salva tokens/cookies. O segredo de automação é enviado em header exclusivamente à origem Vercel confirmada, nunca ao Google/Firebase.
 
-O remoto ainda aponta para `b96b616`; `edd6fac` e os commits posteriores existem apenas localmente. A consulta de PRs não encontrou PRs no repositório. Há acesso de leitura ao GitHub e uma sessão Firebase local, mas isso não comprova credenciais/permissões do runtime hospedado.
+A verificação cobre login por senha, cookie HttpOnly/Secure/SameSite=Lax sem cache, leitura do perfil com ID token, recusa de acesso anônimo, sessão e Firestore Admin, renovação e limpeza do cookie. O teste Admin usa a rota de categoria com um ID de sondagem novo e aleatório, esperando 404 após ler um documento inexistente; não cria nem remove documentos. Perfil inexistente também pode responder 404, pois o app não exige `/users/{uid}`; 403 não é sucesso. Falhas de IAM, configuração e transporte são falhas do teste. A limpeza do cookie é tentada inclusive após falhas.
 
-Uma tentativa de publicar `edd6fac` na branch `codex/rod-107-reproducible-deploy` foi recusada pela revisão automática por exigir autorização explícita de envio do código a esse destino. Nenhum push, PR ou deploy foi executado. A ROD-107 deve permanecer em andamento até as comprovações remotas; os testes simulados do verificador não são um teste remoto bem-sucedido.
+`npm run test:preview-check` verifica essas garantias com respostas simuladas, sem rede/credenciais. Isso não é uma validação autenticada do ambiente hospedado.
+
+## Evidências e limites
+
+Em 21/10/2026, o PR #1 publicou até `da91f69`. O [CI remoto](https://github.com/RodolfoGama0101/new-gestone/actions/runs/39697338400) passou: qualidade/build, 125 testes do aplicativo, 122 de regras e oito E2E. O bot Vercel informou [deployment Ready](https://vercel.com/rodolfo-gamas-projects/new-gestone/HLvTwNjcaMDGpYG1LABoUxD1oYbr). O job legado de Firebase Hosting falhou por variáveis públicas vazias; não é o deploy vigente do app.
+
+Uma requisição anônima ao preview redirecionou ao SSO Vercel. Sem acesso de automação, não foi possível verificar Firebase Admin/sessão no runtime. Nenhuma conta de teste foi criada e nenhuma proteção foi desabilitada. Não houve promoção à `main` ou publicação de regras. A comprovação de PR real do Dependabot depende da configuração na branch padrão.
+
+Referências: [Next.js na Vercel](https://vercel.com/docs/frameworks/full-stack/nextjs), [gerenciadores de pacotes](https://vercel.com/docs/package-managers), [previews Git](https://vercel.com/docs/git), [proteção para automação](https://vercel.com/docs/deployment-protection/methods-to-bypass-deployment-protection).

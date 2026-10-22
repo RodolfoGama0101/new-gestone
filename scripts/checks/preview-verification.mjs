@@ -2,7 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { previewConfiguration, verifyPreview } from '../verify-preview.mjs'
 
-const env = { PREVIEW_ORIGIN: 'https://new-gestone--pr-1-example.web.app', PREVIEW_PROJECT_ID: 'new-gestone', PREVIEW_API_KEY: 'test-key', PREVIEW_TEST_EMAIL: 'test@example.test', PREVIEW_TEST_PASSWORD: 'test-password' }
+const env = { PREVIEW_ORIGIN: 'https://new-gestone-git-pr-1-team.vercel.app', PREVIEW_ALLOWED_HOST: 'new-gestone-git-pr-1-team.vercel.app', PREVIEW_PROJECT_ID: 'new-gestone', PREVIEW_API_KEY: 'test-key', PREVIEW_TEST_EMAIL: 'test@example.test', PREVIEW_TEST_PASSWORD: 'test-password' }
 const session = () => new Response('{}', { headers: { 'set-cookie': 'session=test-cookie; HttpOnly; Secure; SameSite=Lax', 'cache-control': 'no-store' } })
 const logout = () => new Response('{}', { headers: { 'set-cookie': 'session=; Max-Age=0' } })
 function responses(overrides = {}) {
@@ -20,12 +20,14 @@ function responses(overrides = {}) {
 }
 
 test('recusa produção, HTTP, credenciais na URL, caminhos e host impostor antes de acessar a rede', async () => {
-  for (const origin of ['https://new-gestone.web.app', 'https://new-gestone.firebaseapp.com', 'http://new-gestone--pr.web.app', 'https://new-gestone--pr.web.app.attacker.test', 'https://new-gestone--pr.web.app/path', 'https://user:password@new-gestone--pr.web.app', 'https://new-gestone--pr.web.app?token=secret']) {
+  for (const origin of ['https://new-gestone.vercel.app', 'https://new-gestone.web.app', 'https://new-gestone-git-main-team.vercel.app', 'http://new-gestone-git-pr-1-team.vercel.app', 'https://new-gestone-git-pr-1-team.vercel.app.attacker.test', 'https://new-gestone-git-pr-1-team.vercel.app/path', 'https://user:password@new-gestone-git-pr-1-team.vercel.app', 'https://new-gestone-git-pr-1-team.vercel.app?token=secret']) {
     let called = false
     await assert.rejects(verifyPreview({ ...env, PREVIEW_ORIGIN: origin }, async () => { called = true }))
     assert.equal(called, false)
   }
   assert.throws(() => previewConfiguration({ ...env, PREVIEW_TEST_PASSWORD: '' }))
+  assert.throws(() => previewConfiguration({ ...env, PREVIEW_ALLOWED_HOST: 'other-git-pr-1-team.vercel.app' }))
+  assert.throws(() => previewConfiguration({ ...env, PREVIEW_ORIGIN: 'https://new-gestone-git-main-team.vercel.app', PREVIEW_ALLOWED_HOST: 'new-gestone-git-main-team.vercel.app' }))
 })
 
 test('valida cliente, cookie e leitura Admin usando ID aleatório inexistente; limpa a sessão', async () => {
@@ -34,10 +36,18 @@ test('valida cliente, cookie e leitura Admin usando ID aleatório inexistente; l
   assert.equal(mock.calls.length, 7)
   assert.match(mock.calls[3].url, /\/api\/categories\/__preview_probe_[a-f0-9-]{36}$/)
   assert.equal(mock.calls[3].url, mock.calls[4].url)
-  assert.equal(mock.calls[3].options.headers.Cookie, undefined)
-  assert.equal(mock.calls[4].options.headers.Cookie, 'session=test-cookie')
-  assert.equal(mock.calls[2].options.headers.Authorization, 'Bearer test-token')
+  assert.equal(mock.calls[3].options.headers.get('cookie'), null)
+  assert.equal(mock.calls[4].options.headers.get('cookie'), 'session=test-cookie')
+  assert.equal(mock.calls[2].options.headers.get('authorization'), 'Bearer test-token')
   assert.ok(mock.calls.every(({ options }) => options.redirect === 'error'))
+})
+
+test('segredo de automação é enviado somente à origem Vercel autorizada', async () => {
+  const mock = responses()
+  await verifyPreview({ ...env, VERCEL_AUTOMATION_BYPASS_SECRET: 'test-bypass' }, mock.fetch)
+  for (const call of mock.calls) {
+    assert.equal(call.options.headers.get('x-vercel-protection-bypass'), new URL(call.url).origin === env.PREVIEW_ORIGIN ? 'test-bypass' : null)
+  }
 })
 
 test('nega falsa aprovação de Firestore sem permissão e limpa a sessão mesmo após falha', async () => {
