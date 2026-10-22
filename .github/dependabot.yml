@@ -34,11 +34,3 @@ updates:
       tooling:
         dependency-type: development
         update-types: [minor, patch]
-  - package-ecosystem: github-actions
-    directory: /
-    schedule:
-      interval: weekly
-      day: monday
-    groups:
-      actions:
-        update-types: [minor, patch]

@@ -57,7 +57,7 @@ GestOne é uma aplicação de finanças pessoais em Next.js App Router, React e 
 
 ## Verificação
 
-Escolha as verificações pelo impacto da mudança. Consulte os pré-requisitos em `README.md` e o fluxo de CI em `.github/actions/verify/action.yml`.
+Escolha as verificações pelo impacto da mudança. Consulte os pré-requisitos em `README.md` e os comandos locais de verificação; o deploy do aplicativo usa somente a integração Git da Vercel.
 
 | Mudança | Verificações |
 | --- | --- |
