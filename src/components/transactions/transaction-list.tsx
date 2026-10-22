@@ -1,5 +1,7 @@
 'use client'
 
+import { LoadError } from '@/components/shared/load-error'
+
 import * as React from 'react'
 import { useTransactions } from '@/hooks/use-transactions'
 import { useCategories } from '@/hooks/use-categories'
@@ -75,7 +77,7 @@ export function TransactionList({
   emptyDescription,
   deleteDescription,
 }: TransactionListProps) {
-  const { categories } = useCategories()
+  const { categories, error: categoriesError, refetch: refetchCategories } = useCategories()
   const {
     transactions,
     isLoading,
@@ -86,6 +88,8 @@ export function TransactionList({
     currentPage,
     deleteTransaction,
     error,
+    refetch,
+    isFetching,
   } = useTransactions({ type })
 
   const [isAddOpen, setIsAddOpen] = React.useState(false)
@@ -132,22 +136,11 @@ export function TransactionList({
     )
   }
 
-  if (error) {
-    return (
-      <div className="p-5 border border-destructive bg-destructive/10 text-destructive rounded-md text-sm space-y-2">
-        <p className="font-semibold">Erro ao carregar os lançamentos:</p>
-        <p className="text-xs font-mono bg-background/50 p-2.5 rounded border border-destructive/20">{error.message}</p>
-        {error.message.includes('index') && (
-          <p className="text-xs text-muted-foreground">
-            Nota: Este erro geralmente ocorre porque o Firestore exige um índice composto para consultas filtradas e ordenadas.
-          </p>
-        )}
-      </div>
-    )
-  }
+  if (error || categoriesError) return <LoadError error={error || categoriesError} retry={() => Promise.all([refetch(), refetchCategories()])} />
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
+      {isFetching && <p role="status">Atualizando lançamentos…</p>}
       {/* Cabeçalho da página */}
       <PageHeader
         title={title}

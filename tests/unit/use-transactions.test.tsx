@@ -190,3 +190,17 @@ test('falha ao excluir mantém a página e seus cursores', async () => {
   expect(result.current.currentPage).toBe(2)
   expect(getPaged).toHaveBeenCalledTimes(calls)
 })
+
+test('refetch mantém os dados e não reabre carregamento inicial', async () => {
+  const { result } = renderHook(() => useTransactions(), { wrapper: wrapper() })
+  await waitFor(() => expect(result.current.isLoading).toBe(false))
+  const previous = result.current.transactions
+  let finish!: (value: Awaited<ReturnType<typeof TransactionService.getPaged>>) => void
+  getPaged.mockImplementationOnce(() => new Promise((resolve) => { finish = resolve }))
+  act(() => { void result.current.refetch() })
+  await waitFor(() => expect(result.current.isFetching).toBe(true))
+  expect(result.current.isLoading).toBe(false)
+  expect(result.current.transactions).toBe(previous)
+  await act(async () => { finish({ transactions: [], lastVisible: null, hasMore: false }) })
+  await waitFor(() => expect(result.current.isFetching).toBe(false))
+})
