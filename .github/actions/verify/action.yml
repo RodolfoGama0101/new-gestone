@@ -21,6 +21,8 @@ runs:
       shell: bash
     - run: npm test -- --runInBand
       shell: bash
+    - run: npm run test:preview-check
+      shell: bash
     - run: npm run test:rules
       shell: bash
     - run: npm run build

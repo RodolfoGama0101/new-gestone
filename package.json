@@ -12,6 +12,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:e2e": "node scripts/run-e2e.mjs",
+    "test:preview": "node scripts/verify-preview.mjs",
+    "test:preview-check": "node --test scripts/checks/preview-verification.mjs",
     "test:rules": "firebase emulators:exec --config firebase.rules-test.json --only firestore --project demo-gestone-rules \"jest --config jest.rules.config.mjs --runInBand\""
   },
   "dependencies": {
