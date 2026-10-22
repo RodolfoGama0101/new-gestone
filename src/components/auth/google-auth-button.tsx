@@ -43,6 +43,7 @@ export function GoogleAuthButton() {
       variant="outline"
       type="button"
       className="w-full flex items-center justify-center gap-2"
+      aria-busy={isLoading}
       disabled={isLoading}
       onClick={handleGoogleSignIn}
     >

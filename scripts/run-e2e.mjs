@@ -31,7 +31,7 @@ const child = spawn(
     'auth,firestore',
     '--project',
     'demo-gestone-e2e',
-    'playwright test',
+    process.argv.includes('--review') ? 'next dev --turbopack --port 3102' : 'playwright test',
   ],
   { env, stdio: 'inherit' },
 )

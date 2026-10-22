@@ -1,5 +1,7 @@
 'use client'
 
+import { fieldErrorProps } from '@/lib/utils/form-accessibility'
+
 import * as React from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -71,13 +73,13 @@ export function RegisterForm() {
 
   return (
     <div className="space-y-5">
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+      <form aria-busy={isLoading} onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
         <div className="space-y-1.5">
           <Label htmlFor="email" className="text-sm font-semibold text-foreground">
             E-mail
           </Label>
           <Input
-            id="email"
+            id="email" autoComplete="email" {...fieldErrorProps('email', errors.email)}
             type="email"
             placeholder="exemplo@dominio.com"
             disabled={isLoading}
@@ -85,7 +87,7 @@ export function RegisterForm() {
             {...register('email')}
           />
           {errors.email && (
-            <p className="text-xs font-medium text-destructive">{errors.email.message}</p>
+            <p id="email-error" role="alert" className="text-xs font-medium text-destructive">{errors.email.message}</p>
           )}
         </div>
 
@@ -94,7 +96,7 @@ export function RegisterForm() {
             Senha
           </Label>
           <Input
-            id="password"
+            id="password" autoComplete="new-password" {...fieldErrorProps('password', errors.password)}
             type="password"
             placeholder="Ex: MinhaSenh@1"
             disabled={isLoading}
@@ -102,7 +104,7 @@ export function RegisterForm() {
             {...register('password')}
           />
           {errors.password && (
-            <p className="text-xs font-medium text-destructive">{errors.password.message}</p>
+            <p id="password-error" role="alert" className="text-xs font-medium text-destructive">{errors.password.message}</p>
           )}
         </div>
 
@@ -111,7 +113,7 @@ export function RegisterForm() {
             Confirmar Senha
           </Label>
           <Input
-            id="confirmPassword"
+            id="confirmPassword" autoComplete="new-password" {...fieldErrorProps('confirmPassword', errors.confirmPassword)}
             type="password"
             placeholder="Repita a senha"
             disabled={isLoading}
@@ -119,7 +121,7 @@ export function RegisterForm() {
             {...register('confirmPassword')}
           />
           {errors.confirmPassword && (
-            <p className="text-xs font-medium text-destructive">{errors.confirmPassword.message}</p>
+            <p id="confirmPassword-error" role="alert" className="text-xs font-medium text-destructive">{errors.confirmPassword.message}</p>
           )}
         </div>
 
@@ -137,7 +139,8 @@ export function RegisterForm() {
             'Criar conta grátis'
           )}
         </Button>
-      </form>
+      <p role="status" className="sr-only">{isLoading ? 'Criando sua conta…' : ''}</p>
+    </form>
 
       <div className="relative">
         <div className="absolute inset-0 flex items-center">

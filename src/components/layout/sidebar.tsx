@@ -44,13 +44,14 @@ export function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto scrollbar-thin px-2 py-4 space-y-0.5">
+      <nav aria-label="Navegação principal" className="flex-1 overflow-y-auto scrollbar-thin px-2 py-4 space-y-0.5">
         {navItems.map((item) => {
           const isActive = pathname === item.href
           return (
             <Link
               key={item.href}
               href={item.href}
+              aria-current={isActive ? 'page' : undefined}
               className={cn(
                 'group flex items-center gap-2.5 px-2.5 py-1.5 text-sm font-medium rounded-md transition-colors duration-100 relative cursor-pointer',
                 isActive
@@ -80,6 +81,7 @@ export function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
+              aria-current={isActive ? 'page' : undefined}
               className={cn(
                 'group flex items-center gap-2.5 px-2.5 py-1.5 text-sm font-medium rounded-md transition-colors duration-100 relative cursor-pointer',
                 isActive

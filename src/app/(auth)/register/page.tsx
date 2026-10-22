@@ -17,7 +17,7 @@ export default function RegisterPage() {
       <div className="hidden lg:flex lg:w-[52%] relative overflow-hidden flex-col items-center justify-center p-14 bg-black">
         {/* Decorative background grid */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <svg className="absolute inset-0 size-full opacity-[0.035]" xmlns="http://www.w3.org/2000/svg">
+          <svg aria-hidden="true" focusable="false" className="absolute inset-0 size-full opacity-[0.035]" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <pattern id="dots-reg" x="0" y="0" width="24" height="24" patternUnits="userSpaceOnUse">
                 <circle cx="2" cy="2" r="1" fill="#ffffff" />
@@ -34,11 +34,11 @@ export default function RegisterPage() {
           <Logo variant="full" size="lg" textColor="text-white" href="" />
 
           <div className="space-y-4">
-            <h1 className="text-4xl font-bold leading-tight tracking-tight text-white xl:text-5xl">
+            <p className="text-4xl font-bold leading-tight tracking-tight text-white xl:text-5xl">
               Comece sua<br />
               jornada<br />
               <span className="text-neutral-400 font-medium">financeira hoje</span>
-            </h1>
+            </p>
             <p className="text-sm text-neutral-400 leading-relaxed max-w-xs">
               Crie sua conta gratuitamente e tenha controle total das suas finanças pessoais.
             </p>
@@ -71,9 +71,9 @@ export default function RegisterPage() {
 
         <div className="w-full max-w-sm animate-in fade-in slide-in-from-bottom-3 duration-300">
           <div className="mb-8 space-y-1.5">
-            <h2 className="text-2xl font-bold tracking-tight text-foreground">
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">
               Criar conta grátis
-            </h2>
+            </h1>
             <p className="text-sm text-muted-foreground">
               Preencha os campos abaixo para começar
             </p>

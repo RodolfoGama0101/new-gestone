@@ -60,8 +60,8 @@ export function Header() {
         </div>
 
         <div className="hidden md:flex items-center gap-2 text-sm select-none">
-          <span className="text-xs font-medium text-muted-foreground/60">GestOne</span>
-          <span className="text-xs text-muted-foreground/30 font-light">/</span>
+          <span className="text-xs font-medium text-muted-foreground">GestOne</span>
+          <span aria-hidden="true" className="text-xs text-muted-foreground/30 font-light">/</span>
           <span className="text-xs font-medium text-foreground">{pageTitle}</span>
         </div>
 

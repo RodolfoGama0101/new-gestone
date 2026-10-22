@@ -5,7 +5,7 @@ import { formatMoney } from '@/lib/utils/format-money'
 import * as React from 'react'
 import { Input } from '@/components/ui/input'
 
-interface CurrencyInputProps {
+interface CurrencyInputProps extends Pick<React.ComponentProps<'input'>, 'aria-invalid' | 'aria-describedby' | 'ref' | 'onBlur' | 'name'> {
   value: number // valor em centavos (ex: 1550 = R$ 15,50)
   onChange: (cents: number) => void
   disabled?: boolean
@@ -21,6 +21,7 @@ export function CurrencyInput({
   className = '',
   placeholder = 'R$ 0,00',
   id,
+  ...inputProps
 }: CurrencyInputProps) {
   // Formata o número (centavos) para Real Brasileiro
   const formatValue = (cents: number) => {
@@ -54,6 +55,7 @@ export function CurrencyInput({
 
   return (
     <Input
+      {...inputProps}
       id={id}
       type="text"
       inputMode="numeric"

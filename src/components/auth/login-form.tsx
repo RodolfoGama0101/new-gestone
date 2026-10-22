@@ -1,5 +1,7 @@
 'use client'
 
+import { fieldErrorProps } from '@/lib/utils/form-accessibility'
+
 import * as React from 'react'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
@@ -69,13 +71,13 @@ export function LoginForm() {
 
   return (
     <div className="space-y-5">
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+      <form aria-busy={isLoading} onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
         <div className="space-y-1.5">
           <Label htmlFor="email" className="text-sm font-semibold text-foreground">
             E-mail
           </Label>
           <Input
-            id="email"
+            id="email" autoComplete="email" {...fieldErrorProps('email', errors.email)}
             type="email"
             placeholder="exemplo@dominio.com"
             disabled={isLoading}
@@ -83,7 +85,7 @@ export function LoginForm() {
             {...register('email')}
           />
           {errors.email && (
-            <p className="text-xs font-medium text-destructive">{errors.email.message}</p>
+            <p id="email-error" role="alert" className="text-xs font-medium text-destructive">{errors.email.message}</p>
           )}
         </div>
 
@@ -100,7 +102,7 @@ export function LoginForm() {
             </Link>
           </div>
           <Input
-            id="password"
+            id="password" autoComplete="current-password" {...fieldErrorProps('password', errors.password)}
             type="password"
             placeholder="••••••••"
             disabled={isLoading}
@@ -108,7 +110,7 @@ export function LoginForm() {
             {...register('password')}
           />
           {errors.password && (
-            <p className="text-xs font-medium text-destructive">{errors.password.message}</p>
+            <p id="password-error" role="alert" className="text-xs font-medium text-destructive">{errors.password.message}</p>
           )}
         </div>
 
@@ -126,7 +128,8 @@ export function LoginForm() {
             'Entrar na conta'
           )}
         </Button>
-      </form>
+      <p role="status" className="sr-only">{isLoading ? 'Entrando na conta…' : ''}</p>
+    </form>
 
       <div className="relative">
         <div className="absolute inset-0 flex items-center">

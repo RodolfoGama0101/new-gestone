@@ -58,6 +58,7 @@ export function TransactionFilters() {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground/60" />
           <Input
+            aria-label="Buscar por descrição"
             placeholder="Buscar por descrição..."
             value={search}
             onChange={(e) => setSearch(e.target.value || '')}
@@ -67,7 +68,7 @@ export function TransactionFilters() {
 
         {/* Tipo */}
         <Select value={type || 'all'} onValueChange={handleTypeChange} items={typeSelectItems}>
-          <SelectTrigger className="h-9 text-xs rounded-md bg-background border-border">
+          <SelectTrigger aria-label="Filtrar por tipo" className="h-9 text-xs rounded-md bg-background border-border">
             <SelectValue placeholder="Tipo de lançamento" />
           </SelectTrigger>
           <SelectContent className="rounded-md">
@@ -80,7 +81,7 @@ export function TransactionFilters() {
 
         {/* Categoria */}
         <Select value={categoryId || 'all'} onValueChange={handleCategoryChange} items={categorySelectItems}>
-          <SelectTrigger className="h-9 text-xs rounded-md bg-background border-border">
+          <SelectTrigger aria-label="Filtrar por categoria" className="h-9 text-xs rounded-md bg-background border-border">
             <SelectValue placeholder="Categoria" />
           </SelectTrigger>
           <SelectContent className="rounded-md">

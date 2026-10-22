@@ -42,6 +42,7 @@ export default function SettingsPage() {
   const [newPassword, setNewPassword] = React.useState('')
   const [confirmPassword, setConfirmPassword] = React.useState('')
   const [isSavingPassword, setIsSavingPassword] = React.useState(false)
+  const [passwordError, setPasswordError] = React.useState<string | null>(null)
 
   // Modais de Controle de Fluxo
   const [reauthAction, setReauthAction] = React.useState<'password' | 'delete' | null>(null)
@@ -73,12 +74,15 @@ export default function SettingsPage() {
   // Mudar Senha
   const handleSavePassword = async (e: React.FormEvent) => {
     e.preventDefault()
+    setPasswordError(null)
     const passwordValidation = passwordSchema.safeParse(newPassword)
     if (!passwordValidation.success) {
+      setPasswordError(passwordValidation.error.issues[0]?.message ?? 'Senha inválida.')
       toast.error(passwordValidation.error.issues[0]?.message ?? 'Senha inválida.')
       return
     }
     if (newPassword !== confirmPassword) {
+      setPasswordError('As senhas não coincidem.')
       toast.error('As senhas não coincidem.')
       return
     }
@@ -174,7 +178,7 @@ export default function SettingsPage() {
       />
 
       {/* Tabs Control */}
-      <div className="flex border-b border-border overflow-x-auto overflow-y-hidden scrollbar-none">
+      <div role="group" aria-label="Seções de configurações" className="flex border-b border-border overflow-x-auto overflow-y-hidden scrollbar-none">
         {([
           { id: 'profile', label: 'Meu Perfil', icon: User },
           { id: 'preferences', label: 'Preferências', icon: SettingsIcon },
@@ -186,9 +190,12 @@ export default function SettingsPage() {
           return (
             <button
               key={tab.id}
+              id={'settings-' + tab.id}
+              aria-pressed={isActive}
+              aria-controls="settings-panel"
               onClick={() => setActiveTab(tab.id)}
               className={cn(
-                "flex items-center gap-1.5 px-4 py-2.5 border-b-2 text-xs font-semibold transition-all -mb-px shrink-0 outline-none cursor-pointer",
+                "flex items-center gap-1.5 px-4 py-2.5 border-b-2 text-xs font-semibold transition-all -mb-px shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer",
                 isActive
                   ? "border-primary text-foreground"
                   : "border-transparent text-muted-foreground hover:text-foreground"
@@ -202,7 +209,7 @@ export default function SettingsPage() {
       </div>
 
       {/* Tab Contents */}
-      <div className="max-w-2xl">
+      <div id="settings-panel" role="region" aria-labelledby={'settings-' + activeTab} className="max-w-2xl">
         {activeTab === 'profile' && (
           <Card className="border-border bg-card shadow-xs rounded-md">
             <CardHeader className="pb-1 pt-4 px-5">
@@ -249,8 +256,9 @@ export default function SettingsPage() {
               {/* Seletor de Tema */}
               <div className="space-y-2">
                 <Label className="text-xs">Tema da Interface</Label>
-                <div className="grid grid-cols-3 gap-2">
+                <div role="group" aria-label="Tema da interface" className="grid grid-cols-3 gap-2">
                   <Button
+                    aria-pressed={theme === 'light'}
                     variant={theme === 'light' ? 'default' : 'outline'}
                     className="gap-1.5 text-xs h-9 cursor-pointer justify-center rounded-md"
                     disabled={isLoadingPreferences || isSavingPreferences || !!preferencesError}
@@ -260,6 +268,7 @@ export default function SettingsPage() {
                     Claro
                   </Button>
                   <Button
+                    aria-pressed={theme === 'dark'}
                     variant={theme === 'dark' ? 'default' : 'outline'}
                     className="gap-1.5 text-xs h-9 cursor-pointer justify-center rounded-md"
                     disabled={isLoadingPreferences || isSavingPreferences || !!preferencesError}
@@ -269,6 +278,7 @@ export default function SettingsPage() {
                     Escuro
                   </Button>
                   <Button
+                    aria-pressed={theme === 'system'}
                     variant={theme === 'system' ? 'default' : 'outline'}
                     className="gap-1.5 text-xs h-9 cursor-pointer justify-center rounded-md"
                     disabled={isLoadingPreferences || isSavingPreferences || !!preferencesError}
@@ -298,11 +308,11 @@ export default function SettingsPage() {
               <CardDescription className="text-xs text-muted-foreground">Altere a senha de acesso a sua conta</CardDescription>
             </CardHeader>
             <CardContent className="px-5 pb-5 pt-3">
-              <form onSubmit={handleSavePassword} className="space-y-4">
+              <form aria-busy={isSavingPassword} onSubmit={handleSavePassword} className="space-y-4">
                 <div className="space-y-1.5">
                   <Label htmlFor="new-password" className="text-xs">Nova Senha</Label>
                   <Input
-                    id="new-password"
+                    id="new-password" autoComplete="new-password" aria-invalid={!!passwordError} aria-describedby={passwordError ? 'password-error' : undefined}
                     type="password"
                     placeholder="8+ caracteres, maiúscula, número e símbolo"
                     value={newPassword}
@@ -316,7 +326,7 @@ export default function SettingsPage() {
                 <div className="space-y-1.5">
                   <Label htmlFor="confirm-password" className="text-xs">Confirmar Nova Senha</Label>
                   <Input
-                    id="confirm-password"
+                    id="confirm-password" autoComplete="new-password" aria-invalid={!!passwordError} aria-describedby={passwordError ? 'password-error' : undefined}
                     type="password"
                     placeholder="Repita a nova senha"
                     value={confirmPassword}
@@ -327,6 +337,7 @@ export default function SettingsPage() {
                   />
                 </div>
 
+                {passwordError && <p id="password-error" role="alert" className="text-sm text-destructive">{passwordError}</p>}
                 <Button type="submit" disabled={isSavingPassword} className="w-full text-xs font-semibold h-9 rounded-md cursor-pointer gap-2">
                   {isSavingPassword ? (
                     <>

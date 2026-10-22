@@ -149,6 +149,7 @@ export function TransactionList({
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* Cabeçalho da página */}
+      <p role="status" className="sr-only">{transactions.length} lançamentos nesta página</p>
       <PageHeader
         title={title}
         description={description}

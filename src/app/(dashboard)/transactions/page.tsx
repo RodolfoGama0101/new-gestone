@@ -142,6 +142,7 @@ export default function TransactionsPage() {
 
   return (
     <div className="space-y-6">
+      <p role="status" className="sr-only">{transactions.length} lançamentos nesta página</p>
       {/* Top Header */}
       <PageHeader
         title="Extrato"

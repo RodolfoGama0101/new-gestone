@@ -58,3 +58,7 @@ Na Vercel, conecte o repositório e configure `main` como branch de produção. 
 Antes de promover uma atualização, valide login por senha/Google, renovação da sessão e acesso autenticado ao Firestore em um preview Vercel, com uma conta de teste. `npm run test:preview` verifica os fluxos por senha e API; `npm run test:preview-check` testa o verificador no CI sem credenciais. Instruções, proteção de previews e limites estão em [docs/deploy-verification.md](docs/deploy-verification.md).
 
 Para rollback de dependências, reverta o commit de atualização (manifesto e lockfile juntos), execute `npm ci` e os checks e gere um novo deployment. Para falha publicada, use o rollback/promote do deployment anterior na Vercel. Isso não reverte Firestore: publique regras anteriores somente após revisar compatibilidade e impacto. Deploys Vercel e Firestore são independentes e podem executar em paralelo; mudanças de regras incompatíveis exigem liberação coordenada antes da promoção do app. Previews Vercel não publicam regras globais. Antes de excluir índices, confira as consultas em uso; não remova índices automaticamente como rollback.
+
+## Documentação das funcionalidades
+
+Consulte o [índice de documentação](docs/README.md) para preferências de exibição, cartões inativos e acessibilidade.
