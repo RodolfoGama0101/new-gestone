@@ -589,3 +589,40 @@ describe('preferências de exibição por usuário', () => {
     await assertFails(deleteDoc(doc(owner, 'users/owner/preferences/display')))
   })
 })
+
+
+describe('cartões inativos e novos vínculos', () => {
+  test('inativar bloqueia criação e novo vínculo, mas preserva edição de compra antiga', async () => {
+    const ref = doc(owner, 'users/owner/creditCards/card')
+    const purchase = doc(owner, 'users/owner/transactions/card-history')
+    await assertSucceeds(setDoc(purchase, { ...transaction(), creditCardId: 'card', cardClosingDay: 15 }))
+    await assertSucceeds(updateDoc(ref, { isActive: false }))
+    await assertFails(setDoc(doc(owner, 'users/owner/transactions/new'), { ...transaction(), creditCardId: 'card' }))
+    await assertFails(updateDoc(doc(owner, 'users/owner/transactions/existing'), { creditCardId: 'card' }))
+    await assertSucceeds(updateDoc(purchase, { description: 'Compra histórica editada', amount: 23456 }))
+    expect((await getDoc(purchase)).data().creditCardId).toBe('card')
+    expect((await getDoc(purchase)).data().cardClosingDay).toBe(15)
+  })
+  test('trocar para ativo, desvincular e reativar são permitidos', async () => {
+    const purchase = doc(owner, 'users/owner/transactions/card-history')
+    await assertSucceeds(setDoc(purchase, { ...transaction(), creditCardId: 'card', cardClosingDay: 15 }))
+    await assertSucceeds(setDoc(doc(owner, 'users/owner/creditCards/active'), card()))
+    await assertSucceeds(updateDoc(doc(owner, 'users/owner/creditCards/card'), { isActive: false }))
+    await assertSucceeds(updateDoc(purchase, { creditCardId: 'active', cardClosingDay: 15 }))
+    await assertFails(updateDoc(purchase, { creditCardId: 'card' }))
+    await assertSucceeds(updateDoc(purchase, { creditCardId: null, cardClosingDay: null }))
+    await assertSucceeds(updateDoc(doc(owner, 'users/owner/creditCards/card'), { isActive: true }))
+    await assertSucceeds(setDoc(doc(owner, 'users/owner/transactions/new'), { ...transaction(), creditCardId: 'card' }))
+  })
+  test('getAfter impede inativar e criar compra no mesmo lote', async () => {
+    const batch = writeBatch(owner)
+    batch.update(doc(owner, 'users/owner/creditCards/card'), { isActive: false })
+    batch.set(doc(owner, 'users/owner/transactions/new'), { ...transaction(), creditCardId: 'card' })
+    await assertFails(batch.commit())
+  })
+  test('mudar tipo não preserva direito ao vínculo inativo', async () => {
+    await assertSucceeds(setDoc(doc(owner, 'users/owner/transactions/income'), transaction('income')))
+    await assertSucceeds(updateDoc(doc(owner, 'users/owner/creditCards/card'), { isActive: false }))
+    await assertFails(updateDoc(doc(owner, 'users/owner/transactions/income'), { type: 'expense', categoryId: 'expense', creditCardId: 'card' }))
+  })
+})

@@ -108,13 +108,13 @@ export function TransactionForm({
     }))
   }, [filteredCategories])
 
-  const selectableCards = creditCards.filter((card) => !card.archived
+  const selectableCards = creditCards.filter((card) => (!card.archived && card.isActive)
     || (editingTransaction?.type === 'expense' && editingTransaction.creditCardId === card.id))
   const cardSelectItems = [
     { value: 'none', label: 'Não usar cartão (Débito)' },
     ...selectableCards.map((card) => ({
       value: card.id,
-      label: `${card.name} (${card.bankName})${card.archived ? ' — arquivado' : ''}`,
+      label: `${card.name} (${card.bankName})${card.archived ? ' — arquivado' : !card.isActive ? ' — inativo' : ''}`,
     })),
   ]
 
@@ -329,7 +329,7 @@ export function TransactionForm({
                     <SelectItem value="none">Não usar cartão (Débito)</SelectItem>
                     {selectableCards.map((card) => (
                       <SelectItem key={card.id} value={card.id}>
-                        {card.name} ({card.bankName}){card.archived ? ' — arquivado' : ''}
+                        {card.name} ({card.bankName}){card.archived ? ' — arquivado' : !card.isActive ? ' — inativo' : ''}
                       </SelectItem>
                     ))}
                   </SelectContent>

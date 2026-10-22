@@ -132,6 +132,14 @@ export const TransactionService = {
     return filterTransactionPeriod(purchases.filter((tx) => tx.type === 'expense'), start, end, [card])
   },
 
+  async getCardClosingDay(userId: string, cardId: string, preserveExistingLink = false): Promise<number> {
+    const snapshot = await getDoc(doc(db, 'users', userId, 'creditCards', cardId))
+    const card = snapshot.data()
+    if (!card || (!preserveExistingLink && (card.archived || card.isActive !== true)))
+      throw new Error('Este cartão não está disponível para novas compras.')
+    return card.closingDay
+  },
+
   async create(userId: string, data: Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
     const colRef = this.getCollection(userId)
     
@@ -141,7 +149,7 @@ export const TransactionService = {
     const docRef = await addDoc(colRef, {
       ...data,
       cardClosingDay: data.type === 'expense' && data.creditCardId
-        ? (await getDoc(doc(db, 'users', userId, 'creditCards', data.creditCardId))).data()?.closingDay ?? 10
+        ? await this.getCardClosingDay(userId, data.creditCardId)
         : null,
       date: txDate,
       createdAt: serverTimestamp(),
@@ -168,7 +176,7 @@ export const TransactionService = {
     updateData.cardClosingDay = nextType === 'expense' && nextCardId
       ? (nextCardId === existing?.creditCardId && existing?.cardClosingDay != null
         ? existing.cardClosingDay
-        : (await getDoc(doc(db, 'users', userId, 'creditCards', nextCardId))).data()?.closingDay ?? 10)
+        : await this.getCardClosingDay(userId, nextCardId, existing?.type === 'expense' && nextCardId === existing?.creditCardId))
       : null
     
     if (data.date instanceof Date) {

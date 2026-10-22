@@ -50,7 +50,7 @@ service cloud.firestore {
 
     function hasAvailableCard(userId, cardId, data) {
       let card = getAfter(/databases/$(database)/documents/users/$(userId)/creditCards/$(cardId)).data;
-      return card is map && (!card.get('archived', false)
+      return card is map && ((!card.get('archived', false) && card.get('isActive', false) == true)
         || (request.method == 'update' && resource.data.type == data.type
           && resource.data.get('creditCardId', null) == cardId));
     }
