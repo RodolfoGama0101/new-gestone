@@ -45,3 +45,9 @@ next-env.d.ts
 
 # Firebase emulator logs
 *-debug.log
+
+# PWA: gerados por next build e publicados junto do mesmo build
+/public/sw.js
+/public/workbox-*.js
+/public/worker-*.js
+/public/fallback-*.js

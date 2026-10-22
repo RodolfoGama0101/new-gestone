@@ -12,12 +12,8 @@ export function useCategories() {
   const categoriesQuery = useQuery({
     queryKey: ['categories', userId],
     queryFn: async () => {
-      let list = await CategoryService.getAll(userId)
-      if (list.length === 0) {
-        await CategoryService.seedDefaultCategories(userId)
-        list = await CategoryService.getAll(userId)
-      }
-      return list
+      await CategoryService.initialize(userId)
+      return CategoryService.getAll(userId)
     },
     enabled: !!userId,
     // Categorias raramente mudam e já são invalidadas explicitamente nas mutações.
@@ -69,6 +65,7 @@ export function useCategories() {
     categories: categoriesQuery.data ?? [],
     isLoading: categoriesQuery.isLoading,
     error: categoriesQuery.error,
+    refetch: categoriesQuery.refetch,
     createCategory: createCategoryMutation.mutateAsync,
     isCreating: createCategoryMutation.isPending,
     updateCategory: updateCategoryMutation.mutateAsync,

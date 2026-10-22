@@ -1,10 +1,11 @@
 import withPWAInit from '@ducanh2912/next-pwa'
+import { pwaOptions } from './src/lib/pwa-options.mjs'
 
 const withPWA = withPWAInit({
   dest: 'public',
   disable: process.env.NODE_ENV === 'development',
   register: true,
-  skipWaiting: true,
+  ...pwaOptions,
 })
 
 /** @type {import('next').NextConfig} */

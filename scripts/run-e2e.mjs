@@ -20,6 +20,14 @@ const env = {
   FIREBASE_AUTH_EMULATOR_HOST: '127.0.0.1:9099',
   FIRESTORE_EMULATOR_HOST: '127.0.0.1:8081',
 }
+const production = process.argv.includes('--production')
+if (production) {
+  await new Promise((resolve, reject) => {
+    const build = spawn(process.execPath, [require.resolve('next/dist/bin/next'), 'build', '--webpack'], { env, stdio: 'inherit' })
+    build.on('error', reject)
+    build.on('exit', (code) => code === 0 ? resolve() : reject(new Error('Build E2E de produção falhou.')))
+  })
+}
 const child = spawn(
   process.execPath,
   [
@@ -31,7 +39,11 @@ const child = spawn(
     'auth,firestore',
     '--project',
     'demo-gestone-e2e',
-    process.argv.includes('--review') ? 'next dev --turbopack --port 3102' : 'playwright test',
+    process.argv.includes('--review')
+      ? 'next dev --turbopack --port 3102'
+      : production
+        ? 'playwright test --config playwright.production.config.ts'
+        : 'playwright test',
   ],
   { env, stdio: 'inherit' },
 )

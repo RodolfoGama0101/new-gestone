@@ -45,13 +45,13 @@
     "@firebase/rules-unit-testing": "6.0.0",
     "@playwright/test": "^1.64.1",
     "@tailwindcss/postcss": "^4.3.3",
-    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
     "@types/jest": "^30.0.0",
     "@types/node": "^26.6.5",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
-    "eslint": "^9.39.5",
+    "eslint": "^10.13.0",
     "eslint-config-next": "16.4.2",
     "firebase-tools": "15.34.0",
     "jest": "^30.5.2",
@@ -61,7 +61,7 @@
     "prettier-plugin-tailwindcss": "^0.8.1",
     "shadcn": "^4.22.1",
     "tailwindcss": "^4.3.3",
-    "typescript": "^5"
+    "typescript": "^6"
   },
   "overrides": {
     "@firebase/firestore": {

@@ -1,5 +1,7 @@
 'use client'
 
+import { LoadError } from '@/components/shared/load-error'
+
 import * as React from 'react'
 import { toast } from 'sonner'
 import { useCategories } from '@/hooks/use-categories'
@@ -83,6 +85,8 @@ export default function CategoriesPage() {
   const {
     categories,
     isLoading,
+    error,
+    refetch,
     createCategory,
     updateCategory,
     deleteCategory,
@@ -176,6 +180,8 @@ export default function CategoriesPage() {
   const incomes = categories.filter((c) => !c.archived).filter((c) => c.type === 'income' || c.type === 'both')
   const expenses = categories.filter((c) => !c.archived).filter((c) => c.type === 'expense' || c.type === 'both')
   const investments = categories.filter((c) => !c.archived).filter((c) => c.type === 'investment' || c.type === 'both')
+
+  if (error) return <LoadError error={error} retry={refetch} />
 
   if (isLoading) {
     return (

@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { User, getRedirectResult, onIdTokenChanged, signOut } from 'firebase/auth'
 import { toast } from 'sonner'
 import { auth } from '@/lib/firebase/config'
@@ -42,6 +43,11 @@ const AuthContext = React.createContext<AuthContextType>({
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = React.useState<User | null>(null)
   const [isLoading, setIsLoading] = React.useState(true)
+  const queryClient = useQueryClient()
+  const clearPrivateCache = React.useCallback(async () => {
+    await queryClient.cancelQueries()
+    queryClient.clear()
+  }, [queryClient])
   const router = useRouter()
   const pathname = usePathname()
   const isMountedRef = React.useRef(true)
@@ -65,6 +71,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const firebaseUser = await authenticate()
         if (!firebaseUser) return null
 
+        await clearPrivateCache()
         await queueSessionOperation(() => syncSessionCookie(firebaseUser))
         synchronizedUserIdRef.current = firebaseUser.uid
         if (isMountedRef.current) setUser(firebaseUser)
@@ -79,7 +86,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (isMountedRef.current) setIsLoading(false)
       }
     },
-    [queueSessionOperation],
+    [queueSessionOperation, clearPrivateCache],
   )
 
   const signInWithEmail = React.useCallback(
@@ -110,21 +117,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(true)
 
     try {
-      await queueSessionOperation(clearSessionCookie)
+      // A saída local e a limpeza não dependem da disponibilidade do servidor.
+      await clearPrivateCache()
       await signOut(auth)
+      await queueSessionOperation(clearSessionCookie).catch(() => {
+        toast.error('Você saiu neste dispositivo. Reconecte para encerrar a sessão do servidor.')
+      })
       synchronizedUserIdRef.current = null
       if (isMountedRef.current) setUser(null)
     } finally {
       authActionInFlightRef.current = false
       if (isMountedRef.current) setIsLoading(false)
     }
-  }, [queueSessionOperation])
+  }, [queueSessionOperation, clearPrivateCache])
 
   React.useEffect(() => {
     isMountedRef.current = true
 
     const unsubscribe = onIdTokenChanged(auth, async (firebaseUser) => {
       const isInitialState = !hasInitializedRef.current
+      if (synchronizedUserIdRef.current !== (firebaseUser?.uid ?? null)) {
+        setIsLoading(true)
+        setUser(null)
+        await clearPrivateCache()
+      }
 
       try {
         if (isInitialState) {
@@ -173,7 +189,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isMountedRef.current = false
       unsubscribe()
     }
-  }, [queueSessionOperation])
+  }, [queueSessionOperation, clearPrivateCache])
 
   React.useEffect(() => {
     if (!isLoading && user) {

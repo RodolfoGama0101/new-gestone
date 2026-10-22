@@ -59,6 +59,6 @@ Antes de promover uma atualização, valide login por senha/Google, renovação 
 
 Para rollback de dependências, reverta o commit de atualização (manifesto e lockfile juntos), execute `npm ci` e os checks e gere um novo deployment. Para falha publicada, use o rollback/promote do deployment anterior na Vercel. Isso não reverte Firestore: publique regras anteriores somente após revisar compatibilidade e impacto. Deploys Vercel e Firestore são independentes e podem executar em paralelo; mudanças de regras incompatíveis exigem liberação coordenada antes da promoção do app. Previews Vercel não publicam regras globais. Antes de excluir índices, confira as consultas em uso; não remova índices automaticamente como rollback.
 
-## Documentação das funcionalidades
+## Documentação de funcionalidades
 
-Consulte o [índice de documentação](docs/README.md) para preferências de exibição, cartões inativos e acessibilidade.
+Consulte o [índice de documentação](docs/README.md) para os contratos e decisões das funcionalidades.

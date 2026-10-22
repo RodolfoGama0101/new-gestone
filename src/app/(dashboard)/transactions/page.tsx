@@ -1,6 +1,7 @@
 'use client'
 
 import { formatMoney } from '@/lib/utils/format-money'
+import { LoadError } from '@/components/shared/load-error'
 
 import * as React from 'react'
 import { useQueryState } from 'nuqs'
@@ -33,7 +34,7 @@ import {
 } from 'lucide-react'
 
 export default function TransactionsPage() {
-  const { categories } = useCategories()
+  const { categories, error: categoriesError, refetch: refetchCategories } = useCategories()
 
   // Filtros URL via nuqs
   const [search] = useQueryState('search', { defaultValue: '' })
@@ -50,6 +51,8 @@ export default function TransactionsPage() {
     currentPage,
     deleteTransaction,
     error,
+    refetch,
+    isFetching,
   } = useTransactions({
     search,
     type: (type === 'income' || type === 'expense' || type === 'investment' ? type : undefined),
@@ -126,24 +129,13 @@ export default function TransactionsPage() {
     }
   }
 
-  if (error) {
-    return (
-      <div className="p-5 border border-destructive bg-destructive/10 text-destructive rounded-md text-sm space-y-2">
-        <p className="font-semibold">Erro ao carregar os lançamentos:</p>
-        <p className="text-xs font-mono bg-background/50 p-2.5 rounded border border-destructive/20">{error.message}</p>
-        {error.message.includes('index') && (
-          <p className="text-xs text-muted-foreground">
-            Nota: Este erro geralmente ocorre porque o Firestore exige um índice composto para consultas filtradas e ordenadas.
-          </p>
-        )}
-      </div>
-    )
-  }
+  if (error || categoriesError) return <LoadError error={error || categoriesError} retry={() => Promise.all([refetch(), refetchCategories()])} />
 
   return (
     <div className="space-y-6">
       <p role="status" className="sr-only">{transactions.length} lançamentos nesta página</p>
       {/* Top Header */}
+      {isFetching && <p role="status">Atualizando lançamentos…</p>}
       <PageHeader
         title="Extrato"
         description="Consulte seu histórico completo de lançamentos financeiros."

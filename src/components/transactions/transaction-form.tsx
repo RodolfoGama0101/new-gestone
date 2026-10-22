@@ -3,6 +3,7 @@
 import { fieldErrorProps } from '@/lib/utils/form-accessibility'
 
 import * as React from 'react'
+import { LoadError } from '@/components/shared/load-error'
 import { useForm, Controller, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
@@ -39,8 +40,8 @@ export function TransactionForm({
   const formRef = React.useRef<HTMLFormElement>(null)
   const queryClient = useQueryClient()
   const userId = user?.uid ?? ''
-  const { categories, isLoading: isCategoriesLoading } = useCategories()
-  const { creditCards } = useCreditCards()
+  const { categories, error: categoriesError, refetch: refetchCategories, isLoading: isCategoriesLoading } = useCategories()
+  const { creditCards, error: cardsError, refetch: refetchCards } = useCreditCards()
 
   const isEditMode = !!editingTransaction
 
@@ -172,6 +173,7 @@ export function TransactionForm({
       })
     })(event)
   }
+  if (categoriesError || cardsError) return <LoadError error={categoriesError || cardsError} retry={() => Promise.all([refetchCategories(), refetchCards()])} />
 
   return (
     <form ref={formRef} aria-busy={isLoading} onSubmit={handleFormSubmit} noValidate className="space-y-5">
