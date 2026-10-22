@@ -493,3 +493,33 @@ test('busca global do extrato, reinício da página, CSV e continuação de busc
   await expect(page.getByRole('heading', { name: 'Continue a busca' })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Continuar busca', exact: true })).toBeEnabled()
 })
+
+
+test('tema da conta persiste após recarregar e em outro dispositivo, com moeda BRL', async ({ page, browser }) => {
+  const { email, uid } = await register(page)
+  await page.goto('/settings')
+  await page.getByRole('button', { name: 'Preferências', exact: true }).click()
+  await page.getByRole('button', { name: 'Escuro', exact: true }).click()
+  await expect(page.locator('html')).toHaveClass(/dark/)
+  expect((await db.doc('users/' + uid + '/preferences/display').get()).data()?.theme).toBe('dark')
+  await expect(page.getByText('Real Brasileiro (BRL, R$)', { exact: true })).toBeVisible()
+  await expect(page.getByText(/Dólar Americano/)).toHaveCount(0)
+  await page.reload()
+  await expect(page.locator('html')).toHaveClass(/dark/)
+  const device = await browser.newContext({ baseURL: 'http://localhost:3102', colorScheme: 'light' })
+  try {
+    const second = await device.newPage()
+    await second.goto('/login')
+    await second.getByLabel('E-mail', { exact: true }).fill(email)
+    await second.getByLabel('Senha', { exact: true }).fill(password)
+    await second.getByRole('button', { name: 'Entrar na conta', exact: true }).click()
+    await expect(second).toHaveURL('http://localhost:3102/')
+    await expect(second.locator('html')).toHaveClass(/dark/)
+    await second.goto('/settings')
+    await second.getByRole('button', { name: 'Preferências', exact: true }).click()
+    await second.getByRole('button', { name: 'Claro', exact: true }).click()
+    await expect(second.locator('html')).not.toHaveClass(/dark/)
+    await page.reload()
+    await expect(page.locator('html')).not.toHaveClass(/dark/)
+  } finally { await device.close() }
+})

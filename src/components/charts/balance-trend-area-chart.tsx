@@ -1,5 +1,7 @@
 'use client'
 
+import { formatMoney } from '@/lib/utils/format-money'
+
 import * as React from 'react'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -12,7 +14,7 @@ interface BalanceTrendAreaChartProps {
 
 export function BalanceTrendAreaChart({ data }: BalanceTrendAreaChartProps) {
   const formatBRL = (value: number) => {
-    return (value / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+    return formatMoney(value)
   }
 
   // Cor principal: azul Geist para saldo/evolução

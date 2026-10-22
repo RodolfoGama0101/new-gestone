@@ -1,5 +1,7 @@
 'use client'
 
+import { formatCsvAmount } from '@/lib/utils/format-money'
+
 import * as React from 'react'
 import { Button } from '@/components/ui/button'
 import { Download, Loader2 } from 'lucide-react'
@@ -39,7 +41,7 @@ export function CsvExportButton({ filters = {}, search = '', disabled = false }:
       return
     }
 
-      const headers = ['Data', 'Descrição', 'Categoria', 'Tipo', 'Valor', 'Tags', 'Anotações']
+      const headers = ['Data', 'Descrição', 'Categoria', 'Tipo', 'Valor (BRL)', 'Tags', 'Anotações']
       
       const rows = transactions.map((tx) => {
         let d: Date
@@ -59,10 +61,7 @@ export function CsvExportButton({ filters = {}, search = '', disabled = false }:
         const formattedDate = format(d, 'dd/MM/yyyy')
         const categoryName = categories.find((c) => c.id === tx.categoryId)?.name ?? 'Sem Categoria'
         const typeLabel = tx.type === 'income' ? 'Receita' : tx.type === 'investment' ? 'Investimento' : 'Despesa'
-        const decimalValue = (tx.amount / 100).toLocaleString('pt-BR', {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        })
+        const decimalValue = formatCsvAmount(tx.amount)
         const tagsJoined = tx.tags ? tx.tags.join('; ') : ''
 
         return [

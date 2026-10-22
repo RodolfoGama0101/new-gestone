@@ -1,5 +1,7 @@
 'use client'
 
+import { formatMoney } from '@/lib/utils/format-money'
+
 import * as React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { AreaChart, Area, ResponsiveContainer } from 'recharts'
@@ -29,10 +31,7 @@ export function BalanceCard({
   availableBalance = balance,
   referenceDate,
 }: BalanceCardProps) {
-  const formattedBalance = (balance / 100).toLocaleString('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  })
+  const formattedBalance = formatMoney(balance)
 
   const isPositive = balance >= 0
   const changeLabel = Number.isFinite(changePercent)
@@ -80,19 +79,13 @@ export function BalanceCard({
           <div className="flex flex-wrap items-center gap-1">
             <span>Reserva para faturas após este mês:</span>
             <span className="font-semibold text-red-600 dark:text-red-400">
-              {(futureCardExpenses / 100).toLocaleString('pt-BR', {
-                style: 'currency',
-                currency: 'BRL',
-              })}
+              {formatMoney(futureCardExpenses)}
             </span>
           </div>
           <div className="flex flex-wrap items-center gap-1">
             <span>Disponível após reservas:</span>
             <span className="text-foreground font-semibold">
-              {(availableBalance / 100).toLocaleString('pt-BR', {
-                style: 'currency',
-                currency: 'BRL',
-              })}
+              {formatMoney(availableBalance)}
             </span>
           </div>
           <p>

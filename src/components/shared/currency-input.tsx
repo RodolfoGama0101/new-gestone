@@ -1,5 +1,7 @@
 'use client'
 
+import { formatMoney } from '@/lib/utils/format-money'
+
 import * as React from 'react'
 import { Input } from '@/components/ui/input'
 
@@ -23,11 +25,7 @@ export function CurrencyInput({
   // Formata o número (centavos) para Real Brasileiro
   const formatValue = (cents: number) => {
     if (isNaN(cents) || cents === 0) return ''
-    const val = cents / 100
-    return val.toLocaleString('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    })
+    return formatMoney(cents)
   }
 
   const [prevValue, setPrevValue] = React.useState(value)

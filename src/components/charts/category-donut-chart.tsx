@@ -1,5 +1,7 @@
 'use client'
 
+import { formatMoney } from '@/lib/utils/format-money'
+
 import * as React from 'react'
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -12,7 +14,7 @@ interface CategoryDonutChartProps {
 
 export function CategoryDonutChart({ data }: CategoryDonutChartProps) {
   const formatBRL = (value: number) => {
-    return (value / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+    return formatMoney(value)
   }
 
   const totalValue = React.useMemo(() => {

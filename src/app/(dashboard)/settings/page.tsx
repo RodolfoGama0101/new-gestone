@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { useTheme } from 'next-themes'
+import { usePreferences } from '@/providers/preferences-provider'
 import { auth } from '@/lib/firebase/config'
 import { AccountDeletionError, deleteAccount } from '@/lib/firebase/account'
 import { updateProfile, updatePassword } from 'firebase/auth'
@@ -9,7 +9,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ConfirmDialog } from '@/components/shared/confirm-dialog'
 import { ReauthDialog } from '@/components/auth/reauth-dialog'
 import { toast } from 'sonner'
@@ -29,7 +28,7 @@ import { passwordSchema } from '@/lib/validations/auth.schema'
 import { useAuth } from '@/contexts/auth-context'
 
 export default function SettingsPage() {
-  const { theme, setTheme } = useTheme()
+  const { theme, changeTheme, isLoading: isLoadingPreferences, isSaving: isSavingPreferences, error: preferencesError, refetch: refetchPreferences } = usePreferences()
   const { signOutUser } = useAuth()
   const user = auth.currentUser
 
@@ -43,13 +42,6 @@ export default function SettingsPage() {
   const [newPassword, setNewPassword] = React.useState('')
   const [confirmPassword, setConfirmPassword] = React.useState('')
   const [isSavingPassword, setIsSavingPassword] = React.useState(false)
-
-  // Estados de Preferência
-  const [currency, setCurrency] = React.useState('BRL')
-
-  const handleCurrencyChange = (val: string | null) => {
-    if (val) setCurrency(val)
-  }
 
   // Modais de Controle de Fluxo
   const [reauthAction, setReauthAction] = React.useState<'password' | 'delete' | null>(null)
@@ -261,7 +253,8 @@ export default function SettingsPage() {
                   <Button
                     variant={theme === 'light' ? 'default' : 'outline'}
                     className="gap-1.5 text-xs h-9 cursor-pointer justify-center rounded-md"
-                    onClick={() => setTheme('light')}
+                    disabled={isLoadingPreferences || isSavingPreferences || !!preferencesError}
+                    onClick={() => { void changeTheme('light').catch(() => undefined) }}
                   >
                     <Sun className="size-3.5" />
                     Claro
@@ -269,7 +262,8 @@ export default function SettingsPage() {
                   <Button
                     variant={theme === 'dark' ? 'default' : 'outline'}
                     className="gap-1.5 text-xs h-9 cursor-pointer justify-center rounded-md"
-                    onClick={() => setTheme('dark')}
+                    disabled={isLoadingPreferences || isSavingPreferences || !!preferencesError}
+                    onClick={() => { void changeTheme('dark').catch(() => undefined) }}
                   >
                     <Moon className="size-3.5" />
                     Escuro
@@ -277,7 +271,8 @@ export default function SettingsPage() {
                   <Button
                     variant={theme === 'system' ? 'default' : 'outline'}
                     className="gap-1.5 text-xs h-9 cursor-pointer justify-center rounded-md"
-                    onClick={() => setTheme('system')}
+                    disabled={isLoadingPreferences || isSavingPreferences || !!preferencesError}
+                    onClick={() => { void changeTheme('system').catch(() => undefined) }}
                   >
                     <Monitor className="size-3.5" />
                     Sistema
@@ -285,29 +280,12 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              {/* Seletor de Moeda */}
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="currency" className="text-xs">Moeda Base</Label>
-                  <span className="text-[9px] font-semibold text-muted-foreground bg-muted px-1.5 py-0.5 rounded">Em breve</span>
-                </div>
-                <Select
-                  value={currency}
-                  onValueChange={handleCurrencyChange}
-                  disabled
-                  items={[
-                    { value: 'BRL', label: 'Real Brasileiro (BRL, R$)' },
-                    { value: 'USD', label: 'Dólar Americano (USD, $)' }
-                  ]}
-                >
-                  <SelectTrigger id="currency" className="w-full h-9 text-xs rounded-md opacity-70">
-                    <SelectValue placeholder="Selecione a moeda" />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-md">
-                    <SelectItem value="BRL" className="text-xs rounded-md">Real Brasileiro (BRL, R$)</SelectItem>
-                    <SelectItem value="USD" className="text-xs rounded-md">Dólar Americano (USD, $)</SelectItem>
-                  </SelectContent>
-                </Select>
+              {preferencesError && <div role="alert">Não foi possível carregar seu tema. <Button variant="outline" onClick={refetchPreferences}>Tentar novamente</Button></div>}
+              <p role="status" className="text-xs text-muted-foreground">{isSavingPreferences ? 'Salvando tema…' : 'O tema é salvo na sua conta e recuperado em outros dispositivos.'}</p>
+              <div className="space-y-2">
+                <p className="text-xs font-medium">Moeda Base</p>
+                <p className="text-sm">Real Brasileiro (BRL, R$)</p>
+                <p className="text-xs text-muted-foreground">Valores em reais, armazenados em centavos. O CSV usa vírgula decimal e não realiza conversão de moeda.</p>
               </div>
             </CardContent>
           </Card>

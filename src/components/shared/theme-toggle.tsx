@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import { Moon, Sun, Monitor } from 'lucide-react'
-import { useTheme } from 'next-themes'
+import { usePreferences } from '@/providers/preferences-provider'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 
 export function ThemeToggle() {
-  const { setTheme, theme } = useTheme()
+  const { changeTheme, theme, isLoading, isSaving, error } = usePreferences()
   const [mounted, setMounted] = React.useState(false)
 
   React.useEffect(() => {
@@ -49,15 +49,15 @@ export function ThemeToggle() {
         {getThemeIcon()}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-[110px] rounded-md">
-        <DropdownMenuItem onClick={() => setTheme('light')} className="gap-2 cursor-pointer text-xs rounded-md">
+        <DropdownMenuItem disabled={isLoading || isSaving || !!error} onClick={() => { void changeTheme('light').catch(() => undefined) }} className="gap-2 cursor-pointer text-xs rounded-md">
           <Sun className="size-3.5" />
           <span>Claro</span>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme('dark')} className="gap-2 cursor-pointer text-xs rounded-md">
+        <DropdownMenuItem disabled={isLoading || isSaving || !!error} onClick={() => { void changeTheme('dark').catch(() => undefined) }} className="gap-2 cursor-pointer text-xs rounded-md">
           <Moon className="size-3.5" />
           <span>Escuro</span>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme('system')} className="gap-2 cursor-pointer text-xs rounded-md">
+        <DropdownMenuItem disabled={isLoading || isSaving || !!error} onClick={() => { void changeTheme('system').catch(() => undefined) }} className="gap-2 cursor-pointer text-xs rounded-md">
           <Monitor className="size-3.5" />
           <span>Sistema</span>
         </DropdownMenuItem>

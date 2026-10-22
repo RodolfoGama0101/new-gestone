@@ -1,5 +1,7 @@
 'use client'
 
+import { formatMoney } from '@/lib/utils/format-money'
+
 import * as React from 'react'
 import { useQueryState } from 'nuqs'
 import { useTransactions } from '@/hooks/use-transactions'
@@ -243,7 +245,7 @@ export default function TransactionsPage() {
                             isIncome ? 'text-green-700 dark:text-green-500' : 'text-red-700 dark:text-red-500'
                           }`}>
                             {isIncome ? '+' : '−'}
-                            {(tx.amount / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                            {formatMoney(tx.amount)}
                           </span>
 
                           <div className="flex items-center gap-0.5 opacity-50 group-hover:opacity-100 transition-opacity">

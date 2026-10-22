@@ -562,3 +562,30 @@ describe('perfis, categorias e cartões', () => {
     await assertFails(setDoc(doc(owner, `users/owner/${name}/new`), data))
   })
 })
+
+
+describe('preferências de exibição por usuário', () => {
+  test('dono grava e lê tema, outras contas e anônimos não acessam', async () => {
+    const ref = doc(owner, 'users/owner/preferences/display')
+    await assertSucceeds(setDoc(ref, { theme: 'dark', updatedAt: serverTimestamp() }))
+    expect((await getDoc(ref)).data().theme).toBe('dark')
+    for (const db of [other, anonymous]) {
+      await assertFails(getDoc(doc(db, 'users/owner/preferences/display')))
+      await assertFails(setDoc(doc(db, 'users/owner/preferences/display'), { theme: 'light', updatedAt: serverTimestamp() }))
+    }
+    await assertSucceeds(updateDoc(ref, { theme: 'system', updatedAt: serverTimestamp() }))
+  })
+  test.each([
+    { theme: 'USD', updatedAt: timestamp },
+    { theme: 'dark' },
+    { theme: 'dark', updatedAt: timestamp, currency: 'USD' },
+    { theme: 'dark', updatedAt: timestamp, admin: true },
+  ])('nega preferência fora do contrato: %j', async (data) => {
+    await assertFails(setDoc(doc(owner, 'users/owner/preferences/display'), data))
+  })
+  test('não permite outra configuração nem exclusão do documento', async () => {
+    await assertFails(setDoc(doc(owner, 'users/owner/preferences/other'), { theme: 'dark', updatedAt: timestamp }))
+    await assertSucceeds(setDoc(doc(owner, 'users/owner/preferences/display'), { theme: 'light', updatedAt: timestamp }))
+    await assertFails(deleteDoc(doc(owner, 'users/owner/preferences/display')))
+  })
+})

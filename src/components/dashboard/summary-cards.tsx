@@ -1,5 +1,7 @@
 'use client'
 
+import { formatMoney } from '@/lib/utils/format-money'
+
 import * as React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ArrowUpCircle, ArrowDownCircle, Coins } from 'lucide-react'
@@ -31,10 +33,7 @@ export function SummaryCards({
   isLoading = false,
 }: SummaryCardsProps) {
   const formatBRL = (cents: number) => {
-    return (cents / 100).toLocaleString('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    })
+    return formatMoney(cents)
   }
 
   const formatChange = (value: number) => {

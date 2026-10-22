@@ -1,5 +1,7 @@
 'use client'
 
+import { formatMoney } from '@/lib/utils/format-money'
+
 import * as React from 'react'
 import { Button } from '@/components/ui/button'
 import { CategoryBadge } from '@/components/shared/category-badge'
@@ -38,10 +40,7 @@ export const TransactionRow = React.memo(function TransactionRow({
 
   const formattedAmount = React.useMemo(() => {
     const sign = isIncome ? '+' : '-'
-    return `${sign}${(tx.amount / 100).toLocaleString('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    })}`
+    return `${sign}${formatMoney(tx.amount)}`
   }, [tx.amount, isIncome])
 
   return (

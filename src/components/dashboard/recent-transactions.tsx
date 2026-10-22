@@ -1,5 +1,7 @@
 'use client'
 
+import { formatMoney } from '@/lib/utils/format-money'
+
 import * as React from 'react'
 import { useTransactions } from '@/hooks/use-transactions'
 import { useCategories } from '@/hooks/use-categories'
@@ -134,10 +136,7 @@ export function RecentTransactions() {
                     }`}
                   >
                     {isIncome ? '+' : '−'}
-                    {(tx.amount / 100).toLocaleString('pt-BR', {
-                      style: 'currency',
-                      currency: 'BRL',
-                    })}
+                    {formatMoney(tx.amount)}
                   </span>
                 </div>
               )

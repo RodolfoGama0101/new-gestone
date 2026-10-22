@@ -1,5 +1,7 @@
 'use client'
 
+import { formatMoney } from '@/lib/utils/format-money'
+
 import * as React from 'react'
 import { useQuery } from '@tanstack/react-query'
 
@@ -131,28 +133,28 @@ export default function AnalyticsPage() {
             <Card className="border-border bg-card shadow-xs rounded-md p-4 flex flex-col justify-between h-20">
               <span className="text-xs font-normal text-muted-foreground">Total Receitas (Período)</span>
               <span className="text-xl font-semibold text-green-700 dark:text-green-500 tracking-tight leading-none">
-                {(periodTotals.income / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                {formatMoney(periodTotals.income)}
               </span>
             </Card>
             {/* Total Despesas */}
             <Card className="border-border bg-card shadow-xs rounded-md p-4 flex flex-col justify-between h-20">
               <span className="text-xs font-normal text-muted-foreground">Total Despesas (Período)</span>
               <span className="text-xl font-semibold text-red-700 dark:text-red-500 tracking-tight leading-none">
-                {(periodTotals.expense / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                {formatMoney(periodTotals.expense)}
               </span>
             </Card>
             {/* Total Investimentos */}
             <Card className="border-border bg-card shadow-xs rounded-md p-4 flex flex-col justify-between h-20">
               <span className="text-xs font-normal text-muted-foreground">Investido (Período)</span>
               <span className="text-xl font-semibold text-violet-700 dark:text-violet-500 tracking-tight leading-none">
-                {(periodTotals.investment / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                {formatMoney(periodTotals.investment)}
               </span>
             </Card>
             {/* Saldo Líquido */}
             <Card className="border-border bg-card shadow-xs rounded-md p-4 flex flex-col justify-between h-20">
               <span className="text-xs font-normal text-muted-foreground">Saldo Líquido (Período)</span>
               <span className={`text-xl font-semibold tracking-tight leading-none ${periodTotals.balance >= 0 ? 'text-green-700 dark:text-green-500' : 'text-red-700 dark:text-red-500'}`}>
-                {(periodTotals.balance / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                {formatMoney(periodTotals.balance)}
               </span>
             </Card>
           </div>
