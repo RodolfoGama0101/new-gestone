@@ -127,6 +127,28 @@ service cloud.firestore {
         allow delete: if false;
       }
 
+      match /budgets/{month} {
+        function validMonth() { return month.matches('^[0-9]{4}-(0[1-9]|1[0-2])$'); }
+        function validAmount(data) {
+          return data.amount is int && data.amount > 0 && data.amount <= 9007199254740991
+            && data.updatedAt is timestamp;
+        }
+        allow read, delete: if isOwner(userId) && validMonth();
+        allow create, update: if isOwner(userId) && validMonth()
+          && hasOnlyKeys(request.resource.data, ['amount', 'updatedAt'])
+          && validAmount(request.resource.data);
+        match /limits/{categoryId} {
+          allow read, delete: if isOwner(userId) && validMonth();
+          allow create, update: if isOwner(userId) && validMonth()
+            && hasOnlyKeys(request.resource.data, ['name', 'amount', 'updatedAt'])
+            && validAmount(request.resource.data)
+            && request.resource.data.name is string
+            && request.resource.data.name.size() >= 2 && request.resource.data.name.size() <= 60
+            && get(/databases/$(database)/documents/users/$(userId)/categories/$(categoryId)).data.type in ['expense', 'both']
+            && !get(/databases/$(database)/documents/users/$(userId)/categories/$(categoryId)).data.get('archived', false);
+        }
+      }
+
       match /transactions/{transactionId} {
         allow read, delete: if isOwner(userId);
         allow create: if isOwner(userId) && isValidTransaction(userId, request.resource.data);

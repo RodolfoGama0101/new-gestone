@@ -627,6 +627,37 @@ describe('cartões inativos e novos vínculos', () => {
   })
 })
 
+describe('orçamentos e metas mensais', () => {
+  const goal = () => ({ amount: 10000, updatedAt: timestamp })
+  const limit = () => ({ ...goal(), name: 'Alimentação' })
+  it('permite CRUD do dono e nega outros usuários e anônimo', async () => {
+    const path = 'users/owner/budgets/2026-10'
+    await assertSucceeds(setDoc(doc(owner, path), goal()))
+    await assertSucceeds(getDoc(doc(owner, path)))
+    await assertFails(getDoc(doc(other, path)))
+    await assertFails(setDoc(doc(other, path), goal()))
+    await assertFails(getDoc(doc(anonymous, path)))
+    await assertSucceeds(setDoc(doc(owner, path + '/limits/expense'), limit()))
+    await assertFails(setDoc(doc(other, path + '/limits/expense'), limit()))
+    await assertSucceeds(deleteDoc(doc(owner, path + '/limits/expense')))
+    await assertSucceeds(deleteDoc(doc(owner, path)))
+  })
+  it.each([0, -1, 1.5, Number.MAX_SAFE_INTEGER + 1])('nega valor inválido %s', async amount => {
+    await assertFails(setDoc(doc(owner, 'users/owner/budgets/2026-10'), { ...goal(), amount }))
+  })
+  it('nega mês, campos e categorias inválidas ou de outro usuário', async () => {
+    await assertFails(setDoc(doc(owner, 'users/owner/budgets/2026-13'), goal()))
+    await assertFails(setDoc(doc(owner, 'users/owner/budgets/2026-10'), { ...goal(), admin: true }))
+    for (const categoryId of ['income', 'investment', 'missing']) {
+      await assertFails(setDoc(doc(owner, `users/owner/budgets/2026-10/limits/${categoryId}`), limit()))
+    }
+    await environment.withSecurityRulesDisabled(async context => {
+      await updateDoc(doc(context.firestore(), 'users/owner/categories/expense'), { archived: true })
+    })
+    await assertFails(setDoc(doc(owner, 'users/owner/budgets/2026-10/limits/expense'), limit()))
+  })
+})
+
 describe('IDs determinísticos da importação CSV', () => {
   it('preserva isolamento por UID inclusive para leitura transacional e criação', async () => {
     const path = 'users/owner/transactions/csv-fingerprint-0'

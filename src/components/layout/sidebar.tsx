@@ -25,6 +25,7 @@ const navItems = [
   { label: 'Despesas', href: '/expenses', icon: ArrowDownCircle },
   { label: 'Investimentos', href: '/investments', icon: Coins },
   { label: 'Cartões', href: '/credit-cards', icon: CreditCard },
+  { label: 'Orçamentos', href: '/budgets', icon: Coins },
   { label: 'Relatórios', href: '/analytics', icon: BarChart3 },
   { label: 'Categorias', href: '/categories', icon: Tag },
 ]

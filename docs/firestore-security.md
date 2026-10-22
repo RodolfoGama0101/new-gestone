@@ -38,3 +38,6 @@ Nenhuma regra foi publicada nem dado de produção acessado nesta implementaçã
 ## Dependências das ferramentas
 
 A inclusão do Firebase CLI acrescentou pacotes de desenvolvimento e levou o audit completo de 33 para 38 pacotes sinalizados (0 críticos, 17 altos e 21 moderados). O recorte `--omit=dev` permaneceu em 8 altos e 0 críticos/moderados. Os novos registros incluem propagação das exceções já documentadas na ROD-94 e `@opentelemetry/core` 1.30.1, via Firebase CLI → Pub/Sub. A atualização compatível não encontra patch para essa faixa 1.x; não foi forçada migração de major de uma dependência interna. A ferramenta é executada localmente, sem servir endpoints de aplicação ou coletar dados de produção nos testes. Essa exceção deve ser revista com atualizações do CLI e não altera as dependências de runtime do aplicativo.
+## Orçamentos mensais
+
+`/users/{uid}/budgets/{yyyy-MM}` guarda a meta em centavos e `updatedAt`. Seus documentos `limits/{categoryId}` guardam nome, limite inteiro e atualização. Somente o dono pode acessar; gravar limites exige categoria ativa de despesa ou `both` do mesmo UID. Valores, campos extras e mês são validados pelas regras. Arquivar categoria preserva leitura e remoção dos limites. Consulte [o contrato de orçamentos](features/budgets.md).

@@ -39,6 +39,7 @@ export function useCreditCards() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['creditCards', userId] })
       queryClient.invalidateQueries({ queryKey: ['analytics', userId] })
+      queryClient.invalidateQueries({ queryKey: ['budgets', userId] })
       toast.success('Cartão de crédito atualizado com sucesso!')
     },
     onError: () => {
