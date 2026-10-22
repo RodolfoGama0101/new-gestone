@@ -8,7 +8,7 @@ Uma nova versão assume controle com `skipWaiting`/`clientsClaim`. Na ativação
 
 Logout e troca de UID cancelam consultas e limpam o QueryClient antes de disponibilizar a próxima conta. A saída local funciona mesmo se a exclusão do cookie falhar. Um cookie HttpOnly só pode ser removido pelo servidor: se a saída ocorrer offline, a interface informa a necessidade de reconectar. O estado Firebase local é encerrado e a área financeira exige usuário ativo no cliente.
 
-`sw.js`, `workbox-*`, `worker-*` e `fallback-*` são saídas ignoradas pelo Git. O CI/deploy já executa `next build`, que gera os artefatos junto dos arquivos com hash correspondentes. Nunca publique apenas o worker de outro build. O rollback deve restaurar o build completo.
+`sw.js`, `workbox-*`, `worker-*` e `fallback-*` são saídas ignoradas pelo Git. O deploy da Vercel executa `next build`, que gera os artefatos junto dos arquivos com hash correspondentes. Nunca publique apenas o worker de outro build. O rollback deve restaurar o build completo.
 
 Execute `npm run test:e2e -- --production` para construir com configuração fictícia, iniciar emuladores e testar o worker em produção local. A suíte verifica ativação de uma versão alterada, remoção de cache legado, exclusão de APIs e fallback offline. Não usa credenciais reais. Para os demais fluxos, use `npm run test:e2e`.
 
@@ -16,4 +16,4 @@ Execute `npm run test:e2e -- --production` para construir com configuração fic
 
 Na versão instalada, `cacheStartUrl: false` precisa vir junto de `dynamicStartUrl: false`: caso contrário o worker ainda recebe uma regra `NetworkFirst` para `/`. A regra `NetworkOnly` precisa de `options: {}` para o plugin injetar seu fallback. O caminho `customWorkerSrc: src/worker` garante que o worker de limpeza seja compilado. Essas condições foram conferidas no código distribuído do plugin e no `sw.js` gerado; a suíte de produção também rejeita a presença de `start-url` e testa uma visita à raiz antes de inspecionar os caches.
 
-O CI executa os E2E comuns e depois a suíte de produção. O Jest usa descoberta explícita em `tests/unit/`, evitando misturar regras e Playwright em caminhos Windows com diretórios ocultos.
+Execute localmente `npm run test:e2e` e depois `npm run test:e2e -- --production`. O Jest usa descoberta explícita em `tests/unit/`, evitando misturar regras e Playwright em caminhos Windows com diretórios ocultos.

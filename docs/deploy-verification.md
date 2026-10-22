@@ -1,21 +1,21 @@
-# CI, Vercel e Firestore — ROD-107
+# Deploy Vercel e publicação manual do Firestore
 
 O app Next.js é hospedado na Vercel. Firebase Authentication e Firestore continuam como autenticação e dados. Os workflows de Hosting eram legados e foram removidos; `firebase.json` descreve somente Firestore.
 
 ## Responsabilidades
 
-- GitHub Actions: instalação pelo lockfile, lint, tipos, unitários, testes do verificador de preview, regras e build; E2E em job independente sem secrets.
-- Vercel Git: builds, previews de branches e produção a partir de `main`. `vercel.json` usa npm 12.0.2 + `npm ci` e `npm run build`, preservando webpack/PWA. Runtime Node 24.x; patches da plataforma podem diferir do Node 24.15.0 fixado no CI.
-- `firestore-deploy.yml`: testa regras no emulador e publica somente regras/índices, usando o CLI do lockfile. Executa na `main` por mudança nos arquivos pertinentes ou execução manual na `main`. Não publica Hosting, Functions ou a aplicação.
-- Dependabot: configuração semanal npm/Actions na branch padrão, sem auto-merge. Ativação e PRs reais dependem da promoção dessa configuração para a branch padrão.
+- Vercel Git: única automação de build e deploy do aplicativo, com previews de branches e produção a partir de main. A configuração vercel.json permanece inalterada.
+- Verificações: execução local dos comandos do README, sem workflows de GitHub Actions.
+- Firestore: publicação manual de regras e índices por pessoa autorizada, após testar as regras. Consulte os comandos no README.
+- Dependabot: atualizações semanais de dependências npm, sem auto-merge.
 
-Vercel e Firestore publicam independentemente. Mudanças incompatíveis exigem liberação coordenada; não suponha ordem entre workflows. O rollback Vercel não reverte regras/índices. Consulte o README.
+Mudanças incompatíveis exigem liberação coordenada das regras e do app. O rollback Vercel não reverte regras/índices.
 
 ## Configuração Vercel
 
-Conecte o repositório, mantenha o preset Next.js e a branch de produção `main`. Configure as variáveis `NEXT_PUBLIC_FIREBASE_*` nos ambientes Preview/Production. Para o servidor, o código aceita `FIREBASE_SERVICE_ACCOUNT_KEY` com JSON de uma conta de runtime com permissões mínimas de Auth/Firestore; nunca use prefixo público. ADC do Google não aparece automaticamente na Vercel: exige federação/identidade explicitamente configurada. O secret GitHub de publicação de regras não configura o servidor Vercel.
+Conecte o repositório, mantenha o preset Next.js e a branch de produção `main`. Configure as variáveis `NEXT_PUBLIC_FIREBASE_*` nos ambientes Preview/Production. Para o servidor, o código aceita `FIREBASE_SERVICE_ACCOUNT_KEY` com JSON de uma conta de runtime com permissões mínimas de Auth/Firestore; nunca use prefixo público. ADC do Google não aparece automaticamente na Vercel: exige federação/identidade explicitamente configurada. A credencial local de publicação de regras não configura o servidor Vercel.
 
-Autorize no Firebase Authentication os domínios usados pelo login Google; a verificação por senha/API não substitui o teste visual desse provedor. Configure no GitHub os checks exigidos de qualidade/E2E e Vercel; remova qualquer requisito manual legado de Firebase Hosting.
+Autorize no Firebase Authentication os domínios usados pelo login Google; a verificação por senha/API não substitui o teste visual desse provedor. Se houver checks obrigatórios nas regras de proteção da branch, remova os requisitos dos jobs de CI excluídos e mantenha o check da Vercel. Essa configuração é externa ao repositório.
 
 ## Preview autenticado
 

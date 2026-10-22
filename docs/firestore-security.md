@@ -12,7 +12,7 @@ As referências são verificadas com `getAfter`, considerando o resultado do lot
 
 O aplicativo atual guarda nome e credenciais no Firebase Authentication e não grava um perfil no Firestore. Para o documento opcional `/users/{uid}`, o esquema permitido é `createdAt` e `updatedAt` como timestamps, mais `displayName` opcional/nulo ou string de 1 a 50 caracteres. Campos como `admin`, `role` e e-mail arbitrário são negados. Subcoleções não dependem da criação do documento de perfil. Essa regra não adiciona sincronização de nome com Authentication.
 
-## Execução e CI
+## Execução local
 
 ```bash
 npm ci
@@ -23,7 +23,7 @@ Requer Node.js 24 e Java 21 ou superior. Firebase CLI 15.34.0 e `@firebase/rules
 
 O comando inicia Firestore em `127.0.0.1:8080`, usando `firebase.rules-test.json` e o projeto de demonstração `demo-gestone-rules`. O prefixo `demo-` impede uso de serviços reais. A suíte também exige explicitamente o endereço local e não usa `.env.local`, conta de serviço ou login Firebase. Cada teste limpa o banco emulado e cria dados fictícios com regras desabilitadas; as operações verificadas usam contextos autenticados ou anônimos com as regras ativas.
 
-O Jest padrão não carrega a suíte de regras: ela tem configuração própria, para falhar claramente quando executada sem emulador e não exigir Java nos testes de unidade. Os três workflows existentes executam as regras com Java 21 antes do build e das etapas de publicação.
+O Jest padrão não carrega a suíte de regras: ela tem configuração própria, para falhar claramente quando executada sem emulador e não exigir Java nos testes de unidade. Não há workflows de GitHub Actions. Execute os testes localmente antes da publicação manual de regras e índices; o deploy Vercel não os publica.
 
 Validação local: **114 testes no emulador**, **61 testes do aplicativo**, lint, TypeScript e build de produção aprovados. No Windows deste ambiente, o processo Java permaneceu aberto após o encerramento reportado pelo CLI; ele foi identificado pelo projeto `demo-gestone-rules` e encerrado ao concluir. Se a porta 8080 estiver ocupada em outra execução, confira seu processo antes de encerrar somente o emulador de teste correspondente.
 
@@ -33,8 +33,8 @@ As regras reforçam novas gravações e atualizações; não migram nem removem 
 
 A exclusão direta de categorias e cartões é negada. Categorias usam o fluxo autenticado de arquivamento/remoção da ROD-103. Cartões usam [arquivamento permanente](card-archival.md), inclusive quando vazios: as regras fecham novos vínculos e preservam o cadastro para consulta e edição do histórico. Alterar o tipo de uma categoria não arquivada ainda pode afetar lançamentos antigos. As regras não restringem o Admin SDK, que depende das credenciais e da validação das rotas do servidor.
 
-Nenhuma regra foi publicada nem dado de produção acessado nesta implementação. A execução remota dos workflows só poderá ser confirmada após push/PR.
+Nenhuma regra foi publicada nem dado de produção acessado nesta implementação.
 
 ## Dependências das ferramentas
 
-A inclusão do Firebase CLI acrescentou pacotes de desenvolvimento e levou o audit completo de 33 para 38 pacotes sinalizados (0 críticos, 17 altos e 21 moderados). O recorte `--omit=dev` permaneceu em 8 altos e 0 críticos/moderados. Os novos registros incluem propagação das exceções já documentadas na ROD-94 e `@opentelemetry/core` 1.30.1, via Firebase CLI → Pub/Sub. A atualização compatível não encontra patch para essa faixa 1.x; não foi forçada migração de major de uma dependência interna. A ferramenta é executada localmente e no CI, sem servir endpoints de aplicação ou coletar dados de produção nos testes. Essa exceção deve ser revista com atualizações do CLI e não altera as dependências de runtime do aplicativo.
+A inclusão do Firebase CLI acrescentou pacotes de desenvolvimento e levou o audit completo de 33 para 38 pacotes sinalizados (0 críticos, 17 altos e 21 moderados). O recorte `--omit=dev` permaneceu em 8 altos e 0 críticos/moderados. Os novos registros incluem propagação das exceções já documentadas na ROD-94 e `@opentelemetry/core` 1.30.1, via Firebase CLI → Pub/Sub. A atualização compatível não encontra patch para essa faixa 1.x; não foi forçada migração de major de uma dependência interna. A ferramenta é executada localmente, sem servir endpoints de aplicação ou coletar dados de produção nos testes. Essa exceção deve ser revista com atualizações do CLI e não altera as dependências de runtime do aplicativo.
