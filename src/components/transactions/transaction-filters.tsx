@@ -3,6 +3,9 @@
 import * as React from 'react'
 import { useQueryState } from 'nuqs'
 import { useCategories } from '@/hooks/use-categories'
+import { useCreditCards } from '@/hooks/use-credit-cards'
+import { transactionPeriod } from '@/lib/utils/transaction-period'
+import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
@@ -10,18 +13,29 @@ import { Search, X, Filter } from 'lucide-react'
 
 export function TransactionFilters() {
   const { categories } = useCategories()
+  const { creditCards, error: cardsError, refetch: retryCards } = useCreditCards()
+  const [start, setStart] = useQueryState('startDate', { defaultValue: '' })
+  const [end, setEnd] = useQueryState('endDate', { defaultValue: '' })
+  const [card, setCard] = useQueryState('creditCardId', { defaultValue: '' })
+  const period = transactionPeriod(start, end)
+  const preset = (offset: number) => {
+    const month = subMonths(new Date(), offset)
+    void setStart(format(startOfMonth(month), 'yyyy-MM-dd'))
+    void setEnd(format(endOfMonth(month), 'yyyy-MM-dd'))
+  }
 
   const [search, setSearch] = useQueryState('search', { defaultValue: '' })
   const [type, setType] = useQueryState('type', { defaultValue: '' })
   const [categoryId, setCategoryId] = useQueryState('categoryId', { defaultValue: '' })
 
   const handleClearFilters = async () => {
+    await Promise.all([setStart(''), setEnd(''), setCard('')])
     await setSearch('')
     await setType('')
     await setCategoryId('')
   }
 
-  const hasActiveFilters = search || type || categoryId
+  const hasActiveFilters = search || type || categoryId || start || end || card
 
   // Converte "all" para vazio para limpar o filtro na URL e no select
   const handleTypeChange = async (val: string | null) => {
@@ -95,6 +109,27 @@ export function TransactionFilters() {
         </Select>
       </div>
 
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <label className="space-y-1 text-sm">Data inicial da compra
+          <Input type="date" value={start} onChange={e => setStart(e.target.value)} aria-invalid={!!period.error} aria-describedby={period.error ? 'period-error' : undefined} />
+        </label>
+        <label className="space-y-1 text-sm">Data final da compra
+          <Input type="date" value={end} onChange={e => setEnd(e.target.value)} aria-invalid={!!period.error} aria-describedby={period.error ? 'period-error' : undefined} />
+        </label>
+        <label className="space-y-1 text-sm">Cartão
+          <select aria-label="Cartão" className="h-11 w-full rounded-md border bg-background px-3" value={card} onChange={e => setCard(e.target.value)}>
+            <option value="">Todos os cartões</option>
+            {creditCards.map(c => <option key={c.id} value={c.id}>{c.name}{c.archived ? ' (arquivado)' : ''}</option>)}
+          </select>
+        </label>
+      </div>
+      {cardsError && <p role="alert">Não foi possível carregar cartões. <Button variant="outline" onClick={() => retryCards()}>Tentar novamente</Button></p>}
+      {period.error && <p id="period-error" role="alert" className="text-sm text-destructive">{period.error}</p>}
+      <p className="text-sm text-muted-foreground">Período: {start || 'sem início'} a {end || 'sem fim'}. Filtro pela data da compra; a competência da fatura pode ser diferente.</p>
+      <div className="flex flex-wrap gap-2">
+        <Button variant="outline" onClick={() => preset(0)}>Este mês</Button>
+        <Button variant="outline" onClick={() => preset(1)}>Mês anterior</Button>
+      </div>
       {hasActiveFilters && (
         <div className="flex justify-end">
           <Button

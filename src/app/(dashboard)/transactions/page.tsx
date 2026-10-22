@@ -1,5 +1,6 @@
 'use client'
 
+import { transactionPeriod } from '@/lib/utils/transaction-period'
 import { TransactionRow } from '@/components/transactions/transaction-row'
 import { useCurrentDate } from '@/hooks/use-current-date'
 import { transactionDateKey, formatTransactionDate } from '@/lib/utils/transaction-presentation'
@@ -35,6 +36,12 @@ export default function TransactionsPage() {
   const [type] = useQueryState('type', { defaultValue: '' })
   const [categoryId] = useQueryState('categoryId', { defaultValue: '' })
 
+  const [start] = useQueryState('startDate', { defaultValue: '' })
+  const [end] = useQueryState('endDate', { defaultValue: '' })
+  const [creditCardId] = useQueryState('creditCardId', { defaultValue: '' })
+  const period = transactionPeriod(start, end)
+  const periodFilters = { startDate: period.startDate, endDate: period.endDate, creditCardId: creditCardId || undefined }
+
   const {
     transactions,
     isLoading,
@@ -48,10 +55,12 @@ export default function TransactionsPage() {
     refetch,
     isFetching,
   } = useTransactions({
+    ...periodFilters,
+    limitCount: 10,
     search,
     type: (type === 'income' || type === 'expense' || type === 'investment' ? type : undefined),
     categoryId: (categoryId || undefined),
-  })
+  }, !period.error)
 
   // Estados dos Modais
   const [isAddOpen, setIsAddOpen] = React.useState(false)
@@ -99,7 +108,9 @@ export default function TransactionsPage() {
         action={
           <div className="flex flex-wrap items-center gap-2">
             <CsvExportButton
+              disabled={!!period.error}
               filters={{
+                ...periodFilters,
                 type: type === 'income' || type === 'expense' || type === 'investment' ? type : undefined,
                 categoryId: categoryId || undefined,
               }}
@@ -130,7 +141,7 @@ export default function TransactionsPage() {
       <TransactionFilters />
 
       {/* Lista do Extrato */}
-      {isLoading ? (
+      {period.error ? <p role="alert">Corrija o período para consultar o extrato.</p> : isLoading ? (
         <div className="flex min-h-[280px] items-center justify-center" role="status" aria-label="Buscando lançamentos">
           <Loader2 className="size-8 animate-spin text-primary" />
         </div>

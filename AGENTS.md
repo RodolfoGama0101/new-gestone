@@ -73,12 +73,13 @@ Escolha as verificações pelo impacto da mudança. Consulte os pré-requisitos 
 - Use `npm run test:e2e` para iniciar o ambiente isolado; executar Playwright diretamente não configura os emuladores. Não encerre processos alheios se uma porta estiver ocupada.
 - Registre comandos e resultados. Se houver falha ou pré-requisito indisponível, informe o impedimento e diferencie falhas preexistentes das introduzidas pela alteração. Não declare validações que não executou.
 
-## Entrega de tarefas do Linear e commits
+## Entrega de tarefas: branch, commit, push e Linear
 
 - Quando o pedido estiver vinculado a uma tarefa do Linear, confirme seu identificador e critérios de aceite e atualize-a para `In Progress` ao iniciar o trabalho.
 - Pedidos diretos sem tarefa vinculada podem ser executados sem criar uma tarefa no Linear. Não invente identificadores nem associe uma tarefa por suposição.
 - Para cada tarefa implementada, conclua as verificações necessárias e crie um commit específico com o código, os testes e a documentação pertinentes antes de encerrar a entrega, salvo instrução explícita em contrário do usuário.
 - Revise o diff e adicione somente arquivos ou trechos da tarefa ao stage. Preserve alterações locais anteriores que não pertençam à tarefa; não as inclua no commit. Evite `git add .`, descartes e reescrita de histórico que possam afetar trabalho alheio.
-- Após criar o commit, atualize a tarefa vinculada no Linear para `Done`, registrando resumo da implementação, verificações e hash do commit. Só conclua a tarefa se os critérios de aceite estiverem atendidos.
+- Use uma branch `codex/` adequada e faça push após validar cada entrega. A abertura de PR é opcional e só deve ocorrer quando solicitada. Não faça push em `main`, merge, deploy ou migração de produção sem autorização explícita.
+- Após criar e publicar o commit, atualize a tarefa vinculada no Linear para `Done`, registrando resumo da implementação, verificações e hash do commit. Só conclua a tarefa se os critérios de aceite estiverem atendidos.
 - Se a tarefa estiver incompleta ou o Linear estiver indisponível, registre o impedimento e mantenha ou informe um status compatível. Não afirme que o status foi atualizado sem confirmação.
-- Na resposta final, informe resultado, verificações e limitações relevantes, além do identificador da tarefa (quando houver) e do hash do commit. Commit local não implica push, PR ou deploy.
+- Na resposta final, informe resultado, verificações e limitações relevantes, além do identificador da tarefa (quando houver) e do hash do commit. Informe também a branch publicada e o resultado do push. PR não é requisito de conclusão; deploy continua exigindo autorização explícita.

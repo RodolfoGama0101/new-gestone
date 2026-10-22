@@ -8,7 +8,7 @@ import * as React from 'react'
 import { normalizeTransactionSearch } from '@/lib/utils/transaction-search'
 import { invalidateTransactionData, transactionPaginationKey } from '@/lib/transaction-cache'
 
-export function useTransactions(filters: Omit<GetTransactionsFilters, 'lastVisible'> = {}) {
+export function useTransactions(filters: Omit<GetTransactionsFilters, 'lastVisible'> = {}, enabled = true) {
   const { user } = useAuth()
   const queryClient = useQueryClient()
   const userId = user?.uid ?? ''
@@ -77,7 +77,7 @@ export function useTransactions(filters: Omit<GetTransactionsFilters, 'lastVisib
         limitCount: limitVal,
         lastVisible: pageCursors[currentPage] ?? undefined,
       }),
-    enabled: !!userId && search === settledSearch,
+    enabled: enabled && !!userId && search === settledSearch,
   })
 
   const createMutation = useMutation({
