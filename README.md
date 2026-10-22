@@ -49,7 +49,7 @@ Para os E2E, instale o navegador com `npx playwright install chromium`. `npm run
 
 ## Manutenção e rollback
 
-O Dependabot verifica npm e GitHub Actions semanalmente. Atualizações minor/patch são agrupadas; Next/React/configuração ESLint/tipos React ficam juntos. Majors abrem PRs separados para revisão de migração, sem merge automático. Cada PR deve passar os jobs de qualidade e E2E, incluindo regras nos emuladores. Alertas e exceções de segurança estão em [docs/dependencies/2026-10-19/README.md](docs/dependencies/2026-10-19/README.md).
+O Dependabot verifica npm e GitHub Actions semanalmente. Atualizações minor/patch são agrupadas; Next/React/configuração ESLint/tipos React ficam juntos. O SDK `firebase` e `@firebase/rules-unit-testing` formam o grupo `firebase-sdk`, incluindo majors, para preservar a compatibilidade exigida entre ambos. As demais majors abrem PRs separados para revisão de migração, sem merge automático. TypeScript 7 ou superior fica temporariamente ignorado porque o `typescript-eslint` instalado não oferece suporte; retire a exceção em `.github/dependabot.yml` ao preparar e validar essa migração com lint, tipos, testes e build. Cada PR deve passar os jobs de qualidade e E2E, incluindo regras nos emuladores. Alertas e exceções de segurança estão em [docs/dependencies/2026-10-19/README.md](docs/dependencies/2026-10-19/README.md).
 
 O CI usa `.github/actions/verify` para instalar pelo lockfile e executar lint, tipos, testes, verificação do script de preview, regras e build. E2E roda em job separado sem secrets. Actions são fixados por SHA e Firebase CLI por versão; o deploy independente de regras usa a instalação do lockfile. O Dependabot passa a executar depois que sua configuração estiver na branch padrão.
 
