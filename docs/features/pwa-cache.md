@@ -1,0 +1,13 @@
+# Cache e funcionamento offline — ROD-106
+
+O worker guarda somente recursos públicos precacheados e arquivos em `/_next/static/`. Documentos autenticados, payloads RSC, APIs e Firebase usam `NetworkOnly`; não há cache da URL inicial nem de navegação pelo cliente. A instalação depende de uma visita online.
+
+Uma navegação sem rede mostra `public/offline.html`, página estática independente de sessão e React. Dados financeiros não são oferecidos offline. APIs falham sem rede e não recebem o HTML de fallback. Ao voltar à rede, o usuário pode tentar novamente.
+
+Uma nova versão assume controle com `skipWaiting`/`clientsClaim`. Na ativação, o worker personalizado remove caches antigos que não pertencem ao prefixo público atual. Assim, caches legados de páginas e APIs deixam de sobreviver à atualização. Esse trabalho é limitado ao origin da aplicação.
+
+Logout e troca de UID cancelam consultas e limpam o QueryClient antes de disponibilizar a próxima conta. A saída local funciona mesmo se a exclusão do cookie falhar. Um cookie HttpOnly só pode ser removido pelo servidor: se a saída ocorrer offline, a interface informa a necessidade de reconectar. O estado Firebase local é encerrado e a área financeira exige usuário ativo no cliente.
+
+`sw.js`, `workbox-*`, `worker-*` e `fallback-*` são saídas ignoradas pelo Git. O CI/deploy já executa `next build`, que gera os artefatos junto dos arquivos com hash correspondentes. Nunca publique apenas o worker de outro build. O rollback deve restaurar o build completo.
+
+Execute `npm run test:e2e -- --production` para construir com configuração fictícia, iniciar emuladores e testar o worker em produção local. A suíte verifica ativação de uma versão alterada, remoção de cache legado, exclusão de APIs e fallback offline. Não usa credenciais reais. Para os demais fluxos, use `npm run test:e2e`.
