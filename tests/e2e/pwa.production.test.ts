@@ -46,6 +46,7 @@ test('worker limpa cache antigo, não cacheia APIs e mostra fallback offline ap�
   })
   // O cache é inserido depois da primeira ativação; uma nova versão deve removê-lo.
   const original = await readFile('public/sw.js', 'utf8')
+  expect(original).not.toContain('start-url')
   try {
     await writeFile('public/sw.js', `${original}\n// update-test-${Date.now()}\n`)
     await page.evaluate(async () => {
@@ -56,6 +57,7 @@ test('worker limpa cache antigo, não cacheia APIs e mostra fallback offline ap�
       })
     })
     await expect.poll(() => page.evaluate(async () => (await caches.keys()).includes('apis'))).toBe(false)
+    await page.evaluate(() => fetch('/'))
     await page.request.get('/api/auth/session')
     await page.evaluate(() => fetch('/api/auth/session').catch(() => undefined))
     const cached = await page.evaluate(async () => {
