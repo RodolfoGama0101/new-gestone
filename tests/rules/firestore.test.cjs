@@ -626,3 +626,13 @@ describe('cartões inativos e novos vínculos', () => {
     await assertFails(updateDoc(doc(owner, 'users/owner/transactions/income'), { type: 'expense', categoryId: 'expense', creditCardId: 'card' }))
   })
 })
+
+describe('IDs determinísticos da importação CSV', () => {
+  it('preserva isolamento por UID inclusive para leitura transacional e criação', async () => {
+    const path = 'users/owner/transactions/csv-fingerprint-0'
+    await assertSucceeds(setDoc(doc(owner, path), transaction()))
+    await assertFails(getDoc(doc(other, path)))
+    await assertFails(setDoc(doc(other, path), transaction()))
+    await assertFails(setDoc(doc(anonymous, path), transaction()))
+  })
+})

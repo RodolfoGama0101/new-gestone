@@ -19,8 +19,8 @@ interface CsvExportButtonProps {
 }
 
 function escapeCsvValue(value: unknown) {
-  const rawValue = String(value ?? '').replace(/[\r\n]+/g, ' ')
-  const safeValue = /^[=+\-@]/.test(rawValue) ? `'${rawValue}` : rawValue
+  const rawValue = String(value ?? '')
+  const safeValue = /^[=+\-@']/.test(rawValue) ? `'${rawValue}` : rawValue
   return `"${safeValue.replace(/"/g, '""')}"`
 }
 
@@ -90,6 +90,7 @@ export function CsvExportButton({ filters = {}, search = '', disabled = false }:
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
+      URL.revokeObjectURL(url)
       toast.success('Extrato CSV baixado com sucesso!')
     } catch (error) {
       console.error(error)

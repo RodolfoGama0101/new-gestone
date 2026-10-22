@@ -16,6 +16,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { ConfirmDialog } from '@/components/shared/confirm-dialog'
 import { EmptyState } from '@/components/shared/empty-state'
 import { TransactionFilters } from '@/components/transactions/transaction-filters'
+import { CsvImportButton } from '@/components/transactions/csv-import-button'
 import { CsvExportButton } from '@/components/transactions/csv-export-button'
 import { TransactionForm } from '@/components/transactions/transaction-form'
 import { Transaction } from '@/types/transaction'
@@ -107,6 +108,7 @@ export default function TransactionsPage() {
         description="Consulte seu histórico completo de lançamentos financeiros."
         action={
           <div className="flex flex-wrap items-center gap-2">
+            <CsvImportButton />
             <CsvExportButton
               disabled={!!period.error}
               filters={{
