@@ -16,7 +16,7 @@ export function PageHeader({ title, description, action, className }: PageHeader
   return (
     <div
       className={cn(
-        'flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between',
+        'flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between',
         className
       )}
     >
@@ -25,14 +25,14 @@ export function PageHeader({ title, description, action, className }: PageHeader
           {title}
         </h1>
         {description && (
-          <p className="text-xs text-muted-foreground leading-relaxed max-w-xl">
+          <p className="text-sm text-muted-foreground leading-relaxed max-w-xl">
             {description}
           </p>
         )}
       </div>
 
       {action && (
-        <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
+        <div className="flex min-w-0 max-w-full flex-wrap items-center gap-2 self-start [&>div]:flex-wrap [&_button]:max-w-full [&_button]:whitespace-normal [&_button]:h-auto [&_button]:min-h-11 [&_button]:py-2">
           {action}
         </div>
       )}

@@ -49,11 +49,11 @@ export function CreditCardBillSummary({ card, onEditTransaction }: { card: Credi
     }
   }
 
-  return <Card>
+  return <Card className="min-w-0 [&_button]:max-w-full [&_button]:whitespace-normal [&_button]:h-auto [&_button]:min-h-11 [&_button]:py-2">
     <CardHeader>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <Button variant="outline" onClick={() => changeMonth(-1)} aria-label="Fatura anterior">Anterior</Button>
-        <CardTitle>Fatura de {format(month, 'MMMM yyyy', { locale: ptBR })}</CardTitle>
+        <CardTitle className="min-w-0 break-words">Fatura de {format(month, 'MMMM yyyy', { locale: ptBR })}</CardTitle>
         <Button variant="outline" onClick={() => changeMonth(1)} aria-label="Próxima fatura">Próxima</Button>
       </div>
       <CardDescription>Fechamento dia {card.closingDay}. Total de todas as compras do ciclo.</CardDescription>
@@ -62,10 +62,10 @@ export function CreditCardBillSummary({ card, onEditTransaction }: { card: Credi
       {invoice.isPending ? <Loader2 className="size-6 animate-spin" aria-label="Carregando fatura" />
         : invoice.isError ? <div role="alert">Não foi possível carregar a fatura. <Button onClick={() => void invoice.refetch()}>Tentar novamente</Button></div>
           : <>
-            <p className="mb-3 font-semibold">Total: {formatMoney(total)} · {transactions.length} compras</p>
+            <p className="mb-3 break-words font-semibold">Total: {formatMoney(total)} · {transactions.length} compras</p>
             {transactions.length === 0 ? <EmptyState title="Sem compras registradas" description="Nenhuma compra pertence a este ciclo." icon={Receipt} compact />
               : transactions.slice((currentPage - 1) * 20, currentPage * 20).map((tx) => <TransactionRow key={tx.id} transaction={tx} category={categories.find((category) => category.id === tx.categoryId)} onEdit={onEditTransaction ?? (() => {})} onDelete={() => setDeletingTransaction(tx)} />)}
-            <div className="mt-3 flex items-center justify-between gap-2">
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
               <Button disabled={currentPage === 1} onClick={() => setPage(currentPage - 1)}>Compras anteriores</Button>
               <span>Página {currentPage} de {pages}</span>
               <Button disabled={currentPage === pages} onClick={() => setPage(currentPage + 1)}>Mais compras</Button>

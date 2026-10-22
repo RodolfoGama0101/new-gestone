@@ -62,20 +62,20 @@ export function BalanceCard({
       </CardHeader>
       <CardContent className="px-5 pb-0">
         <div className="flex items-baseline justify-between gap-4">
-          <span className="text-foreground text-3xl font-semibold tracking-tight">
+          <span className="text-foreground break-all text-2xl sm:text-3xl font-semibold tracking-tight">
             {formattedBalance}
           </span>
         </div>
         <div className="mt-0.5 mb-2 flex min-h-[16px] flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-          <span className="text-muted-foreground text-[11px]">
+          <span className="text-muted-foreground text-xs">
             {changeLabel}
           </span>
         </div>
-        <p className="text-muted-foreground text-[11px]">
+        <p className="text-muted-foreground text-xs">
           Receitas menos despesas e investimentos do mês, incluindo a fatura
           deste mês.
         </p>
-        <div className="text-muted-foreground mt-2 space-y-1 text-[11px]">
+        <div className="text-muted-foreground mt-2 space-y-1 text-xs">
           <div className="flex flex-wrap items-center gap-1">
             <span>Reserva para faturas após este mês:</span>
             <span className="font-semibold text-red-600 dark:text-red-400">

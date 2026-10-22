@@ -97,7 +97,7 @@ export default function TransactionsPage() {
         title="Extrato"
         description="Consulte seu histórico completo de lançamentos financeiros."
         action={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <CsvExportButton
               filters={{
                 type: type === 'income' || type === 'expense' || type === 'investment' ? type : undefined,
@@ -147,7 +147,7 @@ export default function TransactionsPage() {
           {sortedDateKeys.map((dateKey) => (
             <div key={dateKey} className="space-y-1.5">
               {/* Cabeçalho do Dia sticky */}
-              <h3 className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider sticky top-[48px] bg-background/85 backdrop-blur-md py-1.5 z-10">
+              <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider sticky top-[48px] bg-background/85 backdrop-blur-md py-1.5 z-10">
                 {formatTransactionDate(new Date(dateKey + 'T00:00:00'), today)}
               </h3>
 
@@ -168,13 +168,13 @@ export default function TransactionsPage() {
 
       {/* A navegação permanece acessível mesmo em páginas sem correspondências. */}
       {(hasNextPage || hasPreviousPage) && (
-        <div className="flex items-center justify-between pt-2 px-1">
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-2 px-1">
           <Button
             variant="outline"
             size="sm"
             disabled={isLoading || !hasPreviousPage}
             onClick={goToPreviousPage}
-            className="gap-1.5 cursor-pointer text-xs h-8"
+            className="gap-1.5 cursor-pointer text-sm min-h-11"
           >
             <ChevronLeft className="size-3.5" />
             Anterior
@@ -187,7 +187,7 @@ export default function TransactionsPage() {
             size="sm"
             disabled={isLoading || !hasNextPage}
             onClick={goToNextPage}
-            className="gap-1.5 cursor-pointer text-xs h-8"
+            className="gap-1.5 cursor-pointer text-sm min-h-11"
           >
             {search.trim() ? 'Continuar busca' : 'Próximo'}
             <ChevronRight className="size-3.5" />

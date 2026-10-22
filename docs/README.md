@@ -1,5 +1,9 @@
 # Documentação do GestOne
 
+## Design
+
+- [Legibilidade das telas financeiras](design/financial-readability.md)
+
 ## Funcionalidades
 
 - [Apresentação dos lançamentos](features/transaction-presentation.md)

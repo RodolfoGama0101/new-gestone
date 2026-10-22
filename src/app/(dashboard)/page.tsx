@@ -81,9 +81,9 @@ export default function DashboardPage() {
       />
 
       {/* Grid Principal */}
-      <div className="grid gap-5 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
         {/* Coluna principal: Saldo + Cards de Receita/Despesa */}
-        <div className="md:col-span-2 space-y-4">
+        <div className="min-w-0 md:col-span-2 space-y-4">
           <BalanceCard
             balance={summary?.balance ?? 0}
             changePercent={summary?.balanceChangePercent ?? 0}
@@ -108,7 +108,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Coluna lateral: Lançamentos Recentes */}
-        <div className="md:col-span-1">
+        <div className="min-w-0 md:col-span-1">
           <RecentTransactions />
         </div>
       </div>

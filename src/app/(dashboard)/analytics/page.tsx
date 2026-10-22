@@ -116,7 +116,7 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-200">
+    <div className="space-y-6 [overflow-wrap:anywhere] animate-in fade-in duration-200">
       <PageHeader
         title="Relatórios"
         description="Analise seu fluxo de caixa e distribuição de despesas."
@@ -132,40 +132,40 @@ export default function AnalyticsPage() {
       ) : (
         <div className="space-y-6">
           {/* KPI Summary Cards */}
-          <div className="grid gap-4 sm:grid-cols-4">
+          <div className="grid grid-cols-1 gap-4 xl:grid-cols-4">
             {/* Total Receitas */}
-            <Card className="border-border bg-card shadow-xs rounded-md p-4 flex flex-col justify-between h-20">
+            <Card className="border-border bg-card shadow-xs rounded-md p-4 flex flex-col justify-between min-h-20 gap-2">
               <span className="text-xs font-normal text-muted-foreground">Total Receitas (Período)</span>
-              <span className="text-xl font-semibold text-green-700 dark:text-green-500 tracking-tight leading-none">
+              <span className="break-all text-xl font-semibold text-green-700 dark:text-green-500 tracking-tight leading-none">
                 {formatMoney(periodTotals.income)}
               </span>
             </Card>
             {/* Total Despesas */}
-            <Card className="border-border bg-card shadow-xs rounded-md p-4 flex flex-col justify-between h-20">
+            <Card className="border-border bg-card shadow-xs rounded-md p-4 flex flex-col justify-between min-h-20 gap-2">
               <span className="text-xs font-normal text-muted-foreground">Total Despesas (Período)</span>
-              <span className="text-xl font-semibold text-red-700 dark:text-red-500 tracking-tight leading-none">
+              <span className="break-all text-xl font-semibold text-red-700 dark:text-red-500 tracking-tight leading-none">
                 {formatMoney(periodTotals.expense)}
               </span>
             </Card>
             {/* Total Investimentos */}
-            <Card className="border-border bg-card shadow-xs rounded-md p-4 flex flex-col justify-between h-20">
+            <Card className="border-border bg-card shadow-xs rounded-md p-4 flex flex-col justify-between min-h-20 gap-2">
               <span className="text-xs font-normal text-muted-foreground">Investido (Período)</span>
-              <span className="text-xl font-semibold text-violet-700 dark:text-violet-500 tracking-tight leading-none">
+              <span className="break-all text-xl font-semibold text-violet-700 dark:text-violet-500 tracking-tight leading-none">
                 {formatMoney(periodTotals.investment)}
               </span>
             </Card>
             {/* Saldo Líquido */}
-            <Card className="border-border bg-card shadow-xs rounded-md p-4 flex flex-col justify-between h-20">
+            <Card className="border-border bg-card shadow-xs rounded-md p-4 flex flex-col justify-between min-h-20 gap-2">
               <span className="text-xs font-normal text-muted-foreground">Saldo Líquido (Período)</span>
-              <span className={`text-xl font-semibold tracking-tight leading-none ${periodTotals.balance >= 0 ? 'text-green-700 dark:text-green-500' : 'text-red-700 dark:text-red-500'}`}>
+              <span className={`break-all text-xl font-semibold tracking-tight leading-none ${periodTotals.balance >= 0 ? 'text-green-700 dark:text-green-500' : 'text-red-700 dark:text-red-500'}`}>
                 {formatMoney(periodTotals.balance)}
               </span>
             </Card>
           </div>
 
-          <div className="grid gap-5 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
             {/* Fluxo de Caixa — ocupa toda a largura */}
-            <div className="md:col-span-2">
+            <div className="min-w-0 md:col-span-2">
               <CashFlowBarChart data={monthlyHistory} />
             </div>
 

@@ -64,9 +64,9 @@ export function GeistChartTooltip({
                   className="size-1.5 rounded-full shrink-0" 
                   style={{ backgroundColor: displayColor }}
                 />
-                <span className="text-[11px] font-medium capitalize">{displayName}</span>
+                <span className="text-xs font-medium capitalize">{displayName}</span>
               </div>
-              <span className="font-mono text-[11px] font-semibold text-foreground tabular-nums">
+              <span className="font-mono text-xs font-semibold text-foreground tabular-nums">
                 {formatValue(item.value)}
               </span>
             </div>

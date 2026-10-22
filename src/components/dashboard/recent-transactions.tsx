@@ -31,7 +31,7 @@ export function RecentTransactions() {
   if (isLoading) {
     return (
       <Card className="border-border bg-card h-full shadow-xs rounded-md">
-        <CardHeader className="pb-2 pt-4 px-5 flex flex-row items-center justify-between">
+        <CardHeader className="pb-2 pt-4 px-5 flex flex-wrap flex-row items-center justify-between gap-2">
           <div className="space-y-1">
             <Skeleton className="h-4 w-28" />
             <Skeleton className="h-3 w-36" />
@@ -56,10 +56,10 @@ export function RecentTransactions() {
 
   return (
     <Card className="border-border bg-card h-full shadow-xs hover:shadow-sm transition-all duration-200 rounded-md">
-      <CardHeader className="pb-2 pt-4 px-5 flex flex-row items-center justify-between space-y-0">
+      <CardHeader className="pb-2 pt-4 px-5 flex flex-wrap flex-row items-center justify-between gap-2 space-y-0">
         <div className="space-y-0.5">
           <CardTitle className="text-sm font-semibold text-foreground">Lançamentos Recentes</CardTitle>
-          <CardDescription className="text-[10px] text-muted-foreground">Últimas 5 movimentações</CardDescription>
+          <CardDescription className="text-xs text-muted-foreground">Últimas 5 movimentações</CardDescription>
         </div>
         <Link
           href="/transactions"

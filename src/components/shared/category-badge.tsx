@@ -34,7 +34,7 @@ export function CategoryBadge({ name, color, className }: CategoryBadgeProps) {
   return (
     <Badge
       className={cn(
-        "text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 border-none",
+        "h-auto min-h-6 max-w-full whitespace-normal break-words text-xs font-semibold px-2 py-1 rounded-md border-none",
         textColorClass,
         className
       )}
