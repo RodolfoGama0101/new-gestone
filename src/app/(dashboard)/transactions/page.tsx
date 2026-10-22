@@ -1,6 +1,8 @@
 'use client'
 
-import { formatMoney } from '@/lib/utils/format-money'
+import { TransactionRow } from '@/components/transactions/transaction-row'
+import { useCurrentDate } from '@/hooks/use-current-date'
+import { transactionDateKey, formatTransactionDate } from '@/lib/utils/transaction-presentation'
 import { LoadError } from '@/components/shared/load-error'
 
 import * as React from 'react'
@@ -9,7 +11,6 @@ import { useTransactions } from '@/hooks/use-transactions'
 import { useCategories } from '@/hooks/use-categories'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { CategoryBadge } from '@/components/shared/category-badge'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { ConfirmDialog } from '@/components/shared/confirm-dialog'
 import { EmptyState } from '@/components/shared/empty-state'
@@ -17,17 +18,10 @@ import { TransactionFilters } from '@/components/transactions/transaction-filter
 import { CsvExportButton } from '@/components/transactions/csv-export-button'
 import { TransactionForm } from '@/components/transactions/transaction-form'
 import { Transaction } from '@/types/transaction'
-import { format } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
-import { Timestamp } from 'firebase/firestore'
 import { PageHeader } from '@/components/shared/page-header'
 import { 
-  ArrowUpRight,
-  ArrowDownRight,
   Plus, 
   Loader2, 
-  Pencil, 
-  Trash2, 
   WalletIcon,
   ChevronLeft,
   ChevronRight
@@ -65,48 +59,11 @@ export default function TransactionsPage() {
   const [deletingId, setDeletingId] = React.useState<string | null>(null)
   const [isDeleting, setIsDeleting] = React.useState(false)
 
-  // Cache para today/yesterday formatados para evitar chamadas impuras no render
-  const { today, yesterday } = React.useMemo(() => {
-    const now = new Date()
-    const todayStr = format(now, 'yyyy-MM-dd')
-    const yesterdayStr = format(new Date(now.getTime() - 86400000), 'yyyy-MM-dd')
-    return { today: todayStr, yesterday: yesterdayStr }
-  }, [])
-
-  // Encontra a categoria correspondente para renderização de badge
-  const getCategoryDetails = (catId: string) => {
-    return categories.find((c) => c.id === catId)
-  }
-
-  // Agrupamento por data (YYYY-MM-DD)
-  const formatDateKey = (dateVal: unknown): string => {
-    if (!dateVal) return ''
-    let d: Date
-    if (dateVal instanceof Date) d = dateVal
-    else if (dateVal instanceof Timestamp) d = dateVal.toDate()
-    else {
-      const record = dateVal as { seconds?: number }
-      if (record && typeof record.seconds === 'number') {
-        d = new Date(record.seconds * 1000)
-      } else {
-        d = new Date(dateVal as string | number)
-      }
-    }
-    return format(d, 'yyyy-MM-dd')
-  }
-
-  const formatGroupHeader = (dateKey: string): string => {
-    if (dateKey === today) return 'Hoje'
-    if (dateKey === yesterday) return 'Ontem'
-    
-    // Evita problema de timezones locais parseando com T00:00:00
-    const parsedDate = new Date(dateKey + 'T00:00:00')
-    return format(parsedDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
-  }
+  const today = useCurrentDate()
 
   // Agrupa as transações
   const groupedTransactions = transactions.reduce((groups: Record<string, Transaction[]>, tx) => {
-    const key = formatDateKey(tx.date)
+    const key = transactionDateKey(tx.date)
     if (!groups[key]) groups[key] = []
     groups[key].push(tx)
     return groups
@@ -191,80 +148,16 @@ export default function TransactionsPage() {
             <div key={dateKey} className="space-y-1.5">
               {/* Cabeçalho do Dia sticky */}
               <h3 className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider sticky top-[48px] bg-background/85 backdrop-blur-md py-1.5 z-10">
-                {formatGroupHeader(dateKey)}
+                {formatTransactionDate(new Date(dateKey + 'T00:00:00'), today)}
               </h3>
 
               <Card className="border-border bg-card shadow-xs rounded-md">
                 <CardContent className="divide-y divide-border/60 p-0">
-                  {groupedTransactions[dateKey].map((tx) => {
-                    const cat = getCategoryDetails(tx.categoryId)
-                    const isIncome = tx.type === 'income'
-                    return (
-                      <div
-                        key={tx.id}
-                        className="flex items-center justify-between px-3.5 py-2.5 gap-4 hover:bg-accent/40 transition-colors group"
-                      >
-                        <div className="flex items-center gap-3 flex-1 min-w-0">
-                          {/* Icon compact squared 28px */}
-                          <div
-                            className={`size-7 rounded-md flex items-center justify-center shrink-0 border ${
-                              isIncome
-                                ? 'bg-green-100 text-green-700 border-green-200/40 dark:bg-green-1000/20 dark:text-green-500 dark:border-green-800/10'
-                                : 'bg-red-100 text-red-700 border-red-200/40 dark:bg-red-1000/20 dark:text-red-500 dark:border-red-800/10'
-                            }`}
-                          >
-                            {isIncome ? <ArrowUpRight className="size-3.5" /> : <ArrowDownRight className="size-3.5" />}
-                          </div>
-
-                          <div className="min-w-0 flex-1">
-                            <div className="flex flex-wrap items-center gap-1.5">
-                              <span className="font-medium text-xs text-foreground leading-tight truncate">
-                                {tx.description}
-                              </span>
-                              {cat && (
-                                <CategoryBadge name={cat.name} color={cat.color} />
-                              )}
-                            </div>
-                            {tx.notes && (
-                              <p className="text-[10px] text-muted-foreground truncate mt-0.5">
-                                {tx.notes}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-3 shrink-0">
-                          <span className={`text-xs font-semibold tabular-nums ${
-                            isIncome ? 'text-green-700 dark:text-green-500' : 'text-red-700 dark:text-red-500'
-                          }`}>
-                            {isIncome ? '+' : '−'}
-                            {formatMoney(tx.amount)}
-                          </span>
-
-                          <div className="flex items-center gap-0.5 opacity-50 group-hover:opacity-100 transition-opacity">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="size-7 text-muted-foreground hover:text-foreground cursor-pointer rounded-md"
-                              onClick={() => setEditingTx(tx)}
-                              aria-label={`Editar ${tx.description}`}
-                            >
-                              <Pencil className="size-3" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="size-7 text-muted-foreground hover:text-destructive cursor-pointer rounded-md"
-                              onClick={() => setDeletingId(tx.id)}
-                              aria-label={`Excluir ${tx.description}`}
-                            >
-                              <Trash2 className="size-3" />
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    )
-                  })}
+                  {groupedTransactions[dateKey].map((tx) => (
+                    <div key={tx.id} className="px-4">
+                      <TransactionRow transaction={tx} category={categories.find((category) => category.id === tx.categoryId)} onEdit={setEditingTx} onDelete={setDeletingId} showDate={false} />
+                    </div>
+                  ))}
                 </CardContent>
               </Card>
             </div>

@@ -2,6 +2,8 @@
 
 ## Funcionalidades
 
+- [Apresentação dos lançamentos](features/transaction-presentation.md)
+
 - [Preferências de exibição e moeda](features/display-preferences.md)
 - [Cartões inativos e histórico](features/inactive-cards.md)
 - [Acessibilidade dos fluxos principais](features/accessibility.md)
