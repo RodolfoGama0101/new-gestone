@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { SkipLink } from '@/components/shared/skip-link'
 import { useRouter } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
 import { useAuth } from '@/contexts/auth-context'
@@ -19,7 +20,7 @@ export function DashboardClientLayout({ children }: { children: React.ReactNode 
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background text-foreground">
-        <Loader2 className="size-8 animate-spin text-primary" />
+        <span role="status" aria-label="Carregando sua conta"><Loader2 aria-hidden="true" className="size-8 animate-spin text-primary" /></span>
       </div>
     )
   }
@@ -28,10 +29,11 @@ export function DashboardClientLayout({ children }: { children: React.ReactNode 
 
   return (
     <div className="min-h-screen bg-background text-foreground transition-colors duration-200">
+      <SkipLink />
       <Sidebar />
       <div className="flex min-h-screen flex-col pb-24 md:pl-52 md:pb-0">
         <Header />
-        <main className="mx-auto w-full max-w-7xl flex-1 p-5 sm:p-8">{children}</main>
+        <main id="main-content" tabIndex={-1} className="mx-auto w-full max-w-7xl flex-1 p-5 sm:p-8">{children}</main>
       </div>
       <BottomNav />
     </div>

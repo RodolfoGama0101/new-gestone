@@ -147,7 +147,7 @@
     --accent-foreground: #111111;
 
     /* Destructive */
-    --destructive: #fc0035;
+    --destructive: #c90030;
     --destructive-foreground: #ffffff;
 
     /* Borders & Inputs */
@@ -183,7 +183,7 @@
     /* Semantic colors */
     --income: #28a948;
     --income-foreground: #ffffff;
-    --expense: #fc0035;
+    --expense: #c90030;
     --expense-foreground: #ffffff;
 
     /* Geist Shadows */

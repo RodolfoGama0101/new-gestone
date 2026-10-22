@@ -1,5 +1,7 @@
 'use client'
 
+import { fieldErrorProps } from '@/lib/utils/form-accessibility'
+
 import * as React from 'react'
 import { useForm, Controller, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -108,7 +110,7 @@ export function CreditCardForm({ onSuccess, editingCard }: CreditCardFormProps) 
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 pt-2">
+    <form aria-busy={isLoading} onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-6 pt-2">
       {/* Live Preview */}
       <div className="flex justify-center bg-muted/20 p-4 rounded-xl border border-border/40">
         <div className="w-full max-w-[280px]">
@@ -128,13 +130,13 @@ export function CreditCardForm({ onSuccess, editingCard }: CreditCardFormProps) 
         <div className="space-y-1.5">
           <Label htmlFor="name">Apelido do Cartão</Label>
           <Input
-            id="name"
+            id="name" {...fieldErrorProps('name', errors.name)}
             placeholder="Ex: Nubank, Azul Platinum"
             disabled={isLoading}
             {...register('name')}
           />
           {errors.name && (
-            <p className="text-xs font-medium text-destructive">{errors.name.message}</p>
+            <p id="name-error" role="alert" className="text-xs font-medium text-destructive">{errors.name.message}</p>
           )}
         </div>
 
@@ -142,13 +144,13 @@ export function CreditCardForm({ onSuccess, editingCard }: CreditCardFormProps) 
         <div className="space-y-1.5">
           <Label htmlFor="bankName">Nome do Banco</Label>
           <Input
-            id="bankName"
+            id="bankName" {...fieldErrorProps('bankName', errors.bankName)}
             placeholder="Ex: Itaú, Nubank, Bradesco"
             disabled={isLoading}
             {...register('bankName')}
           />
           {errors.bankName && (
-            <p className="text-xs font-medium text-destructive">{errors.bankName.message}</p>
+            <p id="bankName-error" role="alert" className="text-xs font-medium text-destructive">{errors.bankName.message}</p>
           )}
         </div>
 
@@ -156,13 +158,13 @@ export function CreditCardForm({ onSuccess, editingCard }: CreditCardFormProps) 
         <div className="space-y-1.5">
           <Label htmlFor="holderName">Nome do Titular</Label>
           <Input
-            id="holderName"
+            id="holderName" {...fieldErrorProps('holderName', errors.holderName)}
             placeholder="Ex: RODOLFO GAMA"
             disabled={isLoading}
             {...register('holderName')}
           />
           {errors.holderName && (
-            <p className="text-xs font-medium text-destructive">{errors.holderName.message}</p>
+            <p id="holderName-error" role="alert" className="text-xs font-medium text-destructive">{errors.holderName.message}</p>
           )}
         </div>
 
@@ -184,7 +186,7 @@ export function CreditCardForm({ onSuccess, editingCard }: CreditCardFormProps) 
                   { value: 'other', label: 'Outro' },
                 ]}
               >
-                <SelectTrigger id="brand" className="w-full h-10 rounded-lg">
+                <SelectTrigger id="brand" {...fieldErrorProps('brand', errors.brand)} className="w-full h-10 rounded-lg">
                   <SelectValue placeholder="Selecione a bandeira" />
                 </SelectTrigger>
                 <SelectContent>
@@ -197,7 +199,7 @@ export function CreditCardForm({ onSuccess, editingCard }: CreditCardFormProps) 
             )}
           />
           {errors.brand && (
-            <p className="text-xs font-medium text-destructive">{errors.brand.message}</p>
+            <p id="brand-error" role="alert" className="text-xs font-medium text-destructive">{errors.brand.message}</p>
           )}
         </div>
 
@@ -206,7 +208,7 @@ export function CreditCardForm({ onSuccess, editingCard }: CreditCardFormProps) 
           <Label htmlFor="closingDay">Dia de Fechamento (1-31)</Label>
           {editingCard && <p className="text-xs text-muted-foreground">Novas compras registram este fechamento. Compras antigas sem fechamento registrado usam a configuração atual e podem mudar de fatura ao alterá-la.</p>}
           <Input
-            id="closingDay"
+            id="closingDay" {...fieldErrorProps('closingDay', errors.closingDay)}
             type="number"
             min={1}
             max={31}
@@ -218,7 +220,7 @@ export function CreditCardForm({ onSuccess, editingCard }: CreditCardFormProps) 
             value={watchClosingDay}
           />
           {errors.closingDay && (
-            <p className="text-xs font-medium text-destructive">{errors.closingDay.message}</p>
+            <p id="closingDay-error" role="alert" className="text-xs font-medium text-destructive">{errors.closingDay.message}</p>
           )}
         </div>
 
@@ -239,7 +241,7 @@ export function CreditCardForm({ onSuccess, editingCard }: CreditCardFormProps) 
                     { value: 'false', label: 'Inativo' },
                   ]}
                 >
-                  <SelectTrigger id="isActive" className="w-full h-10 rounded-lg">
+                  <SelectTrigger id="isActive" {...fieldErrorProps('isActive', errors.isActive)} className="w-full h-10 rounded-lg">
                     <SelectValue placeholder="Selecione o status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -255,7 +257,7 @@ export function CreditCardForm({ onSuccess, editingCard }: CreditCardFormProps) 
         {/* Seletor de Cores */}
         <div className="space-y-2 md:col-span-2">
           <Label>Cor do Cartão</Label>
-          <div className="grid grid-cols-5 gap-y-3 justify-items-center">
+          <div role="group" aria-label="Cor do cartão" className="grid grid-cols-5 gap-y-3 justify-items-center">
             {PRESET_COLORS.map((color) => (
               <button
                 key={color}
@@ -299,6 +301,7 @@ export function CreditCardForm({ onSuccess, editingCard }: CreditCardFormProps) 
           )}
         </Button>
       </div>
+    <p role="status" className="sr-only">{isLoading ? 'Salvando cartão…' : ''}</p>
     </form>
   )
 }

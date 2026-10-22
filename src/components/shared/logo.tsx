@@ -47,6 +47,7 @@ export function Logo({
       )}>
         {/* SVG stylized modern minimalist "G" */}
         <svg
+          aria-hidden="true" focusable="false"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -75,7 +76,7 @@ export function Logo({
 
   if (href) {
     return (
-      <Link href={href} className="inline-flex cursor-pointer focus:outline-hidden">
+      <Link href={href} aria-label="GestOne — Ir para o painel" className="inline-flex cursor-pointer focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-4">
         {logoContent}
       </Link>
     )

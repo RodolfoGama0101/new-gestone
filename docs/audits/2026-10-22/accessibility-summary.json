@@ -1,0 +1,293 @@
+{
+  "date": "2026-10-22",
+  "environment": {
+    "project": "demo-gestone-e2e",
+    "browser": "Chromium 152",
+    "engine": "axe-core 4.12.1",
+    "tool": "agent-browser 0.34.0"
+  },
+  "reports": [
+    {
+      "name": "login-desktop-dark",
+      "url": "http://localhost:3102/login",
+      "counts": {
+        "inapplicable": 52,
+        "incomplete": 1,
+        "passes": 37,
+        "violations": 0
+      },
+      "violations": [],
+      "incomplete": [
+        {
+          "rule": "color-contrast",
+          "nodes": 7
+        }
+      ]
+    },
+    {
+      "name": "login-desktop-light",
+      "url": "http://localhost:3102/login",
+      "counts": {
+        "inapplicable": 52,
+        "incomplete": 1,
+        "passes": 37,
+        "violations": 0
+      },
+      "violations": [],
+      "incomplete": [
+        {
+          "rule": "color-contrast",
+          "nodes": 7
+        }
+      ]
+    },
+    {
+      "name": "register-desktop-dark",
+      "url": "http://localhost:3102/register",
+      "counts": {
+        "inapplicable": 51,
+        "incomplete": 1,
+        "passes": 38,
+        "violations": 0
+      },
+      "violations": [],
+      "incomplete": [
+        {
+          "rule": "color-contrast",
+          "nodes": 7
+        }
+      ]
+    },
+    {
+      "name": "register-desktop-light",
+      "url": "http://localhost:3102/register",
+      "counts": {
+        "inapplicable": 51,
+        "incomplete": 1,
+        "passes": 38,
+        "violations": 0
+      },
+      "violations": [],
+      "incomplete": [
+        {
+          "rule": "color-contrast",
+          "nodes": 7
+        }
+      ]
+    },
+    {
+      "name": "forgot-password-desktop-dark",
+      "url": "http://localhost:3102/forgot-password",
+      "counts": {
+        "inapplicable": 52,
+        "incomplete": 1,
+        "passes": 37,
+        "violations": 0
+      },
+      "violations": [],
+      "incomplete": [
+        {
+          "rule": "color-contrast",
+          "nodes": 4
+        }
+      ]
+    },
+    {
+      "name": "forgot-password-desktop-light",
+      "url": "http://localhost:3102/forgot-password",
+      "counts": {
+        "inapplicable": 52,
+        "incomplete": 1,
+        "passes": 37,
+        "violations": 0
+      },
+      "violations": [],
+      "incomplete": [
+        {
+          "rule": "color-contrast",
+          "nodes": 4
+        }
+      ]
+    },
+    {
+      "name": "login-mobile-dark",
+      "url": "http://localhost:3102/login",
+      "counts": {
+        "inapplicable": 52,
+        "incomplete": 0,
+        "passes": 37,
+        "violations": 0
+      },
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "name": "login-mobile-light",
+      "url": "http://localhost:3102/login",
+      "counts": {
+        "inapplicable": 52,
+        "incomplete": 0,
+        "passes": 37,
+        "violations": 0
+      },
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "name": "register-mobile-dark",
+      "url": "http://localhost:3102/register",
+      "counts": {
+        "inapplicable": 51,
+        "incomplete": 0,
+        "passes": 38,
+        "violations": 0
+      },
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "name": "register-mobile-light",
+      "url": "http://localhost:3102/register",
+      "counts": {
+        "inapplicable": 51,
+        "incomplete": 0,
+        "passes": 38,
+        "violations": 0
+      },
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "name": "forgot-password-mobile-dark",
+      "url": "http://localhost:3102/forgot-password",
+      "counts": {
+        "inapplicable": 52,
+        "incomplete": 0,
+        "passes": 37,
+        "violations": 0
+      },
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "name": "forgot-password-mobile-light",
+      "url": "http://localhost:3102/forgot-password",
+      "counts": {
+        "inapplicable": 52,
+        "incomplete": 0,
+        "passes": 37,
+        "violations": 0
+      },
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "name": "register-errors-mobile-fixed",
+      "url": "http://localhost:3102/register",
+      "counts": {
+        "inapplicable": 51,
+        "incomplete": 0,
+        "passes": 38,
+        "violations": 0
+      },
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "name": "dashboard-desktop-dark-fixed",
+      "url": "http://localhost:3102/",
+      "counts": {
+        "inapplicable": 55,
+        "incomplete": 0,
+        "passes": 34,
+        "violations": 0
+      },
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "name": "dashboard-desktop-light-fixed",
+      "url": "http://localhost:3102/",
+      "counts": {
+        "inapplicable": 55,
+        "incomplete": 0,
+        "passes": 34,
+        "violations": 0
+      },
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "name": "dashboard-reflow-200-light-fixed",
+      "url": "http://localhost:3102/",
+      "counts": {
+        "inapplicable": 55,
+        "incomplete": 1,
+        "passes": 34,
+        "violations": 0
+      },
+      "violations": [],
+      "incomplete": [
+        {
+          "rule": "color-contrast",
+          "nodes": 5
+        }
+      ]
+    },
+    {
+      "name": "dashboard-reflow-200-dark-fixed",
+      "url": "http://localhost:3102/",
+      "counts": {
+        "inapplicable": 55,
+        "incomplete": 1,
+        "passes": 34,
+        "violations": 0
+      },
+      "violations": [],
+      "incomplete": [
+        {
+          "rule": "color-contrast",
+          "nodes": 5
+        }
+      ]
+    },
+    {
+      "name": "transaction-dialog-dark-fixed",
+      "url": "http://localhost:3102/expenses",
+      "counts": {
+        "inapplicable": 56,
+        "incomplete": 1,
+        "passes": 33,
+        "violations": 0
+      },
+      "violations": [],
+      "incomplete": [
+        {
+          "rule": "aria-hidden-focus",
+          "nodes": 3
+        }
+      ]
+    },
+    {
+      "name": "card-dialog-errors-dark",
+      "url": "http://localhost:3102/credit-cards",
+      "counts": {
+        "inapplicable": 56,
+        "incomplete": 2,
+        "passes": 33,
+        "violations": 0
+      },
+      "violations": [],
+      "incomplete": [
+        {
+          "rule": "aria-hidden-focus",
+          "nodes": 3
+        },
+        {
+          "rule": "color-contrast",
+          "nodes": 7
+        }
+      ]
+    }
+  ]
+}

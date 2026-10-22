@@ -267,6 +267,7 @@ export default function CategoriesPage() {
                           variant="ghost" 
                           size="icon" 
                           className="size-8 text-muted-foreground hover:text-foreground cursor-pointer rounded-lg hover:bg-muted"
+                          aria-label={'Editar categoria ' + cat.name}
                           onClick={() => handleEditClick(cat)}
                         >
                           <Pencil className="size-3.5" />
@@ -276,6 +277,7 @@ export default function CategoriesPage() {
                             variant="ghost" 
                             size="icon" 
                             className="size-8 text-muted-foreground hover:text-destructive cursor-pointer rounded-lg hover:bg-muted"
+                            aria-label={'Excluir categoria ' + cat.name}
                             onClick={() => setDeletingId(cat.id)}
                           >
                             <Trash2 className="size-3.5" />
@@ -343,6 +345,7 @@ export default function CategoriesPage() {
                           variant="ghost" 
                           size="icon" 
                           className="size-8 text-muted-foreground hover:text-foreground cursor-pointer rounded-lg hover:bg-muted"
+                          aria-label={'Editar categoria ' + cat.name}
                           onClick={() => handleEditClick(cat)}
                         >
                           <Pencil className="size-3.5" />
@@ -352,6 +355,7 @@ export default function CategoriesPage() {
                             variant="ghost" 
                             size="icon" 
                             className="size-8 text-muted-foreground hover:text-destructive cursor-pointer rounded-lg hover:bg-muted"
+                            aria-label={'Excluir categoria ' + cat.name}
                             onClick={() => setDeletingId(cat.id)}
                           >
                             <Trash2 className="size-3.5" />
@@ -419,6 +423,7 @@ export default function CategoriesPage() {
                           variant="ghost" 
                           size="icon" 
                           className="size-8 text-muted-foreground hover:text-foreground cursor-pointer rounded-lg hover:bg-muted"
+                          aria-label={'Editar categoria ' + cat.name}
                           onClick={() => handleEditClick(cat)}
                         >
                           <Pencil className="size-3.5" />
@@ -428,6 +433,7 @@ export default function CategoriesPage() {
                             variant="ghost" 
                             size="icon" 
                             className="size-8 text-muted-foreground hover:text-destructive cursor-pointer rounded-lg hover:bg-muted"
+                            aria-label={'Excluir categoria ' + cat.name}
                             onClick={() => setDeletingId(cat.id)}
                           >
                             <Trash2 className="size-3.5" />
@@ -498,6 +504,8 @@ export default function CategoriesPage() {
                     <button
                       key={color}
                       type="button"
+                      aria-label={'Selecionar cor ' + color}
+                      aria-pressed={selectedColor === color}
                       onClick={() => setSelectedColor(color)}
                       className="size-9 rounded-full border border-border flex items-center justify-center cursor-pointer transition-transform hover:scale-105 active:scale-95 animate-transition"
                       style={{ backgroundColor: color }}
@@ -520,6 +528,8 @@ export default function CategoriesPage() {
                       <button
                         key={item.name}
                         type="button"
+                        aria-label={'Selecionar ícone ' + item.name}
+                        aria-pressed={isSelected}
                         onClick={() => setSelectedIcon(item.name)}
                         className={`p-2.5 rounded-lg border flex items-center justify-center cursor-pointer transition-all hover:bg-accent ${
                           isSelected 
@@ -606,6 +616,8 @@ export default function CategoriesPage() {
                     <button
                       key={color}
                       type="button"
+                      aria-label={'Selecionar cor ' + color}
+                      aria-pressed={selectedColor === color}
                       onClick={() => setSelectedColor(color)}
                       className="size-9 rounded-full border border-border flex items-center justify-center cursor-pointer transition-transform hover:scale-105 active:scale-95 animate-transition"
                       style={{ backgroundColor: color }}
@@ -628,6 +640,8 @@ export default function CategoriesPage() {
                       <button
                         key={item.name}
                         type="button"
+                        aria-label={'Selecionar ícone ' + item.name}
+                        aria-pressed={isSelected}
                         onClick={() => setSelectedIcon(item.name)}
                         className={`p-2.5 rounded-lg border flex items-center justify-center cursor-pointer transition-all hover:bg-accent ${
                           isSelected 

@@ -1,5 +1,7 @@
 'use client'
 
+import { formatMoney } from '@/lib/utils/format-money'
+
 import * as React from 'react'
 import { addMonths, startOfMonth, format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -60,7 +62,7 @@ export function CreditCardBillSummary({ card, onEditTransaction }: { card: Credi
       {invoice.isPending ? <Loader2 className="size-6 animate-spin" aria-label="Carregando fatura" />
         : invoice.isError ? <div role="alert">Não foi possível carregar a fatura. <Button onClick={() => void invoice.refetch()}>Tentar novamente</Button></div>
           : <>
-            <p className="mb-3 font-semibold">Total: {(total / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} · {transactions.length} compras</p>
+            <p className="mb-3 font-semibold">Total: {formatMoney(total)} · {transactions.length} compras</p>
             {transactions.length === 0 ? <EmptyState title="Sem compras registradas" description="Nenhuma compra pertence a este ciclo." icon={Receipt} compact />
               : transactions.slice((currentPage - 1) * 20, currentPage * 20).map((tx) => <TransactionRow key={tx.id} transaction={tx} category={categories.find((category) => category.id === tx.categoryId)} onEdit={onEditTransaction ?? (() => {})} onDelete={() => setDeletingTransaction(tx)} />)}
             <div className="mt-3 flex items-center justify-between gap-2">
@@ -76,7 +78,7 @@ export function CreditCardBillSummary({ card, onEditTransaction }: { card: Credi
       onConfirm={() => void confirmDeletion()}
       title="Excluir compra?"
       description={deletingTransaction
-        ? `Excluir “${deletingTransaction.description}” de ${(deletingTransaction.amount / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}? Esta ação é permanente e atualizará o total da fatura.`
+        ? `Excluir “${deletingTransaction.description}” de ${formatMoney(deletingTransaction.amount)}? Esta ação é permanente e atualizará o total da fatura.`
         : ''}
       confirmText="Excluir"
       isDestructive

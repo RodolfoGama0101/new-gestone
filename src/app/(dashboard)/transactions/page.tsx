@@ -1,5 +1,6 @@
 'use client'
 
+import { formatMoney } from '@/lib/utils/format-money'
 import { LoadError } from '@/components/shared/load-error'
 
 import * as React from 'react'
@@ -132,6 +133,7 @@ export default function TransactionsPage() {
 
   return (
     <div className="space-y-6">
+      <p role="status" className="sr-only">{transactions.length} lançamentos nesta página</p>
       {/* Top Header */}
       {isFetching && <p role="status">Atualizando lançamentos…</p>}
       <PageHeader
@@ -236,7 +238,7 @@ export default function TransactionsPage() {
                             isIncome ? 'text-green-700 dark:text-green-500' : 'text-red-700 dark:text-red-500'
                           }`}>
                             {isIncome ? '+' : '−'}
-                            {(tx.amount / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                            {formatMoney(tx.amount)}
                           </span>
 
                           <div className="flex items-center gap-0.5 opacity-50 group-hover:opacity-100 transition-opacity">

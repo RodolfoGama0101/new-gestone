@@ -50,7 +50,7 @@ service cloud.firestore {
 
     function hasAvailableCard(userId, cardId, data) {
       let card = getAfter(/databases/$(database)/documents/users/$(userId)/creditCards/$(cardId)).data;
-      return card is map && (!card.get('archived', false)
+      return card is map && ((!card.get('archived', false) && card.get('isActive', false) == true)
         || (request.method == 'update' && resource.data.type == data.type
           && resource.data.get('creditCardId', null) == cardId));
     }
@@ -117,6 +117,15 @@ service cloud.firestore {
       allow create: if isOwner(userId) && isValidProfile(request.resource.data);
       allow update: if isOwner(userId) && isValidProfile(request.resource.data)
         && request.resource.data.createdAt == resource.data.createdAt;
+
+      match /preferences/{preferenceId} {
+        allow read: if isOwner(userId) && preferenceId == 'display';
+        allow create, update: if isOwner(userId) && preferenceId == 'display'
+          && hasOnlyKeys(request.resource.data, ['theme', 'updatedAt'])
+          && request.resource.data.theme in ['light', 'dark', 'system']
+          && request.resource.data.updatedAt is timestamp;
+        allow delete: if false;
+      }
 
       match /transactions/{transactionId} {
         allow read, delete: if isOwner(userId);

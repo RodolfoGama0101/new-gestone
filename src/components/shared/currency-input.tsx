@@ -1,9 +1,11 @@
 'use client'
 
+import { formatMoney } from '@/lib/utils/format-money'
+
 import * as React from 'react'
 import { Input } from '@/components/ui/input'
 
-interface CurrencyInputProps {
+interface CurrencyInputProps extends Pick<React.ComponentProps<'input'>, 'aria-invalid' | 'aria-describedby' | 'ref' | 'onBlur' | 'name'> {
   value: number // valor em centavos (ex: 1550 = R$ 15,50)
   onChange: (cents: number) => void
   disabled?: boolean
@@ -19,15 +21,12 @@ export function CurrencyInput({
   className = '',
   placeholder = 'R$ 0,00',
   id,
+  ...inputProps
 }: CurrencyInputProps) {
   // Formata o número (centavos) para Real Brasileiro
   const formatValue = (cents: number) => {
     if (isNaN(cents) || cents === 0) return ''
-    const val = cents / 100
-    return val.toLocaleString('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    })
+    return formatMoney(cents)
   }
 
   const [prevValue, setPrevValue] = React.useState(value)
@@ -56,6 +55,7 @@ export function CurrencyInput({
 
   return (
     <Input
+      {...inputProps}
       id={id}
       type="text"
       inputMode="numeric"

@@ -17,7 +17,7 @@ export default function LoginPage() {
       <div className="hidden lg:flex lg:w-[52%] relative overflow-hidden flex-col items-center justify-center p-14 bg-black">
         {/* Decorative background grid */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <svg className="absolute inset-0 size-full opacity-[0.035]" xmlns="http://www.w3.org/2000/svg">
+          <svg aria-hidden="true" focusable="false" className="absolute inset-0 size-full opacity-[0.035]" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <pattern id="dot-grid" x="0" y="0" width="24" height="24" patternUnits="userSpaceOnUse">
                 <circle cx="2" cy="2" r="1" fill="#ffffff" />
@@ -36,11 +36,11 @@ export default function LoginPage() {
 
           {/* Headline */}
           <div className="space-y-4">
-            <h1 className="text-4xl font-bold leading-tight tracking-tight text-white xl:text-5xl">
+            <p className="text-4xl font-bold leading-tight tracking-tight text-white xl:text-5xl">
               Controle seu<br />
               dinheiro com<br />
               <span className="text-neutral-400 font-medium">inteligência</span>
-            </h1>
+            </p>
             <p className="text-sm text-neutral-400 leading-relaxed max-w-xs">
               Gerencie receitas, despesas e metas financeiras em um só lugar, de forma simples e visual.
             </p>
@@ -74,9 +74,9 @@ export default function LoginPage() {
 
         <div className="w-full max-w-sm animate-in fade-in slide-in-from-bottom-3 duration-300">
           <div className="mb-8 space-y-1.5">
-            <h2 className="text-2xl font-bold tracking-tight text-foreground">
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">
               Bem-vindo de volta
-            </h2>
+            </h1>
             <p className="text-sm text-muted-foreground">
               Entre na sua conta para continuar
             </p>

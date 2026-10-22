@@ -1,5 +1,7 @@
 'use client'
 
+import { fieldErrorProps } from '@/lib/utils/form-accessibility'
+
 import * as React from 'react'
 import { LoadError } from '@/components/shared/load-error'
 import { useForm, Controller, useWatch } from 'react-hook-form'
@@ -35,6 +37,7 @@ export function TransactionForm({
   editingTransaction,
 }: TransactionFormProps) {
   const { user } = useAuth()
+  const formRef = React.useRef<HTMLFormElement>(null)
   const queryClient = useQueryClient()
   const userId = user?.uid ?? ''
   const { categories, error: categoriesError, refetch: refetchCategories, isLoading: isCategoriesLoading } = useCategories()
@@ -80,6 +83,7 @@ export function TransactionForm({
     setValue,
     formState: { errors },
   } = useForm({
+    shouldFocusError: false,
     resolver: zodResolver(transactionSchema),
     defaultValues: {
       type: editingTransaction?.type ?? defaultType,
@@ -109,13 +113,13 @@ export function TransactionForm({
     }))
   }, [filteredCategories])
 
-  const selectableCards = creditCards.filter((card) => !card.archived
+  const selectableCards = creditCards.filter((card) => (!card.archived && card.isActive)
     || (editingTransaction?.type === 'expense' && editingTransaction.creditCardId === card.id))
   const cardSelectItems = [
     { value: 'none', label: 'Não usar cartão (Débito)' },
     ...selectableCards.map((card) => ({
       value: card.id,
-      label: `${card.name} (${card.bankName})${card.archived ? ' — arquivado' : ''}`,
+      label: `${card.name} (${card.bankName})${card.archived ? ' — arquivado' : !card.isActive ? ' — inativo' : ''}`,
     })),
   ]
 
@@ -161,21 +165,30 @@ export function TransactionForm({
     }
   }
 
+  const handleFormSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    void handleSubmit(onSubmit, () => {
+      // Controllers registram depois dos inputs; o foco segue a ordem visual.
+      requestAnimationFrame(() => {
+        formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus()
+      })
+    })(event)
+  }
   if (categoriesError || cardsError) return <LoadError error={categoriesError || cardsError} retry={() => Promise.all([refetchCategories(), refetchCards()])} />
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+    <form ref={formRef} aria-busy={isLoading} onSubmit={handleFormSubmit} noValidate className="space-y-5">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3.5">
         {/* Seletor de Tipo (Receita / Despesa / Investimento) */}
         <div className="space-y-1.5 md:col-span-2">
           <Label className="text-sm font-semibold text-foreground">Tipo de Lançamento</Label>
-          <div className="grid grid-cols-3 gap-3">
+          <div role="group" aria-label="Tipo de lançamento" className="grid grid-cols-3 gap-3">
             <Button
               type="button"
+              aria-pressed={watchType === 'income'}
               variant={watchType === 'income' ? 'default' : 'outline'}
               className={`w-full h-10 gap-2 cursor-pointer rounded-lg font-bold transition-all ${
                 watchType === 'income' 
-                  ? 'bg-income text-white hover:bg-income/90 border-transparent shadow-xs' 
+                  ? 'bg-income text-income-foreground hover:bg-income/90 border-transparent shadow-xs'
                   : 'text-muted-foreground'
               }`}
               onClick={() => {
@@ -190,10 +203,11 @@ export function TransactionForm({
             </Button>
             <Button
               type="button"
+              aria-pressed={watchType === 'expense'}
               variant={watchType === 'expense' ? 'default' : 'outline'}
               className={`w-full h-10 gap-2 cursor-pointer rounded-lg font-bold transition-all ${
                 watchType === 'expense' 
-                  ? 'bg-expense text-white hover:bg-expense/90 border-transparent shadow-xs' 
+                  ? 'bg-expense text-expense-foreground hover:bg-expense/90 border-transparent shadow-xs'
                   : 'text-muted-foreground'
               }`}
               onClick={() => {
@@ -207,6 +221,7 @@ export function TransactionForm({
             </Button>
             <Button
               type="button"
+              aria-pressed={watchType === 'investment'}
               variant={watchType === 'investment' ? 'default' : 'outline'}
               className={`w-full h-10 gap-2 cursor-pointer rounded-lg font-bold transition-all ${
                 watchType === 'investment' 
@@ -234,7 +249,8 @@ export function TransactionForm({
             control={control}
             render={({ field }) => (
               <CurrencyInput
-                id="amount"
+                ref={field.ref} onBlur={field.onBlur} name={field.name}
+                id="amount" {...fieldErrorProps('amount', errors.amount)}
                 value={typeof field.value === 'string' ? parseInt(field.value) : field.value}
                 onChange={field.onChange}
                 disabled={isLoading}
@@ -242,7 +258,7 @@ export function TransactionForm({
             )}
           />
           {errors.amount && (
-            <p className="text-xs font-medium text-destructive">{errors.amount.message}</p>
+            <p id="amount-error" role="alert" className="text-xs font-medium text-destructive">{errors.amount.message}</p>
           )}
         </div>
 
@@ -254,7 +270,8 @@ export function TransactionForm({
             control={control}
             render={({ field }) => (
               <DatePicker
-                id="date"
+                ref={field.ref} onBlur={field.onBlur} name={field.name}
+                id="date" {...fieldErrorProps('date', errors.date)}
                 date={field.value}
                 setDate={field.onChange}
                 disabled={isLoading}
@@ -262,7 +279,7 @@ export function TransactionForm({
             )}
           />
           {errors.date && (
-            <p className="text-xs font-medium text-destructive">{errors.date.message}</p>
+            <p id="date-error" role="alert" className="text-xs font-medium text-destructive">{errors.date.message}</p>
           )}
         </div>
 
@@ -270,13 +287,13 @@ export function TransactionForm({
         <div className="space-y-1.5">
           <Label htmlFor="description" className="text-sm font-semibold text-foreground">Descrição</Label>
           <Input
-            id="description"
+            id="description" {...fieldErrorProps('description', errors.description)}
             placeholder="Ex: Aluguel, Supermercado"
             disabled={isLoading}
             {...register('description')}
           />
           {errors.description && (
-            <p className="text-xs font-medium text-destructive">{errors.description.message}</p>
+            <p id="description-error" role="alert" className="text-xs font-medium text-destructive">{errors.description.message}</p>
           )}
         </div>
 
@@ -293,7 +310,7 @@ export function TransactionForm({
                 disabled={isLoading || isCategoriesLoading}
                 items={categorySelectItems}
               >
-                <SelectTrigger id="categoryId" className="w-full h-10 rounded-lg">
+                <SelectTrigger id="categoryId" {...fieldErrorProps('categoryId', errors.categoryId)} className="w-full h-10 rounded-lg">
                   <SelectValue placeholder="Selecione uma categoria" />
                 </SelectTrigger>
                 <SelectContent>
@@ -307,7 +324,7 @@ export function TransactionForm({
             )}
           />
           {errors.categoryId && (
-            <p className="text-xs font-medium text-destructive">{errors.categoryId.message}</p>
+            <p id="categoryId-error" role="alert" className="text-xs font-medium text-destructive">{errors.categoryId.message}</p>
           )}
         </div>
 
@@ -325,20 +342,21 @@ export function TransactionForm({
                   disabled={isLoading}
                   items={cardSelectItems}
                 >
-                  <SelectTrigger id="creditCardId" className="w-full h-10 rounded-lg">
+                  <SelectTrigger id="creditCardId" {...fieldErrorProps('creditCardId', errors.creditCardId)} className="w-full h-10 rounded-lg">
                     <SelectValue placeholder="Sem cartão (Débito)" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Não usar cartão (Débito)</SelectItem>
                     {selectableCards.map((card) => (
                       <SelectItem key={card.id} value={card.id}>
-                        {card.name} ({card.bankName}){card.archived ? ' — arquivado' : ''}
+                        {card.name} ({card.bankName}){card.archived ? ' — arquivado' : !card.isActive ? ' — inativo' : ''}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               )}
             />
+            {errors.creditCardId && <p id="creditCardId-error" role="alert" className="text-sm text-destructive">{errors.creditCardId.message}</p>}
           </div>
         )}
 
@@ -346,7 +364,7 @@ export function TransactionForm({
         <div className="space-y-1.5 md:col-span-2">
           <Label htmlFor="tags" className="text-sm font-semibold text-foreground">Tags (separadas por vírgula)</Label>
           <Input
-            id="tags"
+            id="tags" {...fieldErrorProps('tags', errors.tags)}
             placeholder="Ex: essencial, compras, viagem"
             disabled={isLoading}
             onChange={(e) => {
@@ -359,21 +377,21 @@ export function TransactionForm({
             }}
             defaultValue={formatTags(editingTransaction?.tags)}
           />
-          {errors.tags && <p className="text-sm text-destructive">{errors.tags.message ?? 'Use até 20 tags, com no máximo 40 caracteres cada.'}</p>}
+          {errors.tags && <p id="tags-error" role="alert" className="text-sm text-destructive">{errors.tags.message ?? 'Use até 20 tags, com no máximo 40 caracteres cada.'}</p>}
         </div>
 
         {/* Notas adicionais */}
         <div className="space-y-1.5 md:col-span-2">
           <Label htmlFor="notes" className="text-sm font-semibold text-foreground">Anotações / Notas</Label>
           <Textarea
-            id="notes"
+            id="notes" {...fieldErrorProps('notes', errors.notes)}
             rows={3}
             placeholder="Alguma observação importante sobre esta transação..."
             disabled={isLoading}
             {...register('notes')}
           />
           {errors.notes && (
-            <p className="text-xs font-medium text-destructive">{errors.notes.message}</p>
+            <p id="notes-error" role="alert" className="text-xs font-medium text-destructive">{errors.notes.message}</p>
           )}
         </div>
       </div>
@@ -391,6 +409,7 @@ export function TransactionForm({
           'Confirmar Lançamento'
         )}
       </Button>
+    <p role="status" className="sr-only">{isLoading ? 'Salvando lançamento…' : ''}</p>
     </form>
   )
 }

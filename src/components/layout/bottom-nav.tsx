@@ -53,8 +53,9 @@ export function BottomNav() {
           <Link
             key={item.href}
             href={item.href}
+              aria-current={isActive ? 'page' : undefined}
             className={cn(
-              'flex flex-1 flex-col items-center justify-center gap-0.5 text-muted-foreground/80 transition-colors relative cursor-pointer h-full',
+              'flex flex-1 flex-col items-center justify-center gap-0.5 text-muted-foreground transition-colors relative cursor-pointer h-full',
               isActive && 'text-foreground dark:text-white font-semibold'
             )}
           >
@@ -71,7 +72,7 @@ export function BottomNav() {
         <SheetTrigger render={
           <button
             className={cn(
-              'flex flex-1 flex-col items-center justify-center gap-0.5 text-muted-foreground/80 transition-colors relative cursor-pointer h-full border-none bg-transparent outline-hidden',
+              'flex flex-1 flex-col items-center justify-center gap-0.5 text-muted-foreground transition-colors relative cursor-pointer h-full border-none bg-transparent outline-hidden focus-visible:ring-2 focus-visible:ring-ring',
               isExtraActive && 'text-foreground dark:text-white'
             )}
             aria-label="Mais opções de navegação"
@@ -95,9 +96,10 @@ export function BottomNav() {
                 <Link
                   key={item.href}
                   href={item.href}
+              aria-current={isActive ? 'page' : undefined}
                   onClick={() => setIsOpen(false)}
                   className={cn(
-                    'flex flex-col items-center justify-center gap-1.5 p-2 rounded-xl text-muted-foreground/80 hover:text-foreground hover:bg-muted/30 transition-all w-full cursor-pointer',
+                    'flex flex-col items-center justify-center gap-1.5 p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-all w-full cursor-pointer',
                     isActive && 'text-foreground dark:text-white bg-muted/30'
                   )}
                 >

@@ -142,6 +142,7 @@ export function TransactionList({
     <div className="space-y-6 animate-in fade-in duration-300">
       {isFetching && <p role="status">Atualizando lançamentos…</p>}
       {/* Cabeçalho da página */}
+      <p role="status" className="sr-only">{transactions.length} lançamentos nesta página</p>
       <PageHeader
         title={title}
         description={description}

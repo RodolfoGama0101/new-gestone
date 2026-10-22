@@ -1,5 +1,6 @@
 'use client'
 
+import { formatMoney } from '@/lib/utils/format-money'
 import { LoadError } from '@/components/shared/load-error'
 
 import * as React from 'react'
@@ -138,10 +139,7 @@ export function RecentTransactions() {
                     }`}
                   >
                     {isIncome ? '+' : '−'}
-                    {(tx.amount / 100).toLocaleString('pt-BR', {
-                      style: 'currency',
-                      currency: 'BRL',
-                    })}
+                    {formatMoney(tx.amount)}
                   </span>
                 </div>
               )

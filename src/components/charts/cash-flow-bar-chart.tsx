@@ -1,5 +1,7 @@
 'use client'
 
+import { formatMoney } from '@/lib/utils/format-money'
+
 import * as React from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -12,7 +14,7 @@ interface CashFlowBarChartProps {
 
 export function CashFlowBarChart({ data }: CashFlowBarChartProps) {
   const formatBRL = (value: number) => {
-    return (value / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+    return formatMoney(value)
   }
 
   return (

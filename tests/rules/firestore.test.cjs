@@ -562,3 +562,67 @@ describe('perfis, categorias e cartões', () => {
     await assertFails(setDoc(doc(owner, `users/owner/${name}/new`), data))
   })
 })
+
+
+describe('preferências de exibição por usuário', () => {
+  test('dono grava e lê tema, outras contas e anônimos não acessam', async () => {
+    const ref = doc(owner, 'users/owner/preferences/display')
+    await assertSucceeds(setDoc(ref, { theme: 'dark', updatedAt: serverTimestamp() }))
+    expect((await getDoc(ref)).data().theme).toBe('dark')
+    for (const db of [other, anonymous]) {
+      await assertFails(getDoc(doc(db, 'users/owner/preferences/display')))
+      await assertFails(setDoc(doc(db, 'users/owner/preferences/display'), { theme: 'light', updatedAt: serverTimestamp() }))
+    }
+    await assertSucceeds(updateDoc(ref, { theme: 'system', updatedAt: serverTimestamp() }))
+  })
+  test.each([
+    { theme: 'USD', updatedAt: timestamp },
+    { theme: 'dark' },
+    { theme: 'dark', updatedAt: timestamp, currency: 'USD' },
+    { theme: 'dark', updatedAt: timestamp, admin: true },
+  ])('nega preferência fora do contrato: %j', async (data) => {
+    await assertFails(setDoc(doc(owner, 'users/owner/preferences/display'), data))
+  })
+  test('não permite outra configuração nem exclusão do documento', async () => {
+    await assertFails(setDoc(doc(owner, 'users/owner/preferences/other'), { theme: 'dark', updatedAt: timestamp }))
+    await assertSucceeds(setDoc(doc(owner, 'users/owner/preferences/display'), { theme: 'light', updatedAt: timestamp }))
+    await assertFails(deleteDoc(doc(owner, 'users/owner/preferences/display')))
+  })
+})
+
+
+describe('cartões inativos e novos vínculos', () => {
+  test('inativar bloqueia criação e novo vínculo, mas preserva edição de compra antiga', async () => {
+    const ref = doc(owner, 'users/owner/creditCards/card')
+    const purchase = doc(owner, 'users/owner/transactions/card-history')
+    await assertSucceeds(setDoc(purchase, { ...transaction(), creditCardId: 'card', cardClosingDay: 15 }))
+    await assertSucceeds(updateDoc(ref, { isActive: false }))
+    await assertFails(setDoc(doc(owner, 'users/owner/transactions/new'), { ...transaction(), creditCardId: 'card' }))
+    await assertFails(updateDoc(doc(owner, 'users/owner/transactions/existing'), { creditCardId: 'card' }))
+    await assertSucceeds(updateDoc(purchase, { description: 'Compra histórica editada', amount: 23456 }))
+    expect((await getDoc(purchase)).data().creditCardId).toBe('card')
+    expect((await getDoc(purchase)).data().cardClosingDay).toBe(15)
+  })
+  test('trocar para ativo, desvincular e reativar são permitidos', async () => {
+    const purchase = doc(owner, 'users/owner/transactions/card-history')
+    await assertSucceeds(setDoc(purchase, { ...transaction(), creditCardId: 'card', cardClosingDay: 15 }))
+    await assertSucceeds(setDoc(doc(owner, 'users/owner/creditCards/active'), card()))
+    await assertSucceeds(updateDoc(doc(owner, 'users/owner/creditCards/card'), { isActive: false }))
+    await assertSucceeds(updateDoc(purchase, { creditCardId: 'active', cardClosingDay: 15 }))
+    await assertFails(updateDoc(purchase, { creditCardId: 'card' }))
+    await assertSucceeds(updateDoc(purchase, { creditCardId: null, cardClosingDay: null }))
+    await assertSucceeds(updateDoc(doc(owner, 'users/owner/creditCards/card'), { isActive: true }))
+    await assertSucceeds(setDoc(doc(owner, 'users/owner/transactions/new'), { ...transaction(), creditCardId: 'card' }))
+  })
+  test('getAfter impede inativar e criar compra no mesmo lote', async () => {
+    const batch = writeBatch(owner)
+    batch.update(doc(owner, 'users/owner/creditCards/card'), { isActive: false })
+    batch.set(doc(owner, 'users/owner/transactions/new'), { ...transaction(), creditCardId: 'card' })
+    await assertFails(batch.commit())
+  })
+  test('mudar tipo não preserva direito ao vínculo inativo', async () => {
+    await assertSucceeds(setDoc(doc(owner, 'users/owner/transactions/income'), transaction('income')))
+    await assertSucceeds(updateDoc(doc(owner, 'users/owner/creditCards/card'), { isActive: false }))
+    await assertFails(updateDoc(doc(owner, 'users/owner/transactions/income'), { type: 'expense', categoryId: 'expense', creditCardId: 'card' }))
+  })
+})

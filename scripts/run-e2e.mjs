@@ -39,7 +39,11 @@ const child = spawn(
     'auth,firestore',
     '--project',
     'demo-gestone-e2e',
-    production ? 'playwright test --config playwright.production.config.ts' : 'playwright test',
+    process.argv.includes('--review')
+      ? 'next dev --turbopack --port 3102'
+      : production
+        ? 'playwright test --config playwright.production.config.ts'
+        : 'playwright test',
   ],
   { env, stdio: 'inherit' },
 )

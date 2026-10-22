@@ -23,6 +23,7 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
 };
 
+import { PreferencesProvider } from '@/providers/preferences-provider'
 import { QueryProvider } from "@/providers/query-provider";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 
@@ -47,9 +48,11 @@ export default function RootLayout({
         >
           <QueryProvider>
             <AuthProvider>
+              <PreferencesProvider>
               <NuqsAdapter>
                 {children}
               </NuqsAdapter>
+              </PreferencesProvider>
             </AuthProvider>
           </QueryProvider>
         </ThemeProvider>

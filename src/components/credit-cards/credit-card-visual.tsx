@@ -47,13 +47,13 @@ export function CreditCardVisual({
           </span>
         )
       default:
-        return <CardIcon className="size-3.5 text-white/70" />
+        return <CardIcon className="size-3.5 text-white" />
     }
   }
 
   // Estilo com gradiente baseado na cor principal
   const cardStyle = {
-    background: `linear-gradient(135deg, ${color} 0%, ${color}dd 45%, ${color}aa 100%)`,
+    background: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), linear-gradient(135deg, ${color} 0%, ${color}dd 45%, ${color}aa 100%)`,
     textShadow: '0 1px 2px rgba(0,0,0,0.2)',
   }
 
@@ -68,9 +68,9 @@ export function CreditCardVisual({
         </div>
         <div className="min-w-0 flex-1">
           <p className="font-semibold truncate leading-tight text-white">{name}</p>
-          <p className="text-[9px] text-white/75 truncate leading-none mt-0.5">{bankName}</p>
+          <p className="text-[9px] text-white truncate leading-none mt-0.5">{bankName}</p>
         </div>
-        <span className="text-[9px] bg-white/15 px-1.5 py-0.5 rounded-full font-bold select-none text-white">
+        <span className="text-[9px] bg-black/20 px-1.5 py-0.5 rounded-full font-bold select-none text-white">
           D{closingDay}
         </span>
       </div>
@@ -110,13 +110,13 @@ export function CreditCardVisual({
       {/* Linha inferior: Titular e Fechamento */}
       <div className="flex items-end justify-between mt-2">
         <div className="min-w-0 flex-1 pr-2">
-          <p className="text-[8px] uppercase tracking-wider text-white/70 leading-none">Titular</p>
+          <p className="text-[8px] uppercase tracking-wider text-white leading-none">Titular</p>
           <p className="text-xs font-semibold uppercase tracking-wide truncate mt-1 text-white">
             {holderName || 'TITULAR'}
           </p>
         </div>
         <div className="shrink-0 text-right">
-          <p className="text-[8px] uppercase tracking-wider text-white/70 leading-none">Fecha</p>
+          <p className="text-[8px] uppercase tracking-wider text-white leading-none">Fecha</p>
           <p className="text-xs font-bold mt-1 text-white">Dia {closingDay || 1}</p>
         </div>
       </div>

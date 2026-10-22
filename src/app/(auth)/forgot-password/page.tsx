@@ -1,5 +1,7 @@
 'use client'
 
+import { fieldErrorProps } from '@/lib/utils/form-accessibility'
+
 import * as React from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -20,6 +22,8 @@ export default function ForgotPasswordPage() {
   const [isLoading, setIsLoading] = React.useState(false)
   const [sent, setSent] = React.useState(false)
   const router = useRouter()
+  const resultHeading = React.useRef<HTMLHeadingElement>(null)
+  React.useEffect(() => { if (sent) resultHeading.current?.focus() }, [sent])
 
   const {
     register,
@@ -59,7 +63,7 @@ export default function ForgotPasswordPage() {
       <div className="hidden lg:flex lg:w-[52%] relative overflow-hidden flex-col items-center justify-center p-14 bg-black">
         {/* Decorative background grid */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <svg className="absolute inset-0 size-full opacity-[0.035]" xmlns="http://www.w3.org/2000/svg">
+          <svg aria-hidden="true" focusable="false" className="absolute inset-0 size-full opacity-[0.035]" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <pattern id="dots-fp" x="0" y="0" width="24" height="24" patternUnits="userSpaceOnUse">
                 <circle cx="2" cy="2" r="1" fill="#ffffff" />
@@ -75,11 +79,11 @@ export default function ForgotPasswordPage() {
           <Logo variant="full" size="lg" textColor="text-white" href="" />
 
           <div className="space-y-4">
-            <h1 className="text-4xl font-bold leading-tight tracking-tight text-white xl:text-5xl">
+            <p className="text-4xl font-bold leading-tight tracking-tight text-white xl:text-5xl">
               Recupere o<br />
               acesso à<br />
               <span className="text-neutral-400 font-medium">sua conta</span>
-            </h1>
+            </p>
             <p className="text-sm text-neutral-400 leading-relaxed max-w-xs">
               Enviaremos um link seguro para o e-mail cadastrado para você redefinir sua senha.
             </p>
@@ -102,14 +106,14 @@ export default function ForgotPasswordPage() {
         <div className="w-full max-w-sm animate-in fade-in slide-in-from-bottom-3 duration-300">
           {sent ? (
             /* Success state */
-            <div className="space-y-6 text-center">
+            <div role="status" className="space-y-6 text-center">
               <div className="size-16 rounded-full bg-primary/10 border border-primary/15 flex items-center justify-center mx-auto">
                 <Mail className="size-7 text-primary" />
               </div>
               <div className="space-y-2">
-                <h2 className="text-2xl font-bold tracking-tight text-foreground">
+                <h1 ref={resultHeading} tabIndex={-1} className="text-2xl font-bold tracking-tight text-foreground">
                   E-mail enviado!
-                </h2>
+                </h1>
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   Enviamos um link de recuperação para{' '}
                   <span className="font-semibold text-foreground">{getValues('email')}</span>.
@@ -127,21 +131,21 @@ export default function ForgotPasswordPage() {
             /* Recovery form */
             <>
               <div className="mb-8 space-y-1.5">
-                <h2 className="text-2xl font-bold tracking-tight text-foreground">
+                <h1 className="text-2xl font-bold tracking-tight text-foreground">
                   Recuperar senha
-                </h2>
+                </h1>
                 <p className="text-sm text-muted-foreground">
                   Digite seu e-mail para receber o link de recuperação
                 </p>
               </div>
 
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+              <form aria-busy={isLoading} onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
                 <div className="space-y-1.5">
                   <Label htmlFor="email" className="text-sm font-semibold text-foreground">
                     E-mail
                   </Label>
                   <Input
-                    id="email"
+                    id="email" autoComplete="email" {...fieldErrorProps('email', errors.email)}
                     type="email"
                     placeholder="exemplo@dominio.com"
                     disabled={isLoading}
@@ -149,7 +153,7 @@ export default function ForgotPasswordPage() {
                     {...register('email')}
                   />
                   {errors.email && (
-                    <p className="text-xs font-medium text-destructive">{errors.email.message}</p>
+                    <p id="email-error" role="alert" className="text-xs font-medium text-destructive">{errors.email.message}</p>
                   )}
                 </div>
 
@@ -167,7 +171,8 @@ export default function ForgotPasswordPage() {
                     'Enviar link de recuperação'
                   )}
                 </Button>
-              </form>
+              <p role="status" className="sr-only">{isLoading ? 'Enviando instruções…' : ''}</p>
+    </form>
 
               <div className="mt-7 text-center">
                 <Link
