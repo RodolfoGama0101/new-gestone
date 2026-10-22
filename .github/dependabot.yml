@@ -8,7 +8,17 @@ updates:
       time: '09:00'
       timezone: America/Sao_Paulo
     open-pull-requests-limit: 10
+    ignore:
+      # Retomar a migração quando typescript-eslint suportar TypeScript 7.
+      - dependency-name: typescript
+        versions: ['>=7.0.0']
     groups:
+      # O SDK e sua biblioteca de testes exigem versões compatíveis entre si.
+      # Inclui majors e dependências de produção/desenvolvimento no mesmo PR.
+      firebase-sdk:
+        patterns:
+          - firebase
+          - '@firebase/rules-unit-testing'
       framework:
         patterns:
           - next
