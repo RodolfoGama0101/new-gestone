@@ -3,6 +3,7 @@ import { format } from 'date-fns'
 import { useAuth } from '@/contexts/auth-context'
 import type { CreditCard } from '@/types/credit-card'
 import { TransactionService } from '@/services/transaction.service'
+import { invalidateTransactionData } from '@/lib/transaction-cache'
 
 export function useCardInvoice(card: CreditCard, month: Date) {
   const { user } = useAuth()
@@ -15,7 +16,7 @@ export function useCardInvoice(card: CreditCard, month: Date) {
   const deletion = useMutation({
     mutationFn: (id: string) => TransactionService.delete(user!.uid, id),
     onSuccess: async () => {
-      await Promise.all(['transactions', 'analytics', 'analyticsHistory', 'creditCards'].map((key) => client.invalidateQueries({ queryKey: [key, user?.uid] })))
+      await invalidateTransactionData(client, user!.uid)
     },
   })
   return { ...invoice, deleteTransaction: deletion.mutateAsync }

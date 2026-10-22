@@ -14,27 +14,26 @@ import { CreditCardBillSummary } from '@/components/credit-cards/credit-card-bil
 import { CreditCard } from '@/types/credit-card'
 
 export default function CreditCardsPage() {
-  const { creditCards, isLoading, deleteCreditCard } = useCreditCards()
+  const { creditCards, isLoading, archiveCreditCard } = useCreditCards()
 
   const [isAddOpen, setIsAddOpen] = React.useState(false)
   const [selectedCardId, setSelectedCardId] = React.useState<string | null>(null)
   const [editingCard, setEditingCard] = React.useState<CreditCard | null>(null)
-  const [deletingId, setDeletingId] = React.useState<string | null>(null)
-  const [isDeleting, setIsDeleting] = React.useState(false)
+  const [archivingId, setArchivingId] = React.useState<string | null>(null)
+  const [isArchiving, setIsArchiving] = React.useState(false)
 
   const selectedCard = creditCards.find((card) => card.id === selectedCardId) ?? creditCards[0] ?? null
 
-  const handleDeleteConfirm = async () => {
-    if (!deletingId) return
-    setIsDeleting(true)
+  const handleArchiveConfirm = async () => {
+    if (!archivingId) return
+    setIsArchiving(true)
     try {
-      await deleteCreditCard(deletingId)
-      if (selectedCard?.id === deletingId) setSelectedCardId(null)
-      setDeletingId(null)
+      await archiveCreditCard(archivingId)
+      setArchivingId(null)
     } catch (error) {
       console.error(error)
     } finally {
-      setIsDeleting(false)
+      setIsArchiving(false)
     }
   }
 
@@ -71,7 +70,7 @@ export default function CreditCardsPage() {
           {/* Coluna da esquerda: Lista de cartões */}
           <div className="md:col-span-1 space-y-4">
             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-1">
-              Cartões Ativos ({creditCards.length})
+              Cartões cadastrados ({creditCards.length})
             </h3>
             <div className="space-y-4 max-h-[70vh] overflow-y-auto scrollbar-thin pr-3 pl-1 py-1">
               {creditCards.map((card) => {
@@ -97,6 +96,7 @@ export default function CreditCardsPage() {
                       closingDay={card.closingDay}
                       color={card.color}
                     />
+                    {card.archived && <span className="block mt-2 text-xs text-muted-foreground">Arquivado · histórico disponível</span>}
                   </button>
                 )
               })}
@@ -114,7 +114,7 @@ export default function CreditCardsPage() {
                       {selectedCard.bankName} • Titular: {selectedCard.holderName}
                     </p>
                   </div>
-                  <div className="flex items-center gap-1.5">
+                  {!selectedCard.archived && <div className="flex items-center gap-1.5">
                     <Button
                       variant="outline"
                       size="sm"
@@ -128,12 +128,12 @@ export default function CreditCardsPage() {
                       variant="outline"
                       size="sm"
                       className="gap-1.5 h-8 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive border-border/60 hover:border-destructive/20 cursor-pointer"
-                      onClick={() => setDeletingId(selectedCard.id)}
+                      onClick={() => setArchivingId(selectedCard.id)}
                     >
                       <Trash2 className="size-3.5" />
-                      Excluir
+                      Arquivar
                     </Button>
-                  </div>
+                  </div>}
                 </div>
 
                 <CreditCardBillSummary card={selectedCard} />
@@ -178,16 +178,16 @@ export default function CreditCardsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Confirmação de Exclusão */}
+      {/* Confirmação de Arquivamento */}
       <ConfirmDialog
-        isOpen={deletingId !== null}
-        onClose={() => setDeletingId(null)}
-        onConfirm={handleDeleteConfirm}
-        title="Excluir Cartão de Crédito?"
-        description="Esta ação removerá permanentemente este cartão. Você só poderá excluí-lo se não houver compras vinculadas a ele."
-        confirmText="Excluir"
+        isOpen={archivingId !== null}
+        onClose={() => setArchivingId(null)}
+        onConfirm={handleArchiveConfirm}
+        title="Arquivar cartão de crédito?"
+        description="O cartão deixará de aceitar novas compras. O cadastro e as faturas serão preservados para consulta, mesmo se ainda não houver compras. O arquivamento é permanente."
+        confirmText="Arquivar"
         isDestructive
-        isLoading={isDeleting}
+        isLoading={isArchiving}
       />
     </div>
   )

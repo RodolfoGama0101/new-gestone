@@ -1,5 +1,9 @@
 # Atualização de segurança — 19/10/2026
 
+## Revisão posterior — ROD-126 e ROD-107
+
+A [auditoria complementar](dependencies/2026-10-19/README.md) registra as atualizações compatíveis seguintes, as evidências completas antes/depois, a correção específica de gRPC no Firestore e a automação de manutenção/deploy. A árvore completa passou de 38 para 33 pacotes sinalizados; `--omit=dev`, de 8 para 4. As exceções descritas abaixo são o histórico da ROD-94: a cópia vulnerável de gRPC foi corrigida nesta revisão e OpenTelemetry Core do Firebase CLI foi acrescentado à triagem.
+
 ## ROD-93 — Next.js e React
 
 - Next.js e eslint-config-next: 16.3.3 → 16.4.2, com versões alinhadas e exatas.

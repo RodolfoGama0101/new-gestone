@@ -1,0 +1,29 @@
+name: Verify application
+description: Install the locked dependencies and validate the application before CI or deploy.
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+      with:
+        node-version: 24.15.0
+        cache: npm
+    - run: npm install --global npm@12.0.2
+      shell: bash
+    - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+      with:
+        distribution: temurin
+        java-version: '21'
+    - run: npm ci
+      shell: bash
+    - run: npm run lint
+      shell: bash
+    - run: npm run typecheck
+      shell: bash
+    - run: npm test -- --runInBand
+      shell: bash
+    - run: npm run test:preview-check
+      shell: bash
+    - run: npm run test:rules
+      shell: bash
+    - run: npm run build
+      shell: bash

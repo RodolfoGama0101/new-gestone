@@ -11,7 +11,7 @@ import { Timestamp } from 'firebase/firestore'
 import { toast } from 'sonner'
 
 interface CsvExportButtonProps {
-  filters?: Omit<GetTransactionsFilters, 'lastVisible' | 'limitCount'>
+  filters?: Omit<GetTransactionsFilters, 'lastVisible' | 'limitCount' | 'search'>
   search?: string
   disabled?: boolean
 }
@@ -32,11 +32,7 @@ export function CsvExportButton({ filters = {}, search = '', disabled = false }:
 
     setIsExporting(true)
     try {
-      const allTransactions = await TransactionService.getAll(user.uid, filters)
-      const normalizedSearch = search.trim().toLocaleLowerCase('pt-BR')
-      const transactions = normalizedSearch
-        ? allTransactions.filter((tx) => tx.description.toLocaleLowerCase('pt-BR').includes(normalizedSearch))
-        : allTransactions
+      const transactions = await TransactionService.getAll(user.uid, { ...filters, search })
 
       if (transactions.length === 0) {
       toast.error('Nenhuma transação disponível para exportar.')

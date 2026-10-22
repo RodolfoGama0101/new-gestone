@@ -7,6 +7,7 @@ export interface CreditCard {
   closingDay: number      // Dia do fechamento (1-31)
   color: string           // Cor do cartão (hex/hsl) para visual
   isActive: boolean       // Permite desativar sem deletar
+  archived?: boolean     // Arquivamento permanente preserva referências e faturas
   createdAt: unknown
   updatedAt: unknown
 }
