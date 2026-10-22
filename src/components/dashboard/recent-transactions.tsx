@@ -1,5 +1,7 @@
 'use client'
 
+import { LoadError } from '@/components/shared/load-error'
+
 import * as React from 'react'
 import { useTransactions } from '@/hooks/use-transactions'
 import { useCategories } from '@/hooks/use-categories'
@@ -13,10 +15,10 @@ import Link from 'next/link'
 import { Skeleton } from '@/components/ui/skeleton'
 
 export function RecentTransactions() {
-  const { categories } = useCategories()
+  const { categories, error: categoriesError, refetch: refetchCategories } = useCategories()
 
   // Busca os lançamentos mais recentes
-  const { transactions, isLoading } = useTransactions({ limitCount: 5 })
+  const { transactions, isLoading, error, refetch } = useTransactions({ limitCount: 5 })
 
   const recent = transactions.slice(0, 5)
 
@@ -31,6 +33,8 @@ export function RecentTransactions() {
       format(parseFirestoreDate(dateVal), 'dd/MM'),
     []
   )
+
+  if (error || categoriesError) return <LoadError error={error || categoriesError} retry={() => Promise.all([refetch(), refetchCategories()])} />
 
   if (isLoading) {
     return (

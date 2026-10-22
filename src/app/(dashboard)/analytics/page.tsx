@@ -1,5 +1,7 @@
 'use client'
 
+import { LoadError } from '@/components/shared/load-error'
+
 import * as React from 'react'
 import { useQuery } from '@tanstack/react-query'
 
@@ -30,9 +32,9 @@ const EMPTY_ARRAY: Transaction[] = []
 export default function AnalyticsPage() {
   const { user } = useAuth()
   const userId = user?.uid ?? ''
-  const { categories, isLoading: isCategoriesLoading } = useCategories()
+  const { categories, error: categoriesError, refetch: refetchCategories, isLoading: isCategoriesLoading } = useCategories()
 
-  const { creditCards, isLoading: isCardsLoading } = useCreditCards()
+  const { creditCards, error: cardsError, refetch: refetchCards, isLoading: isCardsLoading } = useCreditCards()
 
   // Quantidade de meses para exibição histórica (padrão: 6 meses)
   const [monthsCount, setMonthsCount] = React.useState(6)
@@ -100,6 +102,9 @@ export default function AnalyticsPage() {
       ))}
     </div>
   )
+
+  const error = transactionsQuery.error || categoriesError || cardsError
+  if (error) return <LoadError error={error} retry={() => Promise.all([transactionsQuery.refetch(), refetchCategories(), refetchCards()])} />
 
   if (isLoading) {
     return (

@@ -63,6 +63,7 @@ export function useCreditCards() {
     creditCards: creditCardsQuery.data ?? [],
     isLoading: creditCardsQuery.isLoading,
     error: creditCardsQuery.error,
+    refetch: creditCardsQuery.refetch,
     createCreditCard: createCardMutation.mutateAsync,
     isCreating: createCardMutation.isPending,
     updateCreditCard: updateCardMutation.mutateAsync,

@@ -141,13 +141,15 @@ export function useTransactions(filters: Omit<GetTransactionsFilters, 'lastVisib
 
   return {
     transactions,
-    isLoading: search !== settledSearch || transactionsQuery.isLoading || transactionsQuery.isFetching,
+    isLoading: search !== settledSearch || transactionsQuery.isLoading,
     hasNextPage,
     hasPreviousPage,
     goToNextPage,
     goToPreviousPage,
     currentPage,
     error: transactionsQuery.error,
+    isFetching: transactionsQuery.isFetching,
+    refetch: transactionsQuery.refetch,
     createTransaction: createMutation.mutateAsync,
     isCreating: createMutation.isPending,
     updateTransaction: updateMutation.mutateAsync,

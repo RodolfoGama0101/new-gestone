@@ -1,5 +1,7 @@
 'use client'
 
+import { LoadError } from '@/components/shared/load-error'
+
 import * as React from 'react'
 import { useCreditCards } from '@/hooks/use-credit-cards'
 import { PageHeader } from '@/components/shared/page-header'
@@ -14,7 +16,7 @@ import { CreditCardBillSummary } from '@/components/credit-cards/credit-card-bil
 import { CreditCard } from '@/types/credit-card'
 
 export default function CreditCardsPage() {
-  const { creditCards, isLoading, archiveCreditCard } = useCreditCards()
+  const { creditCards, isLoading, error, refetch, archiveCreditCard } = useCreditCards()
 
   const [isAddOpen, setIsAddOpen] = React.useState(false)
   const [selectedCardId, setSelectedCardId] = React.useState<string | null>(null)
@@ -36,6 +38,8 @@ export default function CreditCardsPage() {
       setIsArchiving(false)
     }
   }
+
+  if (error) return <LoadError error={error} retry={refetch} />
 
   if (isLoading) {
     return (

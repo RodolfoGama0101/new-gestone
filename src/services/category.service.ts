@@ -4,36 +4,12 @@ import {
   getDocs,
   addDoc,
   updateDoc,
-  writeBatch,
   serverTimestamp,
 } from 'firebase/firestore'
 import { db } from '@/lib/firebase/config'
 import { Category } from '@/types/category'
 
-export const defaultCategories: Omit<Category, 'id' | 'createdAt' | 'updatedAt'>[] = [
-  // Receitas
-  { name: 'Salário', type: 'income', icon: 'Briefcase', color: '#2563eb', isDefault: true },
-  { name: 'Freelance', type: 'income', icon: 'Laptop', color: '#16a34a', isDefault: true },
-  { name: 'Prêmios / Presentes', type: 'income', icon: 'Gift', color: '#ec4899', isDefault: true },
-  { name: 'Outras Receitas', type: 'income', icon: 'Coins', color: '#4b5563', isDefault: true },
-  // Despesas
-  { name: 'Alimentação', type: 'expense', icon: 'Utensils', color: '#dc2626', isDefault: true },
-  { name: 'Supermercado', type: 'expense', icon: 'ShoppingBag', color: '#059669', isDefault: true },
-  { name: 'Transporte', type: 'expense', icon: 'Car', color: '#ea580c', isDefault: true },
-  { name: 'Moradia', type: 'expense', icon: 'Home', color: '#d97706', isDefault: true },
-  { name: 'Saúde', type: 'expense', icon: 'HeartPulse', color: '#0891b2', isDefault: true },
-  { name: 'Educação', type: 'expense', icon: 'GraduationCap', color: '#4f46e5', isDefault: true },
-  { name: 'Lazer', type: 'expense', icon: 'Sparkles', color: '#db2777', isDefault: true },
-  { name: 'Assinaturas / Serviços', type: 'expense', icon: 'Tv', color: '#0284c7', isDefault: true },
-  { name: 'Vestuário', type: 'expense', icon: 'Shirt', color: '#8b5cf6', isDefault: true },
-  { name: 'Outras Despesas', type: 'expense', icon: 'CreditCard', color: '#6b7280', isDefault: true },
-  // Investimentos
-  { name: 'Renda Fixa', type: 'investment', icon: 'Landmark', color: '#2563eb', isDefault: true },
-  { name: 'Renda Variável', type: 'investment', icon: 'TrendingUp', color: '#16a34a', isDefault: true },
-  { name: 'FIIs', type: 'investment', icon: 'Building2', color: '#06b6d4', isDefault: true },
-  { name: 'Cripto', type: 'investment', icon: 'Bitcoin', color: '#f97316', isDefault: true },
-  { name: 'Outros Investimentos', type: 'investment', icon: 'Wallet', color: '#7c3aed', isDefault: true },
-]
+export { defaultCategories } from '@/lib/default-categories'
 
 export const CategoryService = {
   getCollection(userId: string) {
@@ -60,81 +36,15 @@ export const CategoryService = {
       })
     })
 
-    return this.checkAndMigrateCategories(userId, categories)
+    return categories
   },
 
-  async checkAndMigrateCategories(userId: string, categories: Category[]): Promise<Category[]> {
-    if (categories.length === 0) return categories
-
-    const hasInvestments = categories.some((cat) => cat.type === 'investment')
-    if (!hasInvestments) {
-      const batch = writeBatch(db)
-      const colRef = this.getCollection(userId)
-      
-      const oldInvestmentsCat = categories.find(
-        (cat) => cat.name === 'Investimentos' && cat.type === 'income'
-      )
-      
-      const migratedCategories = [...categories]
-
-      if (oldInvestmentsCat) {
-        const catRef = doc(colRef, oldInvestmentsCat.id)
-        batch.update(catRef, {
-          name: 'Outros Investimentos',
-          type: 'investment',
-          icon: 'Wallet',
-          color: '#7c3aed',
-          updatedAt: serverTimestamp(),
-        })
-        
-        const idx = migratedCategories.findIndex((c) => c.id === oldInvestmentsCat.id)
-        if (idx !== -1) {
-          migratedCategories[idx] = {
-            ...migratedCategories[idx],
-            name: 'Outros Investimentos',
-            type: 'investment',
-            icon: 'Wallet',
-            color: '#7c3aed',
-          }
-        }
-      }
-
-      const newCats: Omit<Category, 'id' | 'createdAt' | 'updatedAt'>[] = [
-        { name: 'Renda Fixa', type: 'investment', icon: 'Landmark', color: '#2563eb', isDefault: true },
-        { name: 'Renda Variável', type: 'investment', icon: 'TrendingUp', color: '#16a34a', isDefault: true },
-        { name: 'FIIs', type: 'investment', icon: 'Building2', color: '#06b6d4', isDefault: true },
-        { name: 'Cripto', type: 'investment', icon: 'Bitcoin', color: '#f97316', isDefault: true },
-      ]
-
-      if (!oldInvestmentsCat) {
-        newCats.push({
-          name: 'Outros Investimentos',
-          type: 'investment',
-          icon: 'Wallet',
-          color: '#7c3aed',
-          isDefault: true,
-        })
-      }
-
-      newCats.forEach((cat) => {
-        const newDocRef = doc(colRef)
-        batch.set(newDocRef, {
-          ...cat,
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
-        })
-        migratedCategories.push({
-          id: newDocRef.id,
-          ...cat,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        } as unknown as Category)
-      });
-
-      await batch.commit()
-      return migratedCategories
-    }
-    return categories
+  async initialize(userId: string): Promise<void> {
+    void userId
+    const response = await fetch('/api/categories/initialize', {
+      method: 'POST', credentials: 'same-origin',
+    })
+    if (!response.ok) throw new Error('Não foi possível preparar as categorias.')
   },
 
   async create(userId: string, data: Omit<Category, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
@@ -164,21 +74,6 @@ export const CategoryService = {
   },
 
   async seedDefaultCategories(userId: string): Promise<void> {
-    const existing = await this.getAll(userId)
-    if (existing.length > 0) return
-
-    const batch = writeBatch(db)
-    const colRef = this.getCollection(userId)
-
-    defaultCategories.forEach((cat) => {
-      const newDocRef = doc(colRef)
-      batch.set(newDocRef, {
-        ...cat,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-      })
-    })
-
-    await batch.commit()
+    await this.initialize(userId)
   },
 }

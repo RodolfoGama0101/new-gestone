@@ -2,6 +2,7 @@ import { defineConfig, devices } from '@playwright/test'
 
 export default defineConfig({
   testDir: './tests/e2e',
+  testIgnore: '**/*.production.test.ts',
   fullyParallel: false,
   timeout: 120000,
   forbidOnly: !!process.env.CI,

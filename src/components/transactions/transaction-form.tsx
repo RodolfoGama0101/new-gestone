@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { LoadError } from '@/components/shared/load-error'
 import { useForm, Controller, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
@@ -36,8 +37,8 @@ export function TransactionForm({
   const { user } = useAuth()
   const queryClient = useQueryClient()
   const userId = user?.uid ?? ''
-  const { categories, isLoading: isCategoriesLoading } = useCategories()
-  const { creditCards } = useCreditCards()
+  const { categories, error: categoriesError, refetch: refetchCategories, isLoading: isCategoriesLoading } = useCategories()
+  const { creditCards, error: cardsError, refetch: refetchCards } = useCreditCards()
 
   const isEditMode = !!editingTransaction
 
@@ -159,6 +160,8 @@ export function TransactionForm({
       console.error(error)
     }
   }
+
+  if (categoriesError || cardsError) return <LoadError error={categoriesError || cardsError} retry={() => Promise.all([refetchCategories(), refetchCards()])} />
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">

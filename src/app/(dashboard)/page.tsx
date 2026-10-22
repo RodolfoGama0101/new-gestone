@@ -1,5 +1,7 @@
 'use client'
 
+import { LoadError } from '@/components/shared/load-error'
+
 import * as React from 'react'
 import { useAnalytics } from '@/hooks/use-analytics'
 import { BalanceCard } from '@/components/dashboard/balance-card'
@@ -20,7 +22,7 @@ export default function DashboardPage() {
   const { user } = useAuth()
   const [selectedDate, setSelectedDate] = React.useState(new Date())
 
-  const { summary, isLoading } = useAnalytics(selectedDate)
+  const { summary, isLoading, error, refetch } = useAnalytics(selectedDate)
 
   const handlePrevMonth = () => setSelectedDate(subMonths(selectedDate, 1))
   const handleNextMonth = () => setSelectedDate(addMonths(selectedDate, 1))
@@ -66,6 +68,8 @@ export default function DashboardPage() {
         </Button>
       </div>
     )
+
+  if (error) return <LoadError error={error} retry={refetch} />
 
   return (
     <div className="space-y-7 animate-in fade-in duration-300">
