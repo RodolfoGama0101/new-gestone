@@ -22,8 +22,8 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
   const queryKey = ['preferences', userId]
   const query = useQuery({ queryKey, queryFn: () => PreferencesService.get(userId), enabled: !!userId })
   const mutation = useMutation({
-    mutationFn: (next: ThemePreference) => PreferencesService.save(userId, { theme: next }),
-    onSuccess: (_result, next) => { client.setQueryData(['preferences', userId], { theme: next }) },
+    mutationFn: (next: { userId: string; theme: ThemePreference }) => PreferencesService.save(next.userId, { theme: next.theme }),
+    onSuccess: (_result, next) => { client.setQueryData(['preferences', next.userId], { theme: next.theme }) },
     onError: () => toast.error('Não foi possível salvar o tema. Tente novamente.'),
   })
   useEffect(() => {
@@ -32,7 +32,7 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
 
   const changeTheme = async (next: ThemePreference) => {
     if (!userId) { setTheme(next); return }
-    await mutation.mutateAsync(next)
+    await mutation.mutateAsync({ userId, theme: next })
   }
   return <PreferencesContext.Provider value={{
     theme: userId ? query.data?.theme ?? 'system' : theme ?? 'system',

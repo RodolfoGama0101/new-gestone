@@ -53,3 +53,19 @@ test('troca de usuário carrega a preferência da outra conta', async () => {
   await waitFor(() => expect(result.current.theme).toBe('light'))
   expect(PreferencesService.get).toHaveBeenLastCalledWith('other')
 })
+
+
+test('resposta atrasada de uma gravação não muda o tema de outra conta', async () => {
+  let finish!: () => void
+  jest.mocked(PreferencesService.save).mockImplementationOnce(() => new Promise<void>((resolve) => { finish = resolve }))
+  const { result, rerender } = renderHook(() => usePreferences(), { wrapper: wrapper() })
+  await waitFor(() => expect(result.current.theme).toBe('dark'))
+  let saving!: Promise<void>
+  act(() => { saving = result.current.changeTheme('light') })
+  jest.mocked(useAuth).mockReturnValue({ user: { uid: 'other' } } as never)
+  jest.mocked(PreferencesService.get).mockResolvedValue({ theme: 'system' })
+  rerender()
+  await waitFor(() => expect(result.current.isLoading).toBe(false))
+  await act(async () => { finish(); await saving })
+  expect(result.current.theme).toBe('system')
+})

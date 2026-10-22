@@ -7,3 +7,5 @@ O formatador central em src/lib/utils/format-money.ts usa pt-BR e BRL em telas e
 Tema claro, escuro ou do sistema é salvo em /users/{uid}/preferences/display pelo serviço de preferências. O provedor aplica a configuração ao entrar na conta em outro dispositivo. Sem configuração salva, usa “system”. Deslogado, o seletor mantém apenas a preferência local do navegador. A consulta e a gravação são isoladas por UID; erro de carregamento oferece retry em Configurações e falha ao salvar preserva o tema anterior.
 
 As regras aceitam somente theme e updatedAt no documento display do próprio usuário. Não há novos índices nem migração dos dados financeiros. A exclusão em cascata da conta também remove essas preferências.
+
+A gravação captura o UID no início da operação. Respostas atrasadas atualizam somente o cache desse usuário, mesmo que a conta conectada tenha mudado durante a requisição.
