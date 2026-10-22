@@ -120,3 +120,41 @@ it('não antecipa a ocorrência ao abrir em outro fuso antes da meia-noite da s�
   expect(await TransactionSeriesService.generate('alice', 'zone', new Date('2026-03-31T08:00:00Z'))).toBe(0)
   expect(await TransactionSeriesService.generate('alice', 'zone', new Date('2026-03-31T10:00:00Z'))).toBe(1)
 })
+
+it('retoma parcelas após falha e mantém total e ciclos exatos', async () => {
+  const implementation = jest.mocked(runTransaction).getMockImplementation()!
+  let calls = 0
+  jest.mocked(runTransaction).mockImplementation(async (...args) => {
+    if (++calls === 3) throw new Error('rede')
+    return implementation(...args)
+  })
+  await expect(
+    TransactionSeriesService.create('alice', 'plan', data(), 'installment', 3),
+  ).rejects.toThrow('rede')
+  expect(stored.get('users/alice/transactionSeries/plan')?.nextIndex).toBe(1)
+  await TransactionSeriesService.create(
+    'alice',
+    'plan',
+    data(),
+    'installment',
+    3,
+  )
+  const rows = Array.from(stored)
+    .filter(([key]) => key.includes('/transactions/'))
+    .map(([, value]) => value)
+  expect(rows.reduce((sum, row) => sum + Number(row.amount), 0)).toBe(10000)
+  expect(rows.map((row) => row.installmentMonth)).toEqual([
+    '2026-02',
+    '2026-03',
+    '2026-04',
+  ])
+})
+it('cancela futuras sem apagar parcelas anteriores nem recriar as canceladas', async () => {
+  await TransactionSeriesService.create('alice', 'plan', data(), 'installment', 3)
+  await TransactionSeriesService.cancel('alice', 'plan', new Date(2026, 2, 31))
+  const rows = () => Array.from(stored.keys()).filter(key => key.includes('/transactions/'))
+  expect(rows()).toHaveLength(2)
+  await TransactionSeriesService.generate('alice', 'plan', new Date(2026, 5, 1))
+  expect(rows()).toHaveLength(2)
+  await expect(TransactionSeriesService.cancel('alice', 'plan', new Date(2026, 1, 1))).rejects.toThrow('histórico')
+})

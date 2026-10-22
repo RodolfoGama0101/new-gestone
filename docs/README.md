@@ -30,3 +30,4 @@
 ## Séries e faturas
 
 - [Recorrência mensal](features/transaction-series.md)
+- [Compras parceladas](features/installments.md)

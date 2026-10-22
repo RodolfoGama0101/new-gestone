@@ -46,6 +46,7 @@ export const TransactionRow = React.memo(function TransactionRow({
           </p>
           <div className="text-muted-foreground flex flex-wrap items-center gap-2 text-xs">
             <span>{presentation.label}</span>
+            {tx.installmentTotal && <span>Parcela {(tx.occurrenceIndex ?? 0) + 1}/{tx.installmentTotal}</span>}
             {tx.seriesId && !tx.installmentTotal && <span>Recorrente mensal</span>}
             {showDate && <span>{formatTransactionDate(tx.date, today)}</span>}
             {category && (

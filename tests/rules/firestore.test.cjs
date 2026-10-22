@@ -668,7 +668,7 @@ describe('IDs determinísticos da importação CSV', () => {
   })
 })
 
-describe('séries mensais', () => {
+describe('séries e quitação de faturas', () => {
   const series = () => ({ ...transaction(), kind: 'recurring', count: 1200, nextIndex: 0, timezoneOffset: 180, endDate: null, cancelledFrom: null })
   it('isola séries por UID, preserva âncora e cursor e permite cancelar sem apagar histórico', async () => {
     const path = 'users/owner/transactionSeries/monthly'
@@ -683,6 +683,30 @@ describe('séries mensais', () => {
     await assertSucceeds(updateDoc(doc(owner, path), { cancelledFrom: timestamp }))
     await assertFails(updateDoc(doc(owner, path), { cancelledFrom: null }))
     await assertFails(deleteDoc(doc(owner, path)))
+  })
+  it('valida parcela, limites e referências', async () => {
+    const path = 'users/owner/transactionSeries/installments'
+    await assertFails(setDoc(doc(owner, path), { ...series(), kind: 'installment', count: 3 }))
+    await assertSucceeds(setDoc(doc(owner, path), { ...series(), kind: 'installment', count: 3, creditCardId: 'card' }))
+    await assertFails(updateDoc(doc(owner, path), { amount: 1 }))
+    await assertFails(setDoc(doc(owner, 'users/owner/transactionSeries/bad'), { ...series(), timezoneOffset: 9999 }))
+  })
+
+})
+
+describe('metadados das ocorrências', () => {
+  it('exige série do próprio usuário e preserva vínculo, posição e competência', async () => {
+    const path = 'users/owner/transactions/installment-row'
+    const row = { ...transaction(), creditCardId: 'card', cardClosingDay: 15, seriesId: 'plan', occurrenceIndex: 0, installmentTotal: 3, installmentMonth: '2026-10' }
+    await assertFails(setDoc(doc(owner, path), row))
+    await environment.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), 'users/owner/transactionSeries/plan'), { ...transaction(), kind: 'installment', creditCardId: 'card', count: 3, nextIndex: 1, endDate: null, cancelledFrom: null, timezoneOffset: 180 })
+    })
+    await assertSucceeds(setDoc(doc(owner, path), row))
+    await assertFails(updateDoc(doc(owner, path), { occurrenceIndex: 1 }))
+    await assertFails(updateDoc(doc(owner, path), { installmentMonth: '2026-11' }))
+    await assertFails(updateDoc(doc(owner, path), { seriesId: 'foreign-only' }))
+    await assertSucceeds(updateDoc(doc(owner, path), { description: 'Descrição editada' }))
   })
 })
 

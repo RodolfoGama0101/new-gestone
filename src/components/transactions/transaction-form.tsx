@@ -413,7 +413,7 @@ export function TransactionForm({
         <legend className="px-1 text-sm font-medium">Frequência e parcelamento</legend>
         <label className="block text-sm">Modo do lançamento
           <select aria-label="Modo do lançamento" className="block h-11 w-full rounded-md border bg-background px-2" value={schedule} onChange={e => { setSchedule(e.target.value); seriesRequest.current = '' }}>
-            <option value="single">Avulso</option><option value="recurring">Recorrente mensal</option>
+            <option value="single">Avulso</option><option value="recurring">Recorrente mensal</option><option value="installment">Compra parcelada no cartão</option>
           </select>
         </label>
         {schedule === 'recurring' && <><label className="block text-sm">Repetir até (opcional)<Input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} /></label><p className="text-sm text-muted-foreground">Valor por mês. Ocorrências vencidas são geradas ao abrir o app, até 120 por execução. Gerencie futuras em Séries.</p></>}
