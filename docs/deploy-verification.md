@@ -35,7 +35,7 @@ A verificação cobre login por senha, cookie HttpOnly/Secure/SameSite=Lax sem c
 
 ## Evidências e limites
 
-Em 21/10/2026, o PR #1 publicou até `da91f69`. O [CI remoto](https://github.com/RodolfoGama0101/new-gestone/actions/runs/39697338400) passou: qualidade/build, 125 testes do aplicativo, 122 de regras e oito E2E. O bot Vercel informou [deployment Ready](https://vercel.com/rodolfo-gamas-projects/new-gestone/HLvTwNjcaMDGpYG1LABoUxD1oYbr). O job legado de Firebase Hosting falhou por variáveis públicas vazias; não é o deploy vigente do app.
+Em 21/10/2026, o PR #1 publicou até `da91f69`. O [CI remoto](https://github.com/RodolfoGama0101/new-gestone/actions/runs/39697338400) passou: qualidade/build, 122 testes do aplicativo, 122 de regras e oito E2E. A árvore local tinha 125 testes porque incluía três testes de sessão ainda não commitados e preservados fora do PR. O bot Vercel informou [deployment Ready](https://vercel.com/rodolfo-gamas-projects/new-gestone/HLvTwNjcaMDGpYG1LABoUxD1oYbr). O job legado de Firebase Hosting falhou por variáveis públicas vazias; não é o deploy vigente do app.
 
 Uma requisição anônima ao preview redirecionou ao SSO Vercel. Sem acesso de automação, não foi possível verificar Firebase Admin/sessão no runtime. Nenhuma conta de teste foi criada e nenhuma proteção foi desabilitada. Não houve promoção à `main` ou publicação de regras. A comprovação de PR real do Dependabot depende da configuração na branch padrão.
 
