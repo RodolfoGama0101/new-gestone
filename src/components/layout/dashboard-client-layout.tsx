@@ -31,9 +31,9 @@ export function DashboardClientLayout({ children }: { children: React.ReactNode 
     <div className="min-h-screen bg-background text-foreground transition-colors duration-200">
       <SkipLink />
       <Sidebar />
-      <div className="flex min-h-screen flex-col pb-24 md:pl-52 md:pb-0">
+      <div className="flex min-h-screen flex-col pb-[calc(6rem+env(safe-area-inset-bottom))] md:pl-52 md:pb-0">
         <Header />
-        <main id="main-content" tabIndex={-1} className="mx-auto w-full max-w-7xl flex-1 p-5 sm:p-8">{children}</main>
+        <main id="main-content" tabIndex={-1} className="mx-auto w-full max-w-7xl min-w-0 flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
       </div>
       <BottomNav />
     </div>

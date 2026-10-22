@@ -21,7 +21,7 @@ export function CashFlowBarChart({ data }: CashFlowBarChartProps) {
     <Card className="shadow-xs border-border bg-card h-full hover:shadow-sm transition-all duration-200 rounded-md">
       <CardHeader className="pb-2 pt-4 px-5">
         <CardTitle className="text-sm font-semibold">Fluxo de Caixa</CardTitle>
-        <CardDescription className="text-[10px] text-muted-foreground">Comparativo mensal de receitas vs despesas</CardDescription>
+        <CardDescription className="text-xs text-muted-foreground">Comparativo mensal de receitas vs despesas</CardDescription>
       </CardHeader>
       <CardContent className="h-[280px] pb-4 px-5">
         {data.length === 0 ? (
@@ -59,7 +59,7 @@ export function CashFlowBarChart({ data }: CashFlowBarChartProps) {
                 iconSize={6}
                 formatter={(value) => {
                   const label = value === 'income' ? 'Receitas' : value === 'expense' ? 'Despesas' : 'Investimentos'
-                  return <span className="text-[10px] text-muted-foreground font-medium ml-1 mr-4">{label}</span>
+                  return <span className="text-xs text-muted-foreground font-medium ml-1 mr-4">{label}</span>
                 }}
               />
               <Bar dataKey="income" name="income" fill="var(--income)" radius={[3, 3, 0, 0]} maxBarSize={20} />

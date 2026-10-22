@@ -140,7 +140,7 @@ export default function TransactionsPage() {
         title="Extrato"
         description="Consulte seu histórico completo de lançamentos financeiros."
         action={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <CsvExportButton
               filters={{
                 type: type === 'income' || type === 'expense' || type === 'investment' ? type : undefined,
@@ -190,7 +190,7 @@ export default function TransactionsPage() {
           {sortedDateKeys.map((dateKey) => (
             <div key={dateKey} className="space-y-1.5">
               {/* Cabeçalho do Dia sticky */}
-              <h3 className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider sticky top-[48px] bg-background/85 backdrop-blur-md py-1.5 z-10">
+              <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider sticky top-[48px] bg-background/85 backdrop-blur-md py-1.5 z-10">
                 {formatGroupHeader(dateKey)}
               </h3>
 
@@ -202,7 +202,7 @@ export default function TransactionsPage() {
                     return (
                       <div
                         key={tx.id}
-                        className="flex items-center justify-between px-3.5 py-2.5 gap-4 hover:bg-accent/40 transition-colors group"
+                        className="flex flex-col lg:flex-row lg:items-center justify-between px-4 py-3 gap-3 hover:bg-accent/40 transition-colors group"
                       >
                         <div className="flex items-center gap-3 flex-1 min-w-0">
                           {/* Icon compact squared 28px */}
@@ -218,7 +218,7 @@ export default function TransactionsPage() {
 
                           <div className="min-w-0 flex-1">
                             <div className="flex flex-wrap items-center gap-1.5">
-                              <span className="font-medium text-xs text-foreground leading-tight truncate">
+                              <span className="font-medium text-sm text-foreground leading-relaxed break-words [overflow-wrap:anywhere]">
                                 {tx.description}
                               </span>
                               {cat && (
@@ -226,26 +226,26 @@ export default function TransactionsPage() {
                               )}
                             </div>
                             {tx.notes && (
-                              <p className="text-[10px] text-muted-foreground truncate mt-0.5">
+                              <p className="text-xs text-muted-foreground break-words mt-1">
                                 {tx.notes}
                               </p>
                             )}
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-3 shrink-0">
-                          <span className={`text-xs font-semibold tabular-nums ${
+                        <div className="flex flex-wrap items-center justify-between gap-2 min-w-0">
+                          <span className={`text-sm break-all font-semibold tabular-nums ${
                             isIncome ? 'text-green-700 dark:text-green-500' : 'text-red-700 dark:text-red-500'
                           }`}>
                             {isIncome ? '+' : '−'}
                             {formatMoney(tx.amount)}
                           </span>
 
-                          <div className="flex items-center gap-0.5 opacity-50 group-hover:opacity-100 transition-opacity">
+                          <div className="flex items-center gap-1">
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="size-7 text-muted-foreground hover:text-foreground cursor-pointer rounded-md"
+                              className="size-11 text-muted-foreground hover:text-foreground cursor-pointer rounded-md"
                               onClick={() => setEditingTx(tx)}
                               aria-label={`Editar ${tx.description}`}
                             >
@@ -254,7 +254,7 @@ export default function TransactionsPage() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="size-7 text-muted-foreground hover:text-destructive cursor-pointer rounded-md"
+                              className="size-11 text-muted-foreground hover:text-destructive cursor-pointer rounded-md"
                               onClick={() => setDeletingId(tx.id)}
                               aria-label={`Excluir ${tx.description}`}
                             >
@@ -275,13 +275,13 @@ export default function TransactionsPage() {
 
       {/* A navegação permanece acessível mesmo em páginas sem correspondências. */}
       {(hasNextPage || hasPreviousPage) && (
-        <div className="flex items-center justify-between pt-2 px-1">
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-2 px-1">
           <Button
             variant="outline"
             size="sm"
             disabled={isLoading || !hasPreviousPage}
             onClick={goToPreviousPage}
-            className="gap-1.5 cursor-pointer text-xs h-8"
+            className="gap-1.5 cursor-pointer text-sm min-h-11"
           >
             <ChevronLeft className="size-3.5" />
             Anterior
@@ -294,7 +294,7 @@ export default function TransactionsPage() {
             size="sm"
             disabled={isLoading || !hasNextPage}
             onClick={goToNextPage}
-            className="gap-1.5 cursor-pointer text-xs h-8"
+            className="gap-1.5 cursor-pointer text-sm min-h-11"
           >
             {search.trim() ? 'Continuar busca' : 'Próximo'}
             <ChevronRight className="size-3.5" />

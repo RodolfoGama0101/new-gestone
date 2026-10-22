@@ -70,9 +70,9 @@ export default function CreditCardsPage() {
           icon={CardIcon}
         />
       ) : (
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="grid gap-6 xl:grid-cols-3">
           {/* Coluna da esquerda: Lista de cartões */}
-          <div className="md:col-span-1 space-y-4">
+          <div className="xl:col-span-1 min-w-0 space-y-4">
             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-1">
               Cartões cadastrados ({creditCards.length})
             </h3>
@@ -108,21 +108,21 @@ export default function CreditCardsPage() {
           </div>
 
           {/* Coluna da direita: Detalhes e Fatura do cartão selecionado */}
-          <div className="md:col-span-2 space-y-4">
+          <div className="xl:col-span-2 min-w-0 space-y-4">
             {selectedCard ? (
               <div className="space-y-4 animate-in fade-in duration-200">
-                <div className="flex items-center justify-between border-b border-border/40 pb-3 px-1">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/40 pb-3 px-1">
                   <div>
-                    <h2 className="text-lg font-bold text-foreground">{selectedCard.name}</h2>
+                    <h2 className="break-words text-lg font-bold text-foreground">{selectedCard.name}</h2>
                     <p className="text-xs text-muted-foreground">
                       {selectedCard.bankName} • Titular: {selectedCard.holderName}
                     </p>
                   </div>
-                  {!selectedCard.archived && <div className="flex items-center gap-1.5">
+                  {!selectedCard.archived && <div className="flex flex-wrap items-center gap-1.5">
                     <Button
                       variant="outline"
                       size="sm"
-                      className="gap-1.5 h-8 text-xs cursor-pointer"
+                      className="gap-1.5 min-h-11 text-sm cursor-pointer"
                       onClick={() => setEditingCard(selectedCard)}
                     >
                       <Pencil className="size-3.5" />
@@ -131,7 +131,7 @@ export default function CreditCardsPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="gap-1.5 h-8 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive border-border/60 hover:border-destructive/20 cursor-pointer"
+                      className="gap-1.5 min-h-11 text-sm text-destructive hover:bg-destructive/10 hover:text-destructive border-border/60 hover:border-destructive/20 cursor-pointer"
                       onClick={() => setArchivingId(selectedCard.id)}
                     >
                       <Trash2 className="size-3.5" />

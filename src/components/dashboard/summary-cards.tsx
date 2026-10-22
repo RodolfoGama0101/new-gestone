@@ -44,7 +44,7 @@ export function SummaryCards({
 
   if (isLoading) {
     return (
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 xl:grid-cols-3">
         {[1, 2, 3].map((i) => (
           <Card key={i} className="border-border bg-card shadow-xs rounded-md p-4 h-[102px] flex flex-col justify-between">
             <div className="flex items-center justify-between">
@@ -62,7 +62,7 @@ export function SummaryCards({
   }
 
   return (
-    <div className="grid gap-4 sm:grid-cols-3">
+    <div className="grid gap-4 xl:grid-cols-3">
       {/* Income Card */}
       <Card className="border-border bg-card shadow-xs hover:shadow-sm transition-all duration-200 rounded-md">
         <CardHeader className="pb-1 pt-4 px-5 flex flex-row items-center justify-between space-y-0">
@@ -74,10 +74,10 @@ export function SummaryCards({
           </div>
         </CardHeader>
         <CardContent className="pb-4 px-5">
-          <span className="text-xl sm:text-2xl font-semibold tracking-tight text-green-700 dark:text-green-500">
+          <span className="break-all text-xl sm:text-2xl font-semibold tracking-tight text-green-700 dark:text-green-500">
             {formatBRL(income)}
           </span>
-          <p className="mt-1 text-[11px] text-muted-foreground">
+          <p className="mt-1 text-xs text-muted-foreground">
             {incomeCount} {incomeCount === 1 ? 'recebimento' : 'recebimentos'} · {formatChange(incomeChange)}
           </p>
         </CardContent>
@@ -94,10 +94,10 @@ export function SummaryCards({
           </div>
         </CardHeader>
         <CardContent className="pb-4 px-5">
-          <span className="text-xl sm:text-2xl font-semibold tracking-tight text-red-700 dark:text-red-500">
+          <span className="break-all text-xl sm:text-2xl font-semibold tracking-tight text-red-700 dark:text-red-500">
             {formatBRL(expense)}
           </span>
-          <p className="mt-1 text-[11px] text-muted-foreground">
+          <p className="mt-1 text-xs text-muted-foreground">
             {expenseCount} {expenseCount === 1 ? 'pagamento' : 'pagamentos'} · {formatChange(expenseChange)}
           </p>
         </CardContent>
@@ -114,10 +114,10 @@ export function SummaryCards({
           </div>
         </CardHeader>
         <CardContent className="pb-4 px-5">
-          <span className="text-xl sm:text-2xl font-semibold tracking-tight text-violet-700 dark:text-violet-500">
+          <span className="break-all text-xl sm:text-2xl font-semibold tracking-tight text-violet-700 dark:text-violet-500">
             {formatBRL(investment)}
           </span>
-          <p className="mt-1 text-[11px] text-muted-foreground">
+          <p className="mt-1 text-xs text-muted-foreground">
             {investmentCount} {investmentCount === 1 ? 'aporte' : 'aportes'} · {formatChange(investmentChange)}
           </p>
         </CardContent>

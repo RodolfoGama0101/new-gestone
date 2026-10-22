@@ -46,7 +46,7 @@ export function BottomNav() {
   const isExtraActive = extraItems.some((item) => pathname === item.href)
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-20 flex h-14 items-center justify-around border-t border-border/80 bg-background/90 pb-safe backdrop-blur-md md:hidden" aria-label="Navegação principal">
+    <nav className="fixed bottom-0 left-0 right-0 z-20 flex h-[calc(3.5rem+env(safe-area-inset-bottom))] items-center justify-around border-t border-border/80 bg-background/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden" aria-label="Navegação principal">
       {mainItems.map((item) => {
         const isActive = pathname === item.href
         return (
@@ -55,12 +55,12 @@ export function BottomNav() {
             href={item.href}
               aria-current={isActive ? 'page' : undefined}
             className={cn(
-              'flex flex-1 flex-col items-center justify-center gap-0.5 text-muted-foreground transition-colors relative cursor-pointer h-full',
+              'flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 text-muted-foreground transition-colors relative cursor-pointer h-full',
               isActive && 'text-foreground dark:text-white font-semibold'
             )}
           >
             <item.icon className="size-4 shrink-0" />
-            <span className={cn("text-[11px] font-medium leading-none", isActive && "font-semibold")}>
+            <span className={cn("max-w-full break-all text-xs font-medium leading-tight", isActive && "font-semibold")}>
               {item.label}
             </span>
           </Link>
@@ -72,13 +72,13 @@ export function BottomNav() {
         <SheetTrigger render={
           <button
             className={cn(
-              'flex flex-1 flex-col items-center justify-center gap-0.5 text-muted-foreground transition-colors relative cursor-pointer h-full border-none bg-transparent outline-hidden focus-visible:ring-2 focus-visible:ring-ring',
+              'flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 text-muted-foreground transition-colors relative cursor-pointer h-full border-none bg-transparent outline-hidden focus-visible:ring-2 focus-visible:ring-ring',
               isExtraActive && 'text-foreground dark:text-white'
             )}
             aria-label="Mais opções de navegação"
           >
             <MoreHorizontal className="size-4 shrink-0" />
-            <span className={cn("text-[11px] font-medium leading-none", isExtraActive && "font-semibold")}>
+            <span className={cn("max-w-full break-all text-xs font-medium leading-tight", isExtraActive && "font-semibold")}>
               Mais
             </span>
           </button>

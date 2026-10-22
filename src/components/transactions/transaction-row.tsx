@@ -45,31 +45,31 @@ export const TransactionRow = React.memo(function TransactionRow({
 
   return (
     <div
-      className="flex flex-col sm:flex-row sm:items-center justify-between py-2.5 px-2 gap-4 last:pb-0 first:pt-0 hover:bg-accent/40 rounded-md transition-colors -mx-2"
+      className="flex flex-col lg:flex-row lg:items-center justify-between py-2.5 px-2 gap-4 last:pb-0 first:pt-0 hover:bg-accent/40 rounded-md transition-colors -mx-2"
     >
-      <div className="space-y-0.5 flex-1">
-        <div className="flex items-center gap-2">
-          <span className="font-semibold text-xs sm:text-sm leading-none">
+      <div className="space-y-1 min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="font-semibold text-sm leading-relaxed break-words min-w-0 [overflow-wrap:anywhere]">
             {tx.description}
           </span>
           {cat && <CategoryBadge name={cat.name} color={cat.color} />}
         </div>
-        <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
           <span className="flex items-center gap-1 font-mono">
             <Calendar className="size-3" />
             {formattedDate}
           </span>
           {tx.notes && (
-            <span className="truncate max-w-[200px] text-muted-foreground/80 italic font-normal">
+            <span className="break-words min-w-0 text-muted-foreground italic font-normal">
               • {tx.notes}
             </span>
           )}
         </div>
       </div>
 
-      <div className="flex items-center justify-between sm:justify-end gap-6 shrink-0">
+      <div className="flex items-center justify-between lg:justify-end gap-2 min-w-0 flex-wrap">
         <span
-          className={`text-xs sm:text-sm font-semibold tabular-nums ${
+          className={`text-sm break-all font-semibold tabular-nums ${
             isIncome
               ? 'text-green-700 dark:text-green-500'
               : isInvestment
@@ -84,7 +84,7 @@ export const TransactionRow = React.memo(function TransactionRow({
           <Button
             variant="ghost"
             size="icon"
-            className="size-7 text-muted-foreground hover:text-foreground cursor-pointer rounded-md"
+            className="size-11 text-muted-foreground hover:text-foreground cursor-pointer rounded-md"
             onClick={() => onEdit(tx)}
             aria-label="Editar lançamento"
           >
@@ -93,7 +93,7 @@ export const TransactionRow = React.memo(function TransactionRow({
           <Button
             variant="ghost"
             size="icon"
-            className="size-8 text-muted-foreground hover:text-destructive cursor-pointer rounded-lg"
+            className="size-11 text-muted-foreground hover:text-destructive cursor-pointer rounded-lg"
             onClick={() => onDelete(tx.id)}
             aria-label="Excluir lançamento"
           >

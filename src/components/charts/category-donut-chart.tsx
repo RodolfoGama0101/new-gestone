@@ -25,7 +25,7 @@ export function CategoryDonutChart({ data }: CategoryDonutChartProps) {
     <Card className="shadow-xs border-border bg-card h-full hover:shadow-sm transition-all duration-200 rounded-md">
       <CardHeader className="pb-2 pt-4 px-5">
         <CardTitle className="text-sm font-semibold">Gastos por Categoria</CardTitle>
-        <CardDescription className="text-[10px] text-muted-foreground">Distribuição proporcional das despesas no período</CardDescription>
+        <CardDescription className="text-xs text-muted-foreground">Distribuição proporcional das despesas no período</CardDescription>
       </CardHeader>
       <CardContent className="h-[280px] pb-4 px-5">
         {data.length === 0 ? (
@@ -64,7 +64,7 @@ export function CategoryDonutChart({ data }: CategoryDonutChartProps) {
                   const percent = item && totalValue > 0 ? (item.value / totalValue) * 100 : 0
                   const percentStr = item ? ` (${percent.toFixed(0)}%)` : ''
                   const displayName = value.length > 10 ? `${value.substring(0, 10)}...` : value
-                  return <span className="text-[10px] text-muted-foreground font-medium ml-1 mr-3" title={value}>{displayName}{percentStr}</span>
+                  return <span className="text-xs text-muted-foreground font-medium ml-1 mr-3" title={value}>{displayName}{percentStr}</span>
                 }}
               />
             </PieChart>

@@ -53,22 +53,22 @@ export function TransactionFilters() {
         Filtros de Busca
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid min-w-0 grid-cols-1 gap-4 lg:grid-cols-3 [&>*]:min-w-0 [&_input]:min-w-0">
         {/* Busca Textual */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground/60" />
+          <Search className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input
             aria-label="Buscar por descrição"
             placeholder="Buscar por descrição..."
             value={search}
             onChange={(e) => setSearch(e.target.value || '')}
-            className="pl-9 h-9 text-xs rounded-md bg-background border-border w-full"
+            className="pl-9 min-h-11 w-full min-w-0 text-sm rounded-md bg-background border-border"
           />
         </div>
 
         {/* Tipo */}
         <Select value={type || 'all'} onValueChange={handleTypeChange} items={typeSelectItems}>
-          <SelectTrigger aria-label="Filtrar por tipo" className="h-9 text-xs rounded-md bg-background border-border">
+          <SelectTrigger aria-label="Filtrar por tipo" className="min-h-11 w-full min-w-0 text-sm rounded-md bg-background border-border">
             <SelectValue placeholder="Tipo de lançamento" />
           </SelectTrigger>
           <SelectContent className="rounded-md">
@@ -81,7 +81,7 @@ export function TransactionFilters() {
 
         {/* Categoria */}
         <Select value={categoryId || 'all'} onValueChange={handleCategoryChange} items={categorySelectItems}>
-          <SelectTrigger aria-label="Filtrar por categoria" className="h-9 text-xs rounded-md bg-background border-border">
+          <SelectTrigger aria-label="Filtrar por categoria" className="min-h-11 w-full min-w-0 text-sm rounded-md bg-background border-border">
             <SelectValue placeholder="Categoria" />
           </SelectTrigger>
           <SelectContent className="rounded-md">

@@ -149,7 +149,7 @@ export function TransactionList({
         action={
           <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
             <DialogTrigger render={
-              <Button className="h-8 text-xs rounded-md gap-1.5 cursor-pointer">
+              <Button className="min-h-11 text-sm rounded-md gap-1.5 cursor-pointer">
                 <Plus className="size-3.5" />
                 {addButtonLabel}
               </Button>
@@ -202,13 +202,13 @@ export function TransactionList({
 
       {/* A navegação permanece disponível mesmo após uma página ficar vazia. */}
       {(hasNextPage || hasPreviousPage) && (
-        <div className="flex items-center justify-between pt-2 px-1">
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-2 px-1">
           <Button
             variant="outline"
             size="sm"
             disabled={!hasPreviousPage}
             onClick={goToPreviousPage}
-            className="gap-1.5 cursor-pointer text-xs h-8"
+            className="gap-1.5 cursor-pointer text-sm min-h-11"
           >
             <ChevronLeft className="size-3.5" />
             Anterior
@@ -221,7 +221,7 @@ export function TransactionList({
             size="sm"
             disabled={!hasNextPage}
             onClick={goToNextPage}
-            className="gap-1.5 cursor-pointer text-xs h-8"
+            className="gap-1.5 cursor-pointer text-sm min-h-11"
           >
             Próximo
             <ChevronRight className="size-3.5" />
