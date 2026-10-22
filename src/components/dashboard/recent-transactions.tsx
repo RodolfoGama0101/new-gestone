@@ -1,18 +1,15 @@
 'use client'
 
-import { formatMoney } from '@/lib/utils/format-money'
 import { LoadError } from '@/components/shared/load-error'
 
 import * as React from 'react'
 import { useTransactions } from '@/hooks/use-transactions'
 import { useCategories } from '@/hooks/use-categories'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { CategoryBadge } from '@/components/shared/category-badge'
 import { EmptyState } from '@/components/shared/empty-state'
-import { parseFirestoreDate } from '@/lib/utils/parse-date'
-import { format } from 'date-fns'
-import { ArrowUpRight, ArrowDownRight, Wallet, ArrowRight, Coins } from 'lucide-react'
+import { Wallet, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
+import { TransactionRow } from '@/components/transactions/transaction-row'
 import { Skeleton } from '@/components/ui/skeleton'
 
 export function RecentTransactions() {
@@ -27,12 +24,6 @@ export function RecentTransactions() {
   const categoryMap = React.useMemo(
     () => new Map(categories.map((c) => [c.id, c])),
     [categories]
-  )
-
-  const formatDate = React.useCallback(
-    (dateVal: unknown): string =>
-      format(parseFirestoreDate(dateVal), 'dd/MM'),
-    []
   )
 
   if (error || categoriesError) return <LoadError error={error || categoriesError} retry={() => Promise.all([refetch(), refetchCategories()])} />
@@ -89,61 +80,7 @@ export function RecentTransactions() {
           />
         ) : (
           <div className="divide-y divide-border/60">
-            {recent.map((tx) => {
-              const cat = categoryMap.get(tx.categoryId)
-              const isIncome = tx.type === 'income'
-              const isInvestment = tx.type === 'investment'
-              return (
-                <div
-                  key={tx.id}
-                  className="flex flex-wrap items-center gap-3 py-3 transition-colors cursor-default"
-                >
-                  {/* Icon compact squared 28px */}
-                  <div
-                    className={`size-7 rounded-md flex items-center justify-center shrink-0 border ${
-                      isIncome
-                        ? 'bg-green-100 text-green-700 border-green-200/40 dark:bg-green-1000/20 dark:text-green-500 dark:border-green-800/10'
-                        : isInvestment
-                          ? 'bg-violet-100 text-violet-700 border-violet-200/40 dark:bg-violet-1000/20 dark:text-violet-500 dark:border-violet-800/10'
-                          : 'bg-red-100 text-red-700 border-red-200/40 dark:bg-red-1000/20 dark:text-red-500 dark:border-red-800/10'
-                    }`}
-                  >
-                    {isIncome ? (
-                      <ArrowUpRight className="size-3.5" />
-                    ) : isInvestment ? (
-                      <Coins className="size-3.5" />
-                    ) : (
-                      <ArrowDownRight className="size-3.5" />
-                    )}
-                  </div>
-
-                  {/* Description + Meta */}
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium break-words [overflow-wrap:anywhere] text-foreground leading-tight">
-                      {tx.description}
-                    </p>
-                    <div className="flex flex-wrap items-center gap-1.5 mt-1">
-                      <span className="text-xs font-mono text-muted-foreground">{formatDate(tx.date)}</span>
-                      {cat && <CategoryBadge name={cat.name} color={cat.color} />}
-                    </div>
-                  </div>
-
-                  {/* Amount */}
-                  <span
-                    className={`text-sm break-all font-semibold tabular-nums ${
-                      isIncome 
-                        ? 'text-green-700 dark:text-green-500' 
-                        : isInvestment
-                          ? 'text-violet-700 dark:text-violet-500'
-                          : 'text-red-700 dark:text-red-500'
-                    }`}
-                  >
-                    {isIncome ? '+' : '−'}
-                    {formatMoney(tx.amount)}
-                  </span>
-                </div>
-              )
-            })}
+            {recent.map((tx) => <TransactionRow key={tx.id} transaction={tx} category={categoryMap.get(tx.categoryId)} />)}
           </div>
         )}
       </CardContent>

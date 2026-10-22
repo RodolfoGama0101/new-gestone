@@ -1,105 +1,99 @@
 'use client'
 
-import { formatMoney } from '@/lib/utils/format-money'
-
 import * as React from 'react'
 import { Button } from '@/components/ui/button'
 import { CategoryBadge } from '@/components/shared/category-badge'
-import { Pencil, Trash2, Calendar } from 'lucide-react'
-import { format } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
-import { parseFirestoreDate } from '@/lib/utils/parse-date'
-import { Transaction } from '@/types/transaction'
-import { Category } from '@/types/category'
+import { Pencil, Trash2 } from 'lucide-react'
+import type { Transaction } from '@/types/transaction'
+import type { Category } from '@/types/category'
+import { useCurrentDate } from '@/hooks/use-current-date'
+import {
+  formatTransactionAmount,
+  formatTransactionDate,
+  transactionPresentation,
+} from '@/lib/utils/transaction-presentation'
 
 interface TransactionRowProps {
   transaction: Transaction
   category: Category | undefined
-  onEdit: (tx: Transaction) => void
-  onDelete: (id: string) => void
+  onEdit?: (tx: Transaction) => void
+  onDelete?: (id: string) => void
+  showDate?: boolean
 }
 
-/**
- * Linha individual de uma transação, memoizada com React.memo.
- * Evita re-render de toda a lista quando o estado do modal pai muda
- * (ex: abrir/fechar diálogo de edição ou exclusão).
- */
 export const TransactionRow = React.memo(function TransactionRow({
   transaction: tx,
-  category: cat,
+  category,
   onEdit,
   onDelete,
+  showDate = true,
 }: TransactionRowProps) {
-  const isIncome = tx.type === 'income'
-  const isInvestment = tx.type === 'investment'
-
-  const formattedDate = React.useMemo(
-    () => format(parseFirestoreDate(tx.date), "dd 'de' MMMM, yyyy", { locale: ptBR }),
-    [tx.date]
-  )
-
-  const formattedAmount = React.useMemo(() => {
-    const sign = isIncome ? '+' : '-'
-    return `${sign}${formatMoney(tx.amount)}`
-  }, [tx.amount, isIncome])
+  const today = useCurrentDate()
+  const presentation = transactionPresentation[tx.type]
+  const Icon = presentation.icon
 
   return (
-    <div
-      className="flex flex-col lg:flex-row lg:items-center justify-between py-2.5 px-2 gap-4 last:pb-0 first:pt-0 hover:bg-accent/40 rounded-md transition-colors -mx-2"
-    >
-      <div className="space-y-1 min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="font-semibold text-sm leading-relaxed break-words min-w-0 [overflow-wrap:anywhere]">
+    <div className="flex flex-col gap-3 py-3 lg:flex-row lg:items-center">
+      <div className="flex min-w-0 flex-1 items-start gap-3">
+        <span
+          className={`flex size-8 shrink-0 items-center justify-center rounded-md ${presentation.color} ${presentation.background}`}
+        >
+          <Icon className="size-4" aria-hidden="true" />
+        </span>
+        <div className="min-w-0 flex-1 space-y-1">
+          <p className="text-sm font-medium [overflow-wrap:anywhere] break-words">
             {tx.description}
-          </span>
-          {cat && <CategoryBadge name={cat.name} color={cat.color} />}
-        </div>
-        <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1 font-mono">
-            <Calendar className="size-3" />
-            {formattedDate}
-          </span>
+          </p>
+          <div className="text-muted-foreground flex flex-wrap items-center gap-2 text-xs">
+            <span>{presentation.label}</span>
+            {showDate && <span>{formatTransactionDate(tx.date, today)}</span>}
+            {category && (
+              <CategoryBadge name={category.name} color={category.color} />
+            )}
+          </div>
           {tx.notes && (
-            <span className="break-words min-w-0 text-muted-foreground italic font-normal">
-              • {tx.notes}
-            </span>
+            <p className="text-muted-foreground text-xs [overflow-wrap:anywhere] break-words">
+              {tx.notes}
+            </p>
           )}
         </div>
       </div>
-
-      <div className="flex items-center justify-between lg:justify-end gap-2 min-w-0 flex-wrap">
+      <div className="flex min-w-0 flex-wrap items-center justify-between gap-2 lg:justify-end">
         <span
-          className={`text-sm break-all font-semibold tabular-nums ${
-            isIncome
-              ? 'text-green-700 dark:text-green-500'
-              : isInvestment
-                ? 'text-violet-700 dark:text-violet-500'
-                : 'text-red-700 dark:text-red-500'
-          }`}
+          className={`text-sm font-semibold break-all tabular-nums ${presentation.color}`}
         >
-          {formattedAmount}
+          {formatTransactionAmount(tx.type, tx.amount)}
         </span>
-
-        <div className="flex items-center gap-0.5">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-11 text-muted-foreground hover:text-foreground cursor-pointer rounded-md"
-            onClick={() => onEdit(tx)}
-            aria-label="Editar lançamento"
-          >
-            <Pencil className="size-3.5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-11 text-muted-foreground hover:text-destructive cursor-pointer rounded-lg"
-            onClick={() => onDelete(tx.id)}
-            aria-label="Excluir lançamento"
-          >
-            <Trash2 className="size-3.5" />
-          </Button>
-        </div>
+        {(onEdit || onDelete) && (
+          <div className="flex items-center gap-1">
+            {onEdit && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-11"
+                onClick={() => onEdit(tx)}
+                aria-label={
+                  showDate ? 'Editar lançamento' : `Editar ${tx.description}`
+                }
+              >
+                <Pencil className="size-4" />
+              </Button>
+            )}
+            {onDelete && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="hover:text-destructive size-11"
+                onClick={() => onDelete(tx.id)}
+                aria-label={
+                  showDate ? 'Excluir lançamento' : `Excluir ${tx.description}`
+                }
+              >
+                <Trash2 className="size-4" />
+              </Button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )

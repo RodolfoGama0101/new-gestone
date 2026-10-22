@@ -13,3 +13,5 @@ Capturas verificadas: [claro em 320 px](../audits/2026-10-22/rod-118/light-320.p
 A matriz também cobre a fatura: [captura em 320 px](../audits/2026-10-22/rod-118/invoice-320.png).
 
 Comparação em 320 px: [antes](../audits/2026-10-22/rod-118/before-320.png) e [depois](../audits/2026-10-22/rod-118/light-320.png), com os mesmos dados fictícios.
+
+Após integrar a apresentação compartilhada dos lançamentos e os gráficos acessíveis, painel e relatórios usam colunas que podem encolher abaixo da largura mínima do conteúdo. Os totais dos relatórios podem quebrar linha e seus cartões crescem com o texto, evitando cortes no reflow de 200%.
