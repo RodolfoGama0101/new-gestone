@@ -10,6 +10,10 @@ export interface Transaction {
   recurring: boolean
   creditCardId?: string | null
   cardClosingDay?: number | null // Fechamento registrado na compra; alterações no cartão não reescrevem a competência
+  seriesId?: string | null
+  occurrenceIndex?: number | null
+  installmentTotal?: number | null
+  installmentMonth?: string | null
   createdAt: unknown
   updatedAt: unknown
 }

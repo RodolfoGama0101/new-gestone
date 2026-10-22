@@ -48,6 +48,10 @@ export const TransactionService = {
     const data = docSnap.data()
     return {
       id: docSnap.id,
+      seriesId: data.seriesId ?? null,
+      occurrenceIndex: data.occurrenceIndex ?? null,
+      installmentTotal: data.installmentTotal ?? null,
+      installmentMonth: data.installmentMonth ?? null,
       type: data.type,
       amount: data.amount,
       description: data.description,

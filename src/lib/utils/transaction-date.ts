@@ -8,6 +8,10 @@ export function getTransactionDate(transaction: Transaction, cards: CreditCard[]
   const purchaseDate = parseFirestoreDate(transaction.date)
   if (transaction.type !== 'expense' || !transaction.creditCardId) return purchaseDate
   const closingDay = transaction.cardClosingDay ?? cards.find((card) => card.id === transaction.creditCardId)?.closingDay ?? 10
+  if (transaction.installmentMonth) {
+    const [year, month] = transaction.installmentMonth.split('-').map(Number)
+    return new Date(year, month - 1, Math.min(closingDay, new Date(year, month, 0).getDate()))
+  }
   return getDebitLimitDate(closingDay, purchaseDate)
 }
 

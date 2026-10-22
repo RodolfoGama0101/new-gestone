@@ -10,6 +10,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useCategories } from '@/hooks/use-categories'
 import { useCreditCards } from '@/hooks/use-credit-cards'
 import { useAuth } from '@/contexts/auth-context'
+import { TransactionSeriesService } from '@/services/transaction-series.service'
+import { parsePeriodDate } from '@/lib/utils/transaction-period'
 import { TransactionService } from '@/services/transaction.service'
 import { transactionSchema, type TransactionInput } from '@/lib/validations/transaction.schema'
 import { Button } from '@/components/ui/button'
@@ -45,15 +47,26 @@ export function TransactionForm({
 
   const isEditMode = !!editingTransaction
 
+  const [schedule, setSchedule] = React.useState('single')
+  const [installments, setInstallments] = React.useState('3')
+  const [endDate, setEndDate] = React.useState('')
+  const seriesRequest = React.useRef('')
+
   // Mutations diretas — o form não precisa buscar transações, apenas criar/atualizar
   const createMutation = useMutation({
-    mutationFn: (data: Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'>) =>
-      TransactionService.create(userId, data),
+    mutationFn: async (data: Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'>) => {
+      if (schedule === 'single') return TransactionService.create(userId, data)
+      if (!seriesRequest.current) seriesRequest.current = crypto.randomUUID()
+      const end = endDate ? parsePeriodDate(endDate, true) : undefined
+      if (endDate && !end) throw new Error('Informe uma data final válida.')
+      await TransactionSeriesService.create(userId, seriesRequest.current, data, schedule === 'recurring' ? 'recurring' : 'installment', Number(installments), end)
+      return seriesRequest.current
+    },
     onSuccess: async () => {
       await invalidateTransactionData(queryClient, userId)
       toast.success('Lançamento registrado com sucesso!')
     },
-    onError: () => toast.error('Erro ao registrar lançamento.'),
+    onError: (error: Error) => toast.error(schedule === 'single' ? (error.message || 'Erro ao registrar lançamento.') : 'A série pode ter sido salva parcialmente. Repita sem mudar o modo ou abra Séries e use Gerar pendentes. ' + error.message),
   })
 
   const updateMutation = useMutation({
@@ -396,6 +409,17 @@ export function TransactionForm({
         </div>
       </div>
 
+      {!isEditMode && <fieldset className="space-y-3 rounded-md border p-3" disabled={isLoading}>
+        <legend className="px-1 text-sm font-medium">Frequência e parcelamento</legend>
+        <label className="block text-sm">Modo do lançamento
+          <select aria-label="Modo do lançamento" className="block h-11 w-full rounded-md border bg-background px-2" value={schedule} onChange={e => { setSchedule(e.target.value); seriesRequest.current = '' }}>
+            <option value="single">Avulso</option><option value="recurring">Recorrente mensal</option>
+          </select>
+        </label>
+        {schedule === 'recurring' && <><label className="block text-sm">Repetir até (opcional)<Input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} /></label><p className="text-sm text-muted-foreground">Valor por mês. Ocorrências vencidas são geradas ao abrir o app, até 120 por execução. Gerencie futuras em Séries.</p></>}
+        {schedule === 'installment' && <><label className="block text-sm">Quantidade de parcelas<Input type="number" min={2} max={120} value={installments} onChange={e => setInstallments(e.target.value)} /></label><p className="text-sm text-muted-foreground">Informe o valor total da compra acima e selecione um cartão ativo. O total será distribuído sem perda de centavos nas próximas faturas. Parcelas podem ser editadas individualmente.</p></>}
+      </fieldset>}
+      {editingTransaction?.seriesId && <p className="text-sm text-muted-foreground">Esta edição altera apenas esta ocorrência. Edite ou cancele futuras em Séries.</p>}
       {/* Botões de Ação */}
       <Button type="submit" className="w-full h-11 font-bold rounded-lg text-sm cursor-pointer mt-2" disabled={isLoading}>
         {isLoading ? (

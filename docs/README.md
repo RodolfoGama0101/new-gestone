@@ -26,3 +26,7 @@
 - [Período e cartão no extrato](features/transaction-period.md)
 - [Importação CSV](features/csv-import.md)
 - [Orçamentos e metas](features/budgets.md)
+
+## Séries e faturas
+
+- [Recorrência mensal](features/transaction-series.md)

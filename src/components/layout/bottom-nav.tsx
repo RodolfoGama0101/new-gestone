@@ -34,6 +34,7 @@ const mainItems = [
 const extraItems = [
   { label: 'Receitas', href: '/income', icon: ArrowUpCircle },
   { label: 'Despesas', href: '/expenses', icon: ArrowDownCircle },
+  { label: 'Séries', href: '/series', icon: Coins },
   { label: 'Orçamentos', href: '/budgets', icon: Coins },
   { label: 'Relatórios', href: '/analytics', icon: BarChart3 },
   { label: 'Categorias', href: '/categories', icon: Tag },

@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { SeriesGeneration } from '@/components/transactions/series-generation'
 import { SkipLink } from '@/components/shared/skip-link'
 import { useRouter } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
@@ -33,6 +34,7 @@ export function DashboardClientLayout({ children }: { children: React.ReactNode 
       <Sidebar />
       <div className="flex min-h-screen flex-col pb-[calc(6rem+env(safe-area-inset-bottom))] md:pl-52 md:pb-0">
         <Header />
+        <SeriesGeneration />
         <main id="main-content" tabIndex={-1} className="mx-auto w-full max-w-7xl min-w-0 flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
       </div>
       <BottomNav />

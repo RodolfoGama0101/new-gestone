@@ -58,9 +58,12 @@ service cloud.firestore {
     function isValidTransaction(userId, data) {
       return hasOnlyKeys(data, [
         'type', 'amount', 'description', 'categoryId', 'date', 'tags', 'notes',
-        'recurring', 'creditCardId', 'cardClosingDay', 'createdAt', 'updatedAt'
-      ])
-        && data.type in ['income', 'expense', 'investment']
+        'recurring', 'creditCardId', 'cardClosingDay', 'createdAt', 'updatedAt', 'seriesId', 'occurrenceIndex', 'installmentTotal', 'installmentMonth'
+      ]) && isValidTransactionFields(userId, data);
+    }
+
+    function isValidTransactionFields(userId, data) {
+      return data.type in ['income', 'expense', 'investment']
         && data.amount is int && data.amount > 0 && data.amount <= 9007199254740991
         && data.description is string && data.description.size() >= 3 && data.description.size() <= 200
         && isDocumentId(data.categoryId)
@@ -68,6 +71,11 @@ service cloud.firestore {
         && isValidTags(data.tags)
         && (data.notes == null || (data.notes is string && data.notes.size() <= 500))
         && data.recurring is bool
+        && ((data.get('seriesId', null) == null && data.get('occurrenceIndex', null) == null && data.get('installmentTotal', null) == null && data.get('installmentMonth', null) == null) || (isDocumentId(data.seriesId)
+          && data.occurrenceIndex is int && data.occurrenceIndex >= 0 && data.occurrenceIndex < 1200
+          && ((data.get('installmentTotal', null) == null && data.get('installmentMonth', null) == null) || (data.installmentTotal is int && data.installmentTotal >= 2 && data.installmentTotal <= 120
+            && data.installmentMonth is string && data.installmentMonth.matches('^[0-9]{4}-(0[1-9]|1[0-2])$')))
+          && existsAfter(/databases/$(database)/documents/users/$(userId)/transactionSeries/$(data.seriesId))))
         && (data.get('cardClosingDay', null) == null || (data.type == 'expense'
           && data.get('creditCardId', null) != null && data.cardClosingDay is int
           && data.cardClosingDay >= 1 && data.cardClosingDay <= 31))
@@ -149,6 +157,33 @@ service cloud.firestore {
         }
       }
 
+      match /transactionSeries/{seriesId} {
+        function validSeries(data) {
+          return hasOnlyKeys(data, ['type', 'amount', 'description', 'categoryId', 'date', 'tags', 'notes', 'recurring', 'creditCardId', 'cardClosingDay', 'createdAt', 'updatedAt', 'kind', 'count', 'nextIndex', 'endDate', 'cancelledFrom', 'timezoneOffset'])
+            && isValidTransactionFields(userId, data)
+            && data.kind in ['recurring', 'installment']
+            && data.count is int && data.count >= 2 && data.count <= 1200
+            && (data.kind == 'recurring' || (data.count <= 120 && data.amount >= data.count && data.type == 'expense' && data.creditCardId != null))
+            && data.nextIndex is int && data.nextIndex >= 0 && data.nextIndex <= data.count
+            && data.timezoneOffset is int && data.timezoneOffset >= -840 && data.timezoneOffset <= 840
+            && (data.endDate == null || (data.endDate is timestamp && data.endDate >= data.date))
+            && (data.cancelledFrom == null || data.cancelledFrom is timestamp);
+        }
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && validSeries(request.resource.data) && request.resource.data.nextIndex == 0 && request.resource.data.cancelledFrom == null;
+        // Cancelamento permanece disponível mesmo se a referência ficou indisponível.
+        allow update: if isOwner(userId)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['cancelledFrom', 'updatedAt'])
+          && request.resource.data.cancelledFrom is timestamp && request.resource.data.updatedAt is timestamp
+          && (resource.data.cancelledFrom == null || request.resource.data.cancelledFrom <= resource.data.cancelledFrom);
+        allow update: if isOwner(userId) && validSeries(request.resource.data)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['nextIndex', 'amount', 'description', 'cancelledFrom', 'updatedAt'])
+          && (resource.data.kind == 'recurring' || request.resource.data.amount == resource.data.amount)
+          && request.resource.data.nextIndex >= resource.data.nextIndex && request.resource.data.nextIndex <= resource.data.nextIndex + 1
+          && (resource.data.cancelledFrom == null || request.resource.data.cancelledFrom <= resource.data.cancelledFrom);
+        allow delete: if false;
+      }
+
       match /transactions/{transactionId} {
         allow read, delete: if isOwner(userId);
         allow create: if isOwner(userId) && isValidTransaction(userId, request.resource.data);
@@ -158,7 +193,11 @@ service cloud.firestore {
             || request.resource.data.get('creditCardId', null) != resource.data.get('creditCardId', null)
             || request.resource.data.type != resource.data.type
             || request.resource.data.get('cardClosingDay', null) == resource.data.cardClosingDay)
-          && request.resource.data.createdAt == resource.data.createdAt;
+          && request.resource.data.createdAt == resource.data.createdAt
+          && request.resource.data.get('seriesId', null) == resource.data.get('seriesId', null)
+          && request.resource.data.get('occurrenceIndex', null) == resource.data.get('occurrenceIndex', null)
+          && request.resource.data.get('installmentTotal', null) == resource.data.get('installmentTotal', null)
+          && request.resource.data.get('installmentMonth', null) == resource.data.get('installmentMonth', null);
       }
 
       match /categories/{categoryId} {

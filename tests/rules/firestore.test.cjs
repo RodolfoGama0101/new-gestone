@@ -667,3 +667,30 @@ describe('IDs determinísticos da importação CSV', () => {
     await assertFails(setDoc(doc(anonymous, path), transaction()))
   })
 })
+
+describe('séries mensais', () => {
+  const series = () => ({ ...transaction(), kind: 'recurring', count: 1200, nextIndex: 0, timezoneOffset: 180, endDate: null, cancelledFrom: null })
+  it('isola séries por UID, preserva âncora e cursor e permite cancelar sem apagar histórico', async () => {
+    const path = 'users/owner/transactionSeries/monthly'
+    await assertSucceeds(setDoc(doc(owner, path), series()))
+    await assertFails(getDoc(doc(other, path)))
+    await assertFails(setDoc(doc(other, path), series()))
+    await assertFails(getDoc(doc(anonymous, path)))
+    await assertFails(updateDoc(doc(owner, path), { nextIndex: 2 }))
+    await assertFails(updateDoc(doc(owner, path), { date: new Date() }))
+    await assertSucceeds(updateDoc(doc(owner, path), { nextIndex: 1, updatedAt: timestamp }))
+    await assertFails(updateDoc(doc(owner, path), { nextIndex: 0 }))
+    await assertSucceeds(updateDoc(doc(owner, path), { cancelledFrom: timestamp }))
+    await assertFails(updateDoc(doc(owner, path), { cancelledFrom: null }))
+    await assertFails(deleteDoc(doc(owner, path)))
+  })
+})
+
+test('cancelamento continua disponível se a categoria da série mudou de tipo', async () => {
+  const ref = doc(owner, 'users/owner/transactionSeries/blocked')
+  await setDoc(ref, { ...transaction(), kind: 'recurring', count: 1200, nextIndex: 0, timezoneOffset: 180, endDate: null, cancelledFrom: null })
+  await environment.withSecurityRulesDisabled(async context => {
+    await updateDoc(doc(context.firestore(), 'users/owner/categories/expense'), { type: 'income' })
+  })
+  await assertSucceeds(updateDoc(ref, { cancelledFrom: timestamp, updatedAt: timestamp }))
+})
