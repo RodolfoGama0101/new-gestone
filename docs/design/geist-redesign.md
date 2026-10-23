@@ -11,6 +11,9 @@ A sidebar apresenta a logo seguida pela navegação, sem o avatar decorativo
 “G” nem o bloco “Finanças pessoais / Seu espaço financeiro”, que não
 representavam uma conta ou um espaço selecionável.
 
+No painel, o botão “Novo lançamento” tem 50 px de altura, alinhado à altura
+do seletor de mês em uma linha (controle de 40 px, padding e bordas).
+
 ## Etapas
 
 1. Base visual: tokens dos temas e componentes compartilhados.
