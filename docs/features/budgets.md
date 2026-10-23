@@ -20,3 +20,5 @@ O cadastro de limites usa o Select shadcn compartilhado para categorias ativas d
 Mês de competência usa um seletor mensal construído com Popover e Button shadcn, com navegação por ano, mês selecionado e retorno ao mês atual. O valor continua yyyy-MM, sem conversão UTC.
 
 Validação: lint e tipos aprovados; suíte unitária local aprovada (incluindo navegação mensal e troca de ano). Build e E2E de orçamento aprovados na cópia isolada demo-gestone-e2e, portas 29099/28081/3212. O E2E verifica os dois controles com a mesma altura e a persistência ao alternar competências.
+
+O menu de categoria dos limites abre acima do campo, sem sobrepor a opção selecionada ao gatilho. Ajuste validado com lint, tipos e os quatro testes unitários de orçamento/progresso; E2E não repetido para esta alteração pontual de posicionamento.

@@ -322,7 +322,7 @@ export default function BudgetsPage() {
                       >
                         <SelectValue placeholder="Selecione" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent side="top" alignItemWithTrigger={false}>
                         {categories
                           .filter(
                             (c) =>
