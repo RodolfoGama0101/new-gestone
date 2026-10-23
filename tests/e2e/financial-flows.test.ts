@@ -805,7 +805,7 @@ test('quitação integral e estorno não criam despesa nem mudam indicadores', a
   await db.doc(`users/${uid}/transactions/invoice-purchase`).set({ description: 'Compra para quitar', amount: 10000, type: 'expense', categoryId: category.id, creditCardId: 'paid-card', cardClosingDay: 10, date: Timestamp.fromDate(previous), tags: [], notes: null, recurring: false, createdAt: now, updatedAt: now })
   const before = (await db.collection(`users/${uid}/transactions`).get()).docs.map(d => d.data())
   await page.goto('/credit-cards')
-  await page.getByRole('button', { name: 'Editar', exact: true }).click()
+  await page.getByRole('button', { name: 'Personalizar', exact: true }).click()
   const cardDialog = page.getByRole('dialog')
   await cardDialog.getByLabel('Dia de vencimento (opcional)').fill('20')
   await cardDialog.getByRole('button', { name: 'Salvar Alterações' }).click()

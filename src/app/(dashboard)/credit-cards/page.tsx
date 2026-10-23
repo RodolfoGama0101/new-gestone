@@ -13,6 +13,8 @@ import {
   Loader2,
   Pencil,
   Trash2,
+  Check,
+  Wallet,
 } from 'lucide-react'
 import {
   Dialog,
@@ -111,13 +113,23 @@ export default function CreditCardsPage() {
           initialMonth={invoiceMonth}
         />
       ) : (
-        <div className="grid gap-6 xl:grid-cols-[1.4fr_1fr]">
+        <div className="grid items-start gap-8 xl:grid-cols-[1.4fr_1fr]">
           {/* Coluna da esquerda: Lista de cartões */}
           <div className="min-w-0 space-y-4">
-            <h3 className="text-muted-foreground px-1 text-sm font-medium">
-              Cartões cadastrados ({creditCards.length})
-            </h3>
-            <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,240px),1fr))] items-start gap-4">
+            <div className="flex items-center gap-2">
+              <Wallet
+                className="text-muted-foreground size-4"
+                aria-hidden="true"
+              />
+              <h2 className="text-sm font-medium">Sua carteira</h2>
+              <span className="bg-muted text-muted-foreground rounded-full px-2 py-0.5 text-xs">
+                {creditCards.length}
+              </span>
+            </div>
+            <p className="text-muted-foreground text-sm">
+              Selecione um cartão para acompanhar suas faturas.
+            </p>
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,240px),1fr))] items-start gap-5">
               {creditCards.map((card) => {
                 const isSelected = selectedCard?.id === card.id
                 return (
@@ -127,10 +139,10 @@ export default function CreditCardsPage() {
                     onClick={() => setSelectedCardId(card.id)}
                     aria-pressed={isSelected}
                     aria-label={`Selecionar cartão ${card.name} · ${card.bankName}`}
-                    className={`focus-visible:ring-ring focus-visible:ring-offset-background relative w-full max-w-[400px] min-w-0 cursor-pointer rounded-xl text-left transition-shadow outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
+                    className={`focus-visible:ring-ring focus-visible:ring-offset-background relative w-full max-w-[400px] min-w-0 cursor-pointer rounded-2xl p-1.5 text-left transition-shadow outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
                       isSelected
                         ? 'ring-ring ring-offset-background ring-2 ring-offset-2'
-                        : 'hover:ring-border hover:ring-1'
+                        : 'hover:bg-muted hover:ring-border hover:ring-1'
                     }`}
                   >
                     <CreditCardVisual
@@ -141,11 +153,21 @@ export default function CreditCardsPage() {
                       closingDay={card.closingDay}
                       color={card.color}
                     />
-                    {card.archived && (
-                      <span className="text-muted-foreground mt-2 block text-xs">
-                        Arquivado · histórico disponível
+                    <span className="mt-3 flex items-center justify-between gap-2 px-1 pb-1 text-xs">
+                      <span className="text-muted-foreground">
+                        {card.archived
+                          ? 'Arquivado · histórico disponível'
+                          : card.isActive
+                            ? 'Ativo'
+                            : 'Inativo'}
                       </span>
-                    )}
+                      {isSelected && (
+                        <span className="flex items-center gap-1 font-medium">
+                          <Check className="size-3.5" aria-hidden="true" />
+                          Selecionado
+                        </span>
+                      )}
+                    </span>
                   </button>
                 )
               })}
@@ -153,6 +175,14 @@ export default function CreditCardsPage() {
             {selectedCard && (
               <Card>
                 <CardContent className="space-y-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <h3 className="font-medium [overflow-wrap:anywhere]">
+                      {selectedCard.name}
+                    </h3>
+                    <span className="text-muted-foreground text-xs">
+                      {selectedCard.bankName}
+                    </span>
+                  </div>
                   <div className="border-border flex flex-wrap justify-between gap-3 border-b pb-4 text-sm">
                     <span className="text-muted-foreground">Fechamento</span>
                     <span>Dia {selectedCard.closingDay}</span>
@@ -172,7 +202,7 @@ export default function CreditCardsPage() {
                         onClick={() => setEditingCard(selectedCard)}
                       >
                         <Pencil className="size-4" />
-                        Editar
+                        Personalizar
                       </Button>
                       <Button
                         variant="outline"
@@ -189,7 +219,7 @@ export default function CreditCardsPage() {
           </div>
 
           {/* Coluna da direita: Detalhes e Fatura do cartão selecionado */}
-          <div className="min-w-0 space-y-4">
+          <div className="min-w-0 space-y-4 xl:sticky xl:top-6">
             {selectedCard ? (
               <div className="animate-in fade-in space-y-4 duration-200">
                 <CreditCardBillSummary
@@ -211,12 +241,11 @@ export default function CreditCardsPage() {
 
       {/* Modal - Adicionar Cartão */}
       <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-        <DialogContent className="sm:max-w-[450px] md:max-w-[500px]">
+        <DialogContent className="sm:max-w-[600px] lg:max-w-[880px]">
           <DialogHeader>
             <DialogTitle>Novo Cartão de Crédito</DialogTitle>
             <DialogDescription>
-              Cadastre um cartão para organizar suas despesas futuras e ciclos
-              de fatura.
+              Escolha o visual e cadastre os dados para organizar suas faturas.
             </DialogDescription>
           </DialogHeader>
           <CreditCardForm onSuccess={() => setIsAddOpen(false)} />
@@ -228,11 +257,11 @@ export default function CreditCardsPage() {
         open={editingCard !== null}
         onOpenChange={(open) => !open && setEditingCard(null)}
       >
-        <DialogContent className="sm:max-w-[450px] md:max-w-[500px]">
+        <DialogContent className="sm:max-w-[600px] lg:max-w-[880px]">
           <DialogHeader>
             <DialogTitle>Editar Cartão de Crédito</DialogTitle>
             <DialogDescription>
-              Altere as propriedades do cartão selecionado.
+              Personalize a aparência e atualize os dados do seu cartão.
             </DialogDescription>
           </DialogHeader>
           {editingCard && (

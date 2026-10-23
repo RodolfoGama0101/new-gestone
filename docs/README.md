@@ -7,6 +7,8 @@
 
 ## Funcionalidades
 
+- [Aparência e personalização dos cartões](features/card-personalization.md)
+
 - [Apresentação dos lançamentos](features/transaction-presentation.md)
 - [Dados textuais dos gráficos](features/chart-data.md)
 

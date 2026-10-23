@@ -1,7 +1,8 @@
 'use client'
 
-import * as React from 'react'
-import { CreditCard as CardIcon } from 'lucide-react'
+import { CreditCard as CardIcon, Wifi } from 'lucide-react'
+import { cardAppearance } from '@/lib/utils/card-appearance'
+import { cn } from '@/lib/utils'
 
 interface CreditCardVisualProps {
   name: string
@@ -9,9 +10,27 @@ interface CreditCardVisualProps {
   brand: 'visa' | 'mastercard' | 'elo' | 'other'
   holderName: string
   closingDay: number
-  color: string // Hex or HSL
+  color: string
   className?: string
   compact?: boolean
+}
+
+function CardBrand({ brand }: Pick<CreditCardVisualProps, 'brand'>) {
+  if (brand === 'mastercard') {
+    return (
+      <span role="img" aria-label="Mastercard" className="flex -space-x-2">
+        <span className="size-7 rounded-full bg-[#eb001b]" />
+        <span className="size-7 rounded-full bg-[#ff9900] opacity-90" />
+      </span>
+    )
+  }
+  if (brand === 'other')
+    return <CardIcon className="size-6" aria-label="Outra bandeira" />
+  return (
+    <span className="text-2xl font-semibold tracking-tighter italic">
+      {brand === 'visa' ? 'VISA' : 'elo'}
+    </span>
+  )
 }
 
 export function CreditCardVisual({
@@ -24,50 +43,26 @@ export function CreditCardVisual({
   className,
   compact = false,
 }: CreditCardVisualProps) {
-  // Renderiza a bandeira do cartão em SVG ou texto
-  const renderBrandLogo = () => {
-    switch (brand) {
-      case 'visa':
-        return (
-          <span className="text-base leading-none font-medium tracking-wider text-white italic select-none">
-            VISA
-          </span>
-        )
-      case 'mastercard':
-        return (
-          <div className="flex items-center -space-x-1 select-none">
-            <div className="size-3.5 rounded-full bg-[#eb001b]" />
-            <div className="size-3.5 rounded-full bg-[#ff5f00] opacity-80" />
-          </div>
-        )
-      case 'elo':
-        return (
-          <span className="rounded-xs border border-white/60 px-1 py-0.5 text-xs leading-none font-medium tracking-tighter text-white italic select-none">
-            elo
-          </span>
-        )
-      default:
-        return <CardIcon className="size-3.5 text-white" />
-    }
-  }
+  const appearance = cardAppearance(color)
 
   if (compact) {
     return (
-      <div className="flex max-w-full min-w-0 shrink-0 items-center gap-3 rounded-lg border border-white/15 bg-[#111111] px-3 py-2 text-xs text-white">
-        <div className="flex size-6.5 shrink-0 items-center justify-center rounded-sm border border-white/5 bg-white/10">
-          {renderBrandLogo()}
-        </div>
+      <div
+        style={{
+          backgroundColor: appearance.color,
+          color: appearance.foreground,
+        }}
+        className={cn(
+          'flex max-w-full min-w-0 items-center gap-3 rounded-lg border border-black/10 px-3 py-2 text-xs',
+          className,
+        )}
+      >
+        <CardIcon className="size-5 shrink-0" aria-hidden="true" />
         <div className="min-w-0 flex-1">
-          <p className="truncate leading-tight font-semibold text-white">
-            {name}
-          </p>
-          <p className="mt-0.5 truncate text-xs leading-none text-white">
-            {bankName}
-          </p>
+          <p className="truncate font-semibold">{name}</p>
+          <p className="mt-0.5 truncate">{bankName}</p>
         </div>
-        <span className="rounded-full bg-black/20 px-1.5 py-0.5 text-xs font-medium text-white select-none">
-          D{closingDay}
-        </span>
+        <span className="shrink-0">Fecha dia {closingDay}</span>
       </div>
     )
   }
@@ -75,20 +70,63 @@ export function CreditCardVisual({
   return (
     <div
       data-slot="credit-card-visual"
-      style={{ borderTopColor: color }}
-      className={`flex min-h-48 w-full max-w-[400px] min-w-0 flex-col justify-between gap-5 overflow-hidden rounded-xl border border-t-[3px] border-white/15 bg-[#111111] p-5 [overflow-wrap:anywhere] text-white ${className ?? ''}`}
+      style={{
+        backgroundColor: appearance.color,
+        color: appearance.foreground,
+        backgroundImage: appearance.backgroundImage,
+      }}
+      className={cn(
+        'relative isolate flex min-h-52 w-full max-w-[400px] min-w-0 flex-col justify-between gap-4 overflow-hidden rounded-2xl border border-black/10 p-5 text-left [overflow-wrap:anywhere] shadow-[inset_0_1px_0_#ffffff30,0_8px_20px_-12px_#00000060] sm:min-h-56 sm:p-6',
+        className,
+      )}
     >
-      <div className="flex items-center justify-between gap-3">
-        <span className="min-w-0 text-xs text-white/70">{name}</span>
-        <CardIcon className="size-4 shrink-0" aria-hidden="true" />
+      <div
+        aria-hidden="true"
+        style={{
+          borderColor:
+            appearance.foreground === '#ffffff' ? '#000000' : '#ffffff',
+        }}
+        className="pointer-events-none absolute -top-24 -right-16 -z-10 size-72 rounded-full border-[32px] border-current opacity-[0.04]"
+      />
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-lg leading-tight font-semibold tracking-tight">
+            {bankName}
+          </p>
+          <p className="mt-1 text-xs">{name}</p>
+        </div>
+        <Wifi className="mt-1 size-5 shrink-0 rotate-90" aria-hidden="true" />
       </div>
-      <div>
-        <p className="text-xl font-medium">{bankName}</p>
-        <p className="mt-1 text-xs text-white/70">{holderName}</p>
+      <div className="flex items-center gap-3" aria-hidden="true">
+        <svg viewBox="0 0 44 34" className="h-8 w-11 shrink-0" fill="none">
+          <rect
+            x=".5"
+            y=".5"
+            width="43"
+            height="33"
+            rx="7"
+            fill="#d8c49a"
+            stroke="#00000030"
+          />
+          <path
+            d="M15 0v10L9 17l6 7v10M29 0v10l6 7-6 7v10M0 11h15m14 0h15M0 23h15m14 0h15M15 10h14v14H15z"
+            stroke="#66512d"
+            strokeOpacity=".55"
+          />
+        </svg>
       </div>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <span className="text-xs">Fechamento · Dia {closingDay}</span>
-        {renderBrandLogo()}
+      <div className="flex items-end justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[10px] font-medium tracking-widest uppercase">
+            Titular
+          </p>
+          <p className="mt-1 text-xs font-medium tracking-wider uppercase">
+            {holderName}
+          </p>
+        </div>
+        <div className="shrink-0">
+          <CardBrand brand={brand} />
+        </div>
       </div>
     </div>
   )

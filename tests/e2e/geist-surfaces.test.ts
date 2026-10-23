@@ -202,9 +202,9 @@ test('superfícies Geist preservam conteúdo e reflow nos dois temas', async ({
         if (route === '/credit-cards') {
           const cards = page.locator('[data-slot="credit-card-visual"]')
           await expect(cards).toHaveCount(2)
-          for (const card of await cards.all()) {
+          for (const [index, card] of (await cards.all()).entries()) {
             expect((await card.boundingBox())!.width).toBeLessThanOrEqual(400)
-            await expect(card).toHaveCSS('background-color', 'rgb(17, 17, 17)')
+            await expect(card).toHaveCSS('background-color', index === 0 ? 'rgb(23, 23, 23)' : 'rgb(130, 10, 209)')
           }
           const other = page.getByRole('button', { name: 'Selecionar cartão Cartão de revisão · Outro banco', exact: true })
           await other.click()

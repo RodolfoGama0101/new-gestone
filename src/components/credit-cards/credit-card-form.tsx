@@ -8,27 +8,39 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { CreditCardService } from '@/services/credit-card.service'
 import { useAuth } from '@/contexts/auth-context'
-import { creditCardSchema, type CreditCardInput } from '@/lib/validations/credit-card.schema'
+import {
+  creditCardSchema,
+  type CreditCardInput,
+} from '@/lib/validations/credit-card.schema'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { CreditCardVisual } from '@/components/credit-cards/credit-card-visual'
 import { CreditCard } from '@/types/credit-card'
+import { cardAppearance } from '@/lib/utils/card-appearance'
 import { Check, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 const PRESET_COLORS = [
-  '#820ad1', // Nubank Roxo
-  '#004b87', // Itaú Azul
-  '#ff7a00', // Inter Laranja
-  '#dc2626', // Bradesco Vermelho
-  '#18181b', // Grafite Escuro
-  '#d97706', // Ouro / Gold
-  '#0d9488', // Verde Menta / Teal
-  '#4f46e5', // Azul Royal / Indigo
-  '#0284c7', // Sky Blue
-  '#7c7c82', // Platina / Cinza
+  { value: '#18181b', label: 'Grafite' },
+  { value: '#820ad1', label: 'Roxo' },
+  { value: '#004b87', label: 'Azul profundo' },
+  { value: '#4f46e5', label: 'Índigo' },
+  { value: '#0284c7', label: 'Azul céu' },
+  { value: '#0d9488', label: 'Verde petróleo' },
+  { value: '#166534', label: 'Verde floresta' },
+  { value: '#dc2626', label: 'Vermelho' },
+  { value: '#be185d', label: 'Rosa' },
+  { value: '#ff7a00', label: 'Laranja' },
+  { value: '#d4b877', label: 'Champanhe' },
+  { value: '#e2e8f0', label: 'Platina' },
 ]
 
 interface CreditCardFormProps {
@@ -36,7 +48,10 @@ interface CreditCardFormProps {
   editingCard?: CreditCard
 }
 
-export function CreditCardForm({ onSuccess, editingCard }: CreditCardFormProps) {
+export function CreditCardForm({
+  onSuccess,
+  editingCard,
+}: CreditCardFormProps) {
   const { user } = useAuth()
   const queryClient = useQueryClient()
   const userId = user?.uid ?? ''
@@ -54,7 +69,10 @@ export function CreditCardForm({ onSuccess, editingCard }: CreditCardFormProps) 
   })
 
   const updateMutation = useMutation({
-    mutationFn: ({ cardId, data }: {
+    mutationFn: ({
+      cardId,
+      data,
+    }: {
       cardId: string
       data: Partial<Omit<CreditCard, 'id' | 'createdAt' | 'updatedAt'>>
     }) => CreditCardService.update(userId, cardId, data),
@@ -89,7 +107,14 @@ export function CreditCardForm({ onSuccess, editingCard }: CreditCardFormProps) 
   })
 
   // Assistir os campos para o live preview
-  const [watchName, watchBankName, watchBrand, watchHolderName, watchClosingDay, watchColor] = useWatch({
+  const [
+    watchName,
+    watchBankName,
+    watchBrand,
+    watchHolderName,
+    watchClosingDay,
+    watchColor,
+  ] = useWatch({
     control,
     name: ['name', 'bankName', 'brand', 'holderName', 'closingDay', 'color'],
   })
@@ -111,10 +136,21 @@ export function CreditCardForm({ onSuccess, editingCard }: CreditCardFormProps) 
   }
 
   return (
-    <form aria-busy={isLoading} onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-6 pt-2">
+    <form
+      aria-busy={isLoading}
+      onSubmit={handleSubmit(onSubmit)}
+      noValidate
+      className="grid min-w-0 gap-6 pt-2 lg:grid-cols-[0.95fr_1.05fr]"
+    >
       {/* Live Preview */}
-      <div className="flex justify-center bg-muted/20 p-4 rounded-xl border border-border/40">
-        <div className="w-full max-w-[280px]">
+      <div className="bg-muted/30 min-w-0 space-y-6 rounded-xl border p-4 sm:p-5 lg:self-start">
+        <div className="space-y-1">
+          <h3 className="text-sm font-medium">Seu cartão, do seu jeito</h3>
+          <p className="text-muted-foreground text-xs">
+            Veja as alterações enquanto personaliza.
+          </p>
+        </div>
+        <div className="mx-auto w-full max-w-[400px]">
           <CreditCardVisual
             name={watchName || 'Nome do Cartão'}
             bankName={watchBankName || 'Banco'}
@@ -124,20 +160,105 @@ export function CreditCardForm({ onSuccess, editingCard }: CreditCardFormProps) 
             color={watchColor}
           />
         </div>
+        <fieldset disabled={isLoading} className="min-w-0 space-y-3">
+          <legend className="mb-3 text-sm font-medium">Cor do cartão</legend>
+          <div className="grid grid-cols-6 gap-2">
+            {PRESET_COLORS.map(({ value, label }) => (
+              <button
+                key={value}
+                type="button"
+                title={label}
+                onClick={() =>
+                  setValue('color', value, {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  })
+                }
+                aria-label={`Cor ${label}`}
+                aria-pressed={watchColor?.toLowerCase() === value}
+                className="focus-visible:ring-ring flex aspect-square min-h-9 w-full cursor-pointer items-center justify-center rounded-lg border border-black/10 transition-transform outline-none hover:scale-105 focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed motion-reduce:transition-none"
+                style={{
+                  backgroundColor: value,
+                  color: cardAppearance(value).foreground,
+                }}
+              >
+                {watchColor?.toLowerCase() === value && (
+                  <Check className="size-4" />
+                )}
+              </button>
+            ))}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="customCardColor">Cor personalizada</Label>
+            <div className="flex min-w-0 items-center gap-2">
+              <input
+                id="customCardColor"
+                type="color"
+                value={cardAppearance(watchColor).color}
+                onChange={(event) =>
+                  setValue('color', event.target.value, {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  })
+                }
+                className="bg-background focus-visible:outline-ring h-10 w-12 shrink-0 cursor-pointer rounded-md border p-1 focus-visible:outline-2"
+              />
+              <div className="min-w-0 flex-1">
+                <Label htmlFor="cardColorHex" className="sr-only">
+                  Código hexadecimal da cor
+                </Label>
+                <Input
+                  id="cardColorHex"
+                  placeholder="#820ad1"
+                  maxLength={7}
+                  {...fieldErrorProps('color', errors.color)}
+                  {...register('color')}
+                  className="font-mono uppercase"
+                />
+              </div>
+            </div>
+            <p className="text-muted-foreground text-xs">
+              Escolha uma cor ou informe seu código hexadecimal. O texto se
+              adapta para manter a leitura.
+            </p>
+            {errors.color && (
+              <p
+                id="color-error"
+                role="alert"
+                className="text-destructive text-xs"
+              >
+                {errors.color.message}
+              </p>
+            )}
+          </div>
+        </fieldset>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 lg:content-start">
+        <div className="space-y-1 sm:col-span-2">
+          <h3 className="text-sm font-medium">Dados do cartão</h3>
+          <p className="text-muted-foreground text-xs">
+            Identifique o cartão e organize o ciclo da fatura.
+          </p>
+        </div>
         {/* Nome do Cartão */}
         <div className="space-y-1.5">
           <Label htmlFor="name">Apelido do Cartão</Label>
           <Input
-            id="name" {...fieldErrorProps('name', errors.name)}
+            id="name"
+            {...fieldErrorProps('name', errors.name)}
             placeholder="Ex: Nubank, Azul Platinum"
             disabled={isLoading}
             {...register('name')}
           />
           {errors.name && (
-            <p id="name-error" role="alert" className="text-xs font-medium text-destructive">{errors.name.message}</p>
+            <p
+              id="name-error"
+              role="alert"
+              className="text-destructive text-xs font-medium"
+            >
+              {errors.name.message}
+            </p>
           )}
         </div>
 
@@ -145,13 +266,20 @@ export function CreditCardForm({ onSuccess, editingCard }: CreditCardFormProps) 
         <div className="space-y-1.5">
           <Label htmlFor="bankName">Nome do Banco</Label>
           <Input
-            id="bankName" {...fieldErrorProps('bankName', errors.bankName)}
+            id="bankName"
+            {...fieldErrorProps('bankName', errors.bankName)}
             placeholder="Ex: Itaú, Nubank, Bradesco"
             disabled={isLoading}
             {...register('bankName')}
           />
           {errors.bankName && (
-            <p id="bankName-error" role="alert" className="text-xs font-medium text-destructive">{errors.bankName.message}</p>
+            <p
+              id="bankName-error"
+              role="alert"
+              className="text-destructive text-xs font-medium"
+            >
+              {errors.bankName.message}
+            </p>
           )}
         </div>
 
@@ -159,13 +287,20 @@ export function CreditCardForm({ onSuccess, editingCard }: CreditCardFormProps) 
         <div className="space-y-1.5">
           <Label htmlFor="holderName">Nome do Titular</Label>
           <Input
-            id="holderName" {...fieldErrorProps('holderName', errors.holderName)}
+            id="holderName"
+            {...fieldErrorProps('holderName', errors.holderName)}
             placeholder="Ex: RODOLFO GAMA"
             disabled={isLoading}
             {...register('holderName')}
           />
           {errors.holderName && (
-            <p id="holderName-error" role="alert" className="text-xs font-medium text-destructive">{errors.holderName.message}</p>
+            <p
+              id="holderName-error"
+              role="alert"
+              className="text-destructive text-xs font-medium"
+            >
+              {errors.holderName.message}
+            </p>
           )}
         </div>
 
@@ -187,7 +322,11 @@ export function CreditCardForm({ onSuccess, editingCard }: CreditCardFormProps) 
                   { value: 'other', label: 'Outro' },
                 ]}
               >
-                <SelectTrigger id="brand" {...fieldErrorProps('brand', errors.brand)} className="w-full h-10 rounded-lg">
+                <SelectTrigger
+                  id="brand"
+                  {...fieldErrorProps('brand', errors.brand)}
+                  className="h-10 w-full rounded-lg"
+                >
                   <SelectValue placeholder="Selecione a bandeira" />
                 </SelectTrigger>
                 <SelectContent>
@@ -200,16 +339,29 @@ export function CreditCardForm({ onSuccess, editingCard }: CreditCardFormProps) 
             )}
           />
           {errors.brand && (
-            <p id="brand-error" role="alert" className="text-xs font-medium text-destructive">{errors.brand.message}</p>
+            <p
+              id="brand-error"
+              role="alert"
+              className="text-destructive text-xs font-medium"
+            >
+              {errors.brand.message}
+            </p>
           )}
         </div>
 
         {/* Dia de Fechamento */}
         <div className="space-y-1.5">
           <Label htmlFor="closingDay">Dia de Fechamento (1-31)</Label>
-          {editingCard && <p className="text-xs text-muted-foreground">Novas compras registram este fechamento. Compras antigas sem fechamento registrado usam a configuração atual e podem mudar de fatura ao alterá-la.</p>}
+          {editingCard && (
+            <p className="text-muted-foreground text-xs">
+              Novas compras registram este fechamento. Compras antigas sem
+              fechamento registrado usam a configuração atual e podem mudar de
+              fatura ao alterá-la.
+            </p>
+          )}
           <Input
-            id="closingDay" {...fieldErrorProps('closingDay', errors.closingDay)}
+            id="closingDay"
+            {...fieldErrorProps('closingDay', errors.closingDay)}
             type="number"
             min={1}
             max={31}
@@ -221,19 +373,49 @@ export function CreditCardForm({ onSuccess, editingCard }: CreditCardFormProps) 
             value={watchClosingDay}
           />
           {errors.closingDay && (
-            <p id="closingDay-error" role="alert" className="text-xs font-medium text-destructive">{errors.closingDay.message}</p>
+            <p
+              id="closingDay-error"
+              role="alert"
+              className="text-destructive text-xs font-medium"
+            >
+              {errors.closingDay.message}
+            </p>
           )}
         </div>
 
         <div className="space-y-1.5">
           <Label htmlFor="dueDay">Dia de vencimento (opcional)</Label>
-          <Controller name="dueDay" control={control} render={({ field }) => (
-            <Input id="dueDay" type="number" min={1} max={31} value={field.value ?? ''}
-              onChange={e => field.onChange(e.target.value ? Number(e.target.value) : null)}
-              disabled={isLoading} {...fieldErrorProps('dueDay', errors.dueDay)} />
-          )} />
-          {errors.dueDay && <p id="dueDay-error" role="alert" className="text-sm text-destructive">Informe um dia de 1 a 31.</p>}
-          <p className="text-sm text-muted-foreground">Se o vencimento for igual ou anterior ao fechamento, vence no mês seguinte. Meses curtos usam o último dia.</p>
+          <Controller
+            name="dueDay"
+            control={control}
+            render={({ field }) => (
+              <Input
+                id="dueDay"
+                type="number"
+                min={1}
+                max={31}
+                value={field.value ?? ''}
+                onChange={(e) =>
+                  field.onChange(e.target.value ? Number(e.target.value) : null)
+                }
+                disabled={isLoading}
+                {...fieldErrorProps('dueDay', errors.dueDay)}
+              />
+            )}
+          />
+          {errors.dueDay && (
+            <p
+              id="dueDay-error"
+              role="alert"
+              className="text-destructive text-sm"
+            >
+              Informe um dia de 1 a 31.
+            </p>
+          )}
+          <p className="text-muted-foreground text-sm">
+            Se o vencimento for igual ou anterior ao fechamento, vence no mês
+            seguinte. Meses curtos usam o último dia.
+          </p>
         </div>
         {/* Status (Ativo/Inativo) - apenas no edit */}
         {isEditMode && (
@@ -252,7 +434,11 @@ export function CreditCardForm({ onSuccess, editingCard }: CreditCardFormProps) 
                     { value: 'false', label: 'Inativo' },
                   ]}
                 >
-                  <SelectTrigger id="isActive" {...fieldErrorProps('isActive', errors.isActive)} className="w-full h-10 rounded-lg">
+                  <SelectTrigger
+                    id="isActive"
+                    {...fieldErrorProps('isActive', errors.isActive)}
+                    className="h-10 w-full rounded-lg"
+                  >
                     <SelectValue placeholder="Selecione o status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -264,31 +450,9 @@ export function CreditCardForm({ onSuccess, editingCard }: CreditCardFormProps) 
             />
           </div>
         )}
-
-        {/* Seletor de Cores */}
-        <div className="space-y-2 md:col-span-2">
-          <Label>Cor do Cartão</Label>
-          <div role="group" aria-label="Cor do cartão" className="grid grid-cols-5 gap-y-3 justify-items-center">
-            {PRESET_COLORS.map((color) => (
-              <button
-                key={color}
-                type="button"
-                onClick={() => setValue('color', color)}
-                aria-label={`Selecionar cor ${color}`}
-                aria-pressed={watchColor === color}
-                className="size-9 rounded-full border border-border flex items-center justify-center cursor-pointer transition-transform hover:scale-105 active:scale-95 animate-transition"
-                style={{ backgroundColor: color }}
-              >
-                {watchColor === color && (
-                  <Check className="size-4 text-white" />
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
       </div>
 
-      <div className="flex justify-end gap-2 pt-4 border-t border-border mt-6">
+      <div className="border-border flex flex-wrap justify-end gap-2 border-t pt-4 lg:col-span-2">
         <Button
           type="button"
           variant="outline"
@@ -312,7 +476,9 @@ export function CreditCardForm({ onSuccess, editingCard }: CreditCardFormProps) 
           )}
         </Button>
       </div>
-    <p role="status" className="sr-only">{isLoading ? 'Salvando cartão…' : ''}</p>
+      <p role="status" className="sr-only">
+        {isLoading ? 'Salvando cartão…' : ''}
+      </p>
     </form>
   )
 }
