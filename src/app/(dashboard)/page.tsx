@@ -75,7 +75,7 @@ export default function DashboardPage() {
             {monthSelector}
             <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
               <DialogTrigger
-                render={<Button className="h-[50px]">Novo lançamento</Button>}
+                render={<Button className="h-[50px]!">Novo lançamento</Button>}
               />
               <DialogContent>
                 <DialogHeader>

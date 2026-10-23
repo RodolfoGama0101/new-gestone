@@ -13,6 +13,10 @@ representavam uma conta ou um espaço selecionável.
 
 No painel, o botão “Novo lançamento” tem 50 px de altura, alinhado à altura
 do seletor de mês em uma linha (controle de 40 px, padding e bordas).
+A altura local usa a prioridade explícita do Tailwind para prevalecer sobre
+o `height: auto` aplicado aos botões pelo `PageHeader`. Uma reprodução no
+Chromium com o CSS do projeto confirmou 40 px antes e 50 px depois, igual
+aos 50 px do seletor.
 
 ## Etapas
 
