@@ -47,19 +47,10 @@ export function Sidebar() {
         <Logo variant="full" size="sm" />
       </div>
 
-      <div className="mx-4 my-6 flex items-center gap-2.5 text-[13px]">
-        <span className="border-border bg-muted flex size-[30px] shrink-0 items-center justify-center rounded-full border text-xs">
-          G
-        </span>
-        <div>
-          Finanças pessoais
-          <p className="text-muted-foreground text-xs">Seu espaço financeiro</p>
-        </div>
-      </div>
       {/* Navigation */}
       <nav
         aria-label="Navegação principal"
-        className="flex-1 scrollbar-thin space-y-1 overflow-y-auto px-3 pb-6"
+        className="flex-1 scrollbar-thin space-y-1 overflow-y-auto px-3 py-6"
       >
         {navItems.map((item) => {
           const isActive = pathname === item.href

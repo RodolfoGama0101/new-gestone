@@ -7,6 +7,10 @@ Referência: `DESIGN.md` e https://vercel.com/design.md.
 Reutilizar `src/components/shared/logo.tsx` sem substituir símbolo, lettering,
 proporções ou variantes. O ícone ilustrativo do protótipo não substitui a logo.
 
+A sidebar apresenta a logo seguida pela navegação, sem o avatar decorativo
+“G” nem o bloco “Finanças pessoais / Seu espaço financeiro”, que não
+representavam uma conta ou um espaço selecionável.
+
 ## Etapas
 
 1. Base visual: tokens dos temas e componentes compartilhados.
