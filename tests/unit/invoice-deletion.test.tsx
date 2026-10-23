@@ -2,6 +2,7 @@
 import '@testing-library/jest-dom'
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+jest.mock('@/components/transactions/transaction-form', () => ({ TransactionForm: () => <p>Formulário de compra</p> }))
 import { CreditCardBillSummary } from '@/components/credit-cards/credit-card-bill-summary'
 import { TransactionService } from '@/services/transaction.service'
 import { useAuth } from '@/contexts/auth-context'

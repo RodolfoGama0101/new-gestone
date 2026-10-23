@@ -43,6 +43,8 @@ npm run test:rules
 npm run test:e2e
 ```
 
+Os testes E2E usam o cache Next em `.next/e2e`, separado do servidor de desenvolvimento local. Execute build e E2E em sequência, pois o build pode limpar a árvore `.next`. Os testes Jest carregam somente `tests/unit/` ou `tests/rules/`, sem incluir cópias de outras worktrees.
+
 Os testes de regras requerem Java 21 ou superior e iniciam somente o emulador Firestore em `127.0.0.1:8080`, com o projeto fictício `demo-gestone-rules`. Não exigem login Firebase nem credenciais. A configuração de teste é separada da hospedagem e a suíte falha se o emulador não estiver configurado. Execute as verificações de regras localmente antes de publicá-las. Consulte [a política e os limites dos dados](docs/firestore-security.md).
 
 Para os E2E, instale o navegador com `npx playwright install chromium`. `npm run test:e2e` inicia Authentication em 9099, Firestore em 8081 e o aplicativo em 3102, usando somente `demo-gestone-e2e`. O script substitui a configuração Firebase por valores fictícios e não usa credenciais de produção. Os relatórios ficam em `playwright-report/`; falhas retêm screenshots e traces. Instale Java e Chromium no ambiente local para executar os E2E.

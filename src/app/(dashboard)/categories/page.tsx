@@ -5,19 +5,37 @@ import { LoadError } from '@/components/shared/load-error'
 import * as React from 'react'
 import { toast } from 'sonner'
 import { useCategories } from '@/hooks/use-categories'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { ConfirmDialog } from '@/components/shared/confirm-dialog'
 import { EmptyState } from '@/components/shared/empty-state'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Category } from '@/types/category'
-import { 
-  Tag, 
-  Trash2, 
-  Pencil, 
+import {
+  Tag,
+  Trash2,
+  Pencil,
   Loader2,
   Briefcase,
   Laptop,
@@ -36,7 +54,7 @@ import {
   DollarSign,
   PiggyBank,
   Check,
-  Plus
+  Plus,
 } from 'lucide-react'
 import * as Icons from 'lucide-react'
 import { PageHeader } from '@/components/shared/page-header'
@@ -76,8 +94,20 @@ const PRESET_COLORS = [
 ]
 
 // Renderizador dinâmico de ícones Lucide
-function DynamicIcon({ name, className }: { name: string; className?: string }) {
-  const IconComponent = (Icons as unknown as Record<string, React.ComponentType<{ className?: string }>>)[name] || Icons.HelpCircle
+function DynamicIcon({
+  name,
+  className,
+}: {
+  name: string
+  className?: string
+}) {
+  const IconComponent =
+    (
+      Icons as unknown as Record<
+        string,
+        React.ComponentType<{ className?: string }>
+      >
+    )[name] || Icons.HelpCircle
   return <IconComponent className={className} />
 }
 
@@ -96,7 +126,9 @@ export default function CategoriesPage() {
   const [isAddOpen, setIsAddOpen] = React.useState(false)
   const [editingId, setEditingId] = React.useState<string | null>(null)
   const [name, setName] = React.useState('')
-  const [type, setType] = React.useState<'income' | 'expense' | 'investment'>('expense')
+  const [type, setType] = React.useState<'income' | 'expense' | 'investment'>(
+    'expense',
+  )
   const [selectedIcon, setSelectedIcon] = React.useState('Utensils')
   const [selectedColor, setSelectedColor] = React.useState('#dc2626')
   const [isSubmitting, setIsSubmitting] = React.useState(false)
@@ -118,7 +150,11 @@ export default function CategoriesPage() {
   const handleEditClick = (cat: Category) => {
     setEditingId(cat.id)
     setName(cat.name)
-    if (cat.type === 'income' || cat.type === 'expense' || cat.type === 'investment') {
+    if (
+      cat.type === 'income' ||
+      cat.type === 'expense' ||
+      cat.type === 'investment'
+    ) {
       setType(cat.type)
     } else {
       setType('expense')
@@ -177,28 +213,37 @@ export default function CategoriesPage() {
   }
 
   // Filtrar categorias
-  const incomes = categories.filter((c) => !c.archived).filter((c) => c.type === 'income' || c.type === 'both')
-  const expenses = categories.filter((c) => !c.archived).filter((c) => c.type === 'expense' || c.type === 'both')
-  const investments = categories.filter((c) => !c.archived).filter((c) => c.type === 'investment' || c.type === 'both')
+  const incomes = categories
+    .filter((c) => !c.archived)
+    .filter((c) => c.type === 'income' || c.type === 'both')
+  const expenses = categories
+    .filter((c) => !c.archived)
+    .filter((c) => c.type === 'expense' || c.type === 'both')
+  const investments = categories
+    .filter((c) => !c.archived)
+    .filter((c) => c.type === 'investment' || c.type === 'both')
 
   if (error) return <LoadError error={error} retry={refetch} />
 
   if (isLoading) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
-        <Loader2 className="size-8 animate-spin text-primary" />
+        <Loader2 className="text-primary size-8 animate-spin" />
       </div>
     )
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-300">
+    <div className="animate-in fade-in space-y-6 duration-300">
       {/* Header */}
       <PageHeader
         title="Categorias"
         description="Crie e gerencie as categorias para classificar suas despesas e receitas."
         action={
-          <Button onClick={() => setIsAddOpen(true)} className="gap-1.5 font-semibold text-xs h-9 pr-4 pl-3 cursor-pointer">
+          <Button
+            onClick={() => setIsAddOpen(true)}
+            className="h-9 cursor-pointer gap-1.5 pr-4 pl-3 text-xs font-semibold"
+          >
             <Plus className="size-4" />
             Nova Categoria
           </Button>
@@ -214,16 +259,20 @@ export default function CategoriesPage() {
       ) : (
         <div className="grid gap-6 md:grid-cols-3">
           {/* Receitas */}
-          <Card className="border-border bg-card hover:shadow-[var(--shadow-elevated)] transition-shadow duration-300 flex flex-col">
-            <CardHeader className="pb-3 pt-5 px-6 border-b border-border/50">
+          <Card className="border-border bg-card flex flex-col">
+            <CardHeader className="border-border/50 border-b px-6 pt-5 pb-3">
               <div className="space-y-1.5">
                 <div className="flex items-center gap-2">
-                  <CardTitle className="text-base font-bold text-income">Receitas</CardTitle>
-                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-income/10 text-income border border-income/20 shrink-0">
+                  <CardTitle className="text-income text-base font-bold">
+                    Receitas
+                  </CardTitle>
+                  <span className="bg-income/10 text-income border-income/20 shrink-0 rounded-full border px-2 py-0.5 text-xs font-semibold">
                     {incomes.length}
                   </span>
                 </div>
-                <CardDescription className="text-xs">Categorias aplicadas a entradas financeiras</CardDescription>
+                <CardDescription className="text-xs">
+                  Categorias aplicadas a entradas financeiras
+                </CardDescription>
               </div>
             </CardHeader>
             <CardContent className="px-6 py-4">
@@ -235,48 +284,50 @@ export default function CategoriesPage() {
                   compact
                 />
               ) : (
-                <div className="divide-y divide-border/40">
+                <div className="divide-border/40 divide-y">
                   {incomes.map((cat) => (
                     <div
                       key={cat.id}
-                      className="flex items-center justify-between py-3 hover:bg-muted/10 px-2 rounded-lg transition-colors group"
+                      className="hover:bg-muted/10 group flex flex-wrap items-center justify-between gap-3 rounded-lg px-2 py-3 transition-colors"
                     >
-                      <div className="flex items-center gap-3.5 min-w-0 flex-1">
-                        <div 
-                          className="size-9 rounded-lg flex items-center justify-center shrink-0 border transition-all duration-200 group-hover:scale-105"
-                          style={{ 
-                            backgroundColor: `${cat.color}15`, 
+                      <div className="flex min-w-0 flex-1 items-center gap-3.5">
+                        <div
+                          className="flex size-9 shrink-0 items-center justify-center rounded-lg border transition-all duration-200"
+                          style={{
+                            backgroundColor: `${cat.color}15`,
                             borderColor: `${cat.color}30`,
-                            color: cat.color 
+                            color: cat.color,
                           }}
                         >
                           <DynamicIcon name={cat.icon} className="size-4.5" />
                         </div>
-                        <div className="flex flex-col min-w-0">
-                          <span className="text-sm font-semibold text-foreground truncate">{cat.name}</span>
+                        <div className="flex min-w-0 flex-col">
+                          <span className="text-foreground text-sm font-semibold [overflow-wrap:anywhere] break-words">
+                            {cat.name}
+                          </span>
                           {cat.isDefault && (
-                            <span className="text-[10px] text-muted-foreground mt-0.5 flex items-center gap-1">
-                              <span className="size-1 rounded-full bg-muted-foreground/50" />
+                            <span className="text-muted-foreground mt-0.5 flex items-center gap-1 text-xs">
+                              <span className="bg-muted-foreground/50 size-1 rounded-full" />
                               Padrão do Sistema
                             </span>
                           )}
                         </div>
                       </div>
-                      <div className="flex items-center gap-1 shrink-0">
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="size-8 text-muted-foreground hover:text-foreground cursor-pointer rounded-lg hover:bg-muted"
+                      <div className="flex shrink-0 items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-muted-foreground hover:text-foreground hover:bg-muted size-11 cursor-pointer rounded-lg"
                           aria-label={'Editar categoria ' + cat.name}
                           onClick={() => handleEditClick(cat)}
                         >
                           <Pencil className="size-3.5" />
                         </Button>
                         {!cat.isDefault && (
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="size-8 text-muted-foreground hover:text-destructive cursor-pointer rounded-lg hover:bg-muted"
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-muted-foreground hover:text-destructive hover:bg-muted size-11 cursor-pointer rounded-lg"
                             aria-label={'Excluir categoria ' + cat.name}
                             onClick={() => setDeletingId(cat.id)}
                           >
@@ -292,16 +343,20 @@ export default function CategoriesPage() {
           </Card>
 
           {/* Despesas */}
-          <Card className="border-border bg-card hover:shadow-[var(--shadow-elevated)] transition-shadow duration-300 flex flex-col">
-            <CardHeader className="pb-3 pt-5 px-6 border-b border-border/50">
+          <Card className="border-border bg-card flex flex-col transition-shadow duration-300 hover:shadow-[var(--shadow-elevated)]">
+            <CardHeader className="border-border/50 border-b px-6 pt-5 pb-3">
               <div className="space-y-1.5">
                 <div className="flex items-center gap-2">
-                  <CardTitle className="text-base font-bold text-expense">Despesas</CardTitle>
-                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-expense/10 text-expense border border-expense/20 shrink-0">
+                  <CardTitle className="text-expense text-base font-bold">
+                    Despesas
+                  </CardTitle>
+                  <span className="bg-expense/10 text-expense border-expense/20 shrink-0 rounded-full border px-2 py-0.5 text-xs font-semibold">
                     {expenses.length}
                   </span>
                 </div>
-                <CardDescription className="text-xs">Categorias aplicadas a saídas financeiras</CardDescription>
+                <CardDescription className="text-xs">
+                  Categorias aplicadas a saídas financeiras
+                </CardDescription>
               </div>
             </CardHeader>
             <CardContent className="px-6 py-4">
@@ -313,48 +368,50 @@ export default function CategoriesPage() {
                   compact
                 />
               ) : (
-                <div className="divide-y divide-border/40">
+                <div className="divide-border/40 divide-y">
                   {expenses.map((cat) => (
                     <div
                       key={cat.id}
-                      className="flex items-center justify-between py-3 hover:bg-muted/10 px-2 rounded-lg transition-colors group"
+                      className="hover:bg-muted/10 group flex flex-wrap items-center justify-between gap-3 rounded-lg px-2 py-3 transition-colors"
                     >
-                      <div className="flex items-center gap-3.5 min-w-0 flex-1">
-                        <div 
-                          className="size-9 rounded-lg flex items-center justify-center shrink-0 border transition-all duration-200 group-hover:scale-105"
-                          style={{ 
-                            backgroundColor: `${cat.color}15`, 
+                      <div className="flex min-w-0 flex-1 items-center gap-3.5">
+                        <div
+                          className="flex size-9 shrink-0 items-center justify-center rounded-lg border transition-all duration-200"
+                          style={{
+                            backgroundColor: `${cat.color}15`,
                             borderColor: `${cat.color}30`,
-                            color: cat.color 
+                            color: cat.color,
                           }}
                         >
                           <DynamicIcon name={cat.icon} className="size-4.5" />
                         </div>
-                        <div className="flex flex-col min-w-0">
-                          <span className="text-sm font-semibold text-foreground truncate">{cat.name}</span>
+                        <div className="flex min-w-0 flex-col">
+                          <span className="text-foreground text-sm font-semibold [overflow-wrap:anywhere] break-words">
+                            {cat.name}
+                          </span>
                           {cat.isDefault && (
-                            <span className="text-[10px] text-muted-foreground mt-0.5 flex items-center gap-1">
-                              <span className="size-1 rounded-full bg-muted-foreground/50" />
+                            <span className="text-muted-foreground mt-0.5 flex items-center gap-1 text-xs">
+                              <span className="bg-muted-foreground/50 size-1 rounded-full" />
                               Padrão do Sistema
                             </span>
                           )}
                         </div>
                       </div>
-                      <div className="flex items-center gap-1 shrink-0">
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="size-8 text-muted-foreground hover:text-foreground cursor-pointer rounded-lg hover:bg-muted"
+                      <div className="flex shrink-0 items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-muted-foreground hover:text-foreground hover:bg-muted size-11 cursor-pointer rounded-lg"
                           aria-label={'Editar categoria ' + cat.name}
                           onClick={() => handleEditClick(cat)}
                         >
                           <Pencil className="size-3.5" />
                         </Button>
                         {!cat.isDefault && (
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="size-8 text-muted-foreground hover:text-destructive cursor-pointer rounded-lg hover:bg-muted"
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-muted-foreground hover:text-destructive hover:bg-muted size-11 cursor-pointer rounded-lg"
                             aria-label={'Excluir categoria ' + cat.name}
                             onClick={() => setDeletingId(cat.id)}
                           >
@@ -370,16 +427,20 @@ export default function CategoriesPage() {
           </Card>
 
           {/* Investimentos */}
-          <Card className="border-border bg-card hover:shadow-[var(--shadow-elevated)] transition-shadow duration-300 flex flex-col">
-            <CardHeader className="pb-3 pt-5 px-6 border-b border-border/50">
+          <Card className="border-border bg-card flex flex-col transition-shadow duration-300 hover:shadow-[var(--shadow-elevated)]">
+            <CardHeader className="border-border/50 border-b px-6 pt-5 pb-3">
               <div className="space-y-1.5">
                 <div className="flex items-center gap-2">
-                  <CardTitle className="text-base font-bold text-violet-600 dark:text-violet-500">Investimentos</CardTitle>
-                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-500/20 shrink-0">
+                  <CardTitle className="text-investment text-base font-semibold">
+                    Investimentos
+                  </CardTitle>
+                  <span className="bg-investment/10 text-investment border-investment/20 shrink-0 rounded-full border px-2 py-0.5 text-xs font-semibold">
                     {investments.length}
                   </span>
                 </div>
-                <CardDescription className="text-xs">Categorias aplicadas a aportes e investimentos</CardDescription>
+                <CardDescription className="text-xs">
+                  Categorias aplicadas a aportes e investimentos
+                </CardDescription>
               </div>
             </CardHeader>
             <CardContent className="px-6 py-4">
@@ -391,48 +452,50 @@ export default function CategoriesPage() {
                   compact
                 />
               ) : (
-                <div className="divide-y divide-border/40">
+                <div className="divide-border/40 divide-y">
                   {investments.map((cat) => (
                     <div
                       key={cat.id}
-                      className="flex items-center justify-between py-3 hover:bg-muted/10 px-2 rounded-lg transition-colors group"
+                      className="hover:bg-muted/10 group flex flex-wrap items-center justify-between gap-3 rounded-lg px-2 py-3 transition-colors"
                     >
-                      <div className="flex items-center gap-3.5 min-w-0 flex-1">
-                        <div 
-                          className="size-9 rounded-lg flex items-center justify-center shrink-0 border transition-all duration-200 group-hover:scale-105"
-                          style={{ 
-                            backgroundColor: `${cat.color}15`, 
+                      <div className="flex min-w-0 flex-1 items-center gap-3.5">
+                        <div
+                          className="flex size-9 shrink-0 items-center justify-center rounded-lg border transition-all duration-200"
+                          style={{
+                            backgroundColor: `${cat.color}15`,
                             borderColor: `${cat.color}30`,
-                            color: cat.color 
+                            color: cat.color,
                           }}
                         >
                           <DynamicIcon name={cat.icon} className="size-4.5" />
                         </div>
-                        <div className="flex flex-col min-w-0">
-                          <span className="text-sm font-semibold text-foreground truncate">{cat.name}</span>
+                        <div className="flex min-w-0 flex-col">
+                          <span className="text-foreground text-sm font-semibold [overflow-wrap:anywhere] break-words">
+                            {cat.name}
+                          </span>
                           {cat.isDefault && (
-                            <span className="text-[10px] text-muted-foreground mt-0.5 flex items-center gap-1">
-                              <span className="size-1 rounded-full bg-muted-foreground/50" />
+                            <span className="text-muted-foreground mt-0.5 flex items-center gap-1 text-xs">
+                              <span className="bg-muted-foreground/50 size-1 rounded-full" />
                               Padrão do Sistema
                             </span>
                           )}
                         </div>
                       </div>
-                      <div className="flex items-center gap-1 shrink-0">
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="size-8 text-muted-foreground hover:text-foreground cursor-pointer rounded-lg hover:bg-muted"
+                      <div className="flex shrink-0 items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-muted-foreground hover:text-foreground hover:bg-muted size-11 cursor-pointer rounded-lg"
                           aria-label={'Editar categoria ' + cat.name}
                           onClick={() => handleEditClick(cat)}
                         >
                           <Pencil className="size-3.5" />
                         </Button>
                         {!cat.isDefault && (
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="size-8 text-muted-foreground hover:text-destructive cursor-pointer rounded-lg hover:bg-muted"
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-muted-foreground hover:text-destructive hover:bg-muted size-11 cursor-pointer rounded-lg"
                             aria-label={'Excluir categoria ' + cat.name}
                             onClick={() => setDeletingId(cat.id)}
                           >
@@ -450,12 +513,19 @@ export default function CategoriesPage() {
       )}
 
       {/* Modal - Criar Categoria */}
-      <Dialog open={isAddOpen} onOpenChange={(open) => { setIsAddOpen(open); if (!open) resetForm(); }}>
+      <Dialog
+        open={isAddOpen}
+        onOpenChange={(open) => {
+          setIsAddOpen(open)
+          if (!open) resetForm()
+        }}
+      >
         <DialogContent className="sm:max-w-[420px]">
           <DialogHeader>
             <DialogTitle>Nova Categoria</DialogTitle>
             <DialogDescription>
-              Adicione uma categoria personalizada para classificar suas despesas e receitas.
+              Adicione uma categoria personalizada para classificar suas
+              despesas e receitas.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4 pt-2">
@@ -477,12 +547,14 @@ export default function CategoriesPage() {
                 <Label htmlFor="type">Tipo</Label>
                 <Select
                   value={type}
-                  onValueChange={(val) => setType(val as 'income' | 'expense' | 'investment')}
+                  onValueChange={(val) =>
+                    setType(val as 'income' | 'expense' | 'investment')
+                  }
                   disabled={isSubmitting}
                   items={[
                     { value: 'expense', label: 'Despesa' },
                     { value: 'income', label: 'Receita' },
-                    { value: 'investment', label: 'Investimento' }
+                    { value: 'investment', label: 'Investimento' },
                   ]}
                 >
                   <SelectTrigger id="type" className="w-full">
@@ -499,7 +571,7 @@ export default function CategoriesPage() {
               {/* Seletor de Cores */}
               <div className="space-y-2">
                 <Label>Cor de Destaque</Label>
-                <div className="grid grid-cols-5 gap-y-3 justify-items-center">
+                <div className="grid grid-cols-4 justify-items-center gap-y-3 sm:grid-cols-5">
                   {PRESET_COLORS.map((color) => (
                     <button
                       key={color}
@@ -507,7 +579,7 @@ export default function CategoriesPage() {
                       aria-label={'Selecionar cor ' + color}
                       aria-pressed={selectedColor === color}
                       onClick={() => setSelectedColor(color)}
-                      className="size-9 rounded-full border border-border flex items-center justify-center cursor-pointer transition-transform hover:scale-105 active:scale-95 animate-transition"
+                      className="border-border animate-transition flex size-11 cursor-pointer items-center justify-center rounded-full border transition-transform hover:scale-105 active:scale-95"
                       style={{ backgroundColor: color }}
                     >
                       {selectedColor === color && (
@@ -521,7 +593,7 @@ export default function CategoriesPage() {
               {/* Seletor de Ícones */}
               <div className="space-y-2">
                 <Label>Ícone</Label>
-                <div className="grid grid-cols-4 gap-2 border border-border rounded-xl p-3 max-h-[150px] overflow-y-auto scrollbar-thin">
+                <div className="border-border scrollbar-thin grid max-h-[150px] grid-cols-4 gap-2 overflow-y-auto rounded-xl border p-3">
                   {AVAILABLE_ICONS.map((item) => {
                     const isSelected = selectedIcon === item.name
                     return (
@@ -531,10 +603,10 @@ export default function CategoriesPage() {
                         aria-label={'Selecionar ícone ' + item.name}
                         aria-pressed={isSelected}
                         onClick={() => setSelectedIcon(item.name)}
-                        className={`p-2.5 rounded-lg border flex items-center justify-center cursor-pointer transition-all hover:bg-accent ${
-                          isSelected 
-                            ? 'bg-primary/10 border-primary text-primary' 
-                            : 'border-transparent text-muted-foreground'
+                        className={`hover:bg-accent flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg border p-2.5 transition-all ${
+                          isSelected
+                            ? 'bg-primary/10 border-primary text-primary'
+                            : 'text-muted-foreground border-transparent'
                         }`}
                       >
                         <item.icon className="size-5" />
@@ -545,11 +617,22 @@ export default function CategoriesPage() {
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-4 border-t border-border mt-6">
-              <Button type="button" variant="outline" onClick={() => { setIsAddOpen(false); resetForm(); }}>
+            <div className="border-border mt-6 flex justify-end gap-2 border-t pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setIsAddOpen(false)
+                  resetForm()
+                }}
+              >
                 Cancelar
               </Button>
-              <Button type="submit" disabled={isSubmitting} className="font-semibold">
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="font-semibold"
+              >
                 {isSubmitting ? (
                   <Loader2 className="size-4 animate-spin" />
                 ) : (
@@ -562,7 +645,12 @@ export default function CategoriesPage() {
       </Dialog>
 
       {/* Modal - Editar Categoria */}
-      <Dialog open={editingId !== null} onOpenChange={(open) => { if (!open) resetForm(); }}>
+      <Dialog
+        open={editingId !== null}
+        onOpenChange={(open) => {
+          if (!open) resetForm()
+        }}
+      >
         <DialogContent className="sm:max-w-[420px]">
           <DialogHeader>
             <DialogTitle>Editar Categoria</DialogTitle>
@@ -589,12 +677,14 @@ export default function CategoriesPage() {
                 <Label htmlFor="edit-type">Tipo</Label>
                 <Select
                   value={type}
-                  onValueChange={(val) => setType(val as 'income' | 'expense' | 'investment')}
+                  onValueChange={(val) =>
+                    setType(val as 'income' | 'expense' | 'investment')
+                  }
                   disabled={isSubmitting}
                   items={[
                     { value: 'expense', label: 'Despesa' },
                     { value: 'income', label: 'Receita' },
-                    { value: 'investment', label: 'Investimento' }
+                    { value: 'investment', label: 'Investimento' },
                   ]}
                 >
                   <SelectTrigger id="edit-type" className="w-full">
@@ -611,7 +701,7 @@ export default function CategoriesPage() {
               {/* Seletor de Cores */}
               <div className="space-y-2">
                 <Label>Cor de Destaque</Label>
-                <div className="grid grid-cols-5 gap-y-3 justify-items-center">
+                <div className="grid grid-cols-4 justify-items-center gap-y-3 sm:grid-cols-5">
                   {PRESET_COLORS.map((color) => (
                     <button
                       key={color}
@@ -619,7 +709,7 @@ export default function CategoriesPage() {
                       aria-label={'Selecionar cor ' + color}
                       aria-pressed={selectedColor === color}
                       onClick={() => setSelectedColor(color)}
-                      className="size-9 rounded-full border border-border flex items-center justify-center cursor-pointer transition-transform hover:scale-105 active:scale-95 animate-transition"
+                      className="border-border animate-transition flex size-11 cursor-pointer items-center justify-center rounded-full border transition-transform hover:scale-105 active:scale-95"
                       style={{ backgroundColor: color }}
                     >
                       {selectedColor === color && (
@@ -633,7 +723,7 @@ export default function CategoriesPage() {
               {/* Seletor de Ícones */}
               <div className="space-y-2">
                 <Label>Ícone</Label>
-                <div className="grid grid-cols-4 gap-2 border border-border rounded-xl p-3 max-h-[150px] overflow-y-auto scrollbar-thin">
+                <div className="border-border scrollbar-thin grid max-h-[150px] grid-cols-4 gap-2 overflow-y-auto rounded-xl border p-3">
                   {AVAILABLE_ICONS.map((item) => {
                     const isSelected = selectedIcon === item.name
                     return (
@@ -643,10 +733,10 @@ export default function CategoriesPage() {
                         aria-label={'Selecionar ícone ' + item.name}
                         aria-pressed={isSelected}
                         onClick={() => setSelectedIcon(item.name)}
-                        className={`p-2.5 rounded-lg border flex items-center justify-center cursor-pointer transition-all hover:bg-accent ${
-                          isSelected 
-                            ? 'bg-primary/10 border-primary text-primary' 
-                            : 'border-transparent text-muted-foreground'
+                        className={`hover:bg-accent flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg border p-2.5 transition-all ${
+                          isSelected
+                            ? 'bg-primary/10 border-primary text-primary'
+                            : 'text-muted-foreground border-transparent'
                         }`}
                       >
                         <item.icon className="size-5" />
@@ -657,11 +747,15 @@ export default function CategoriesPage() {
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-4 border-t border-border mt-6">
+            <div className="border-border mt-6 flex justify-end gap-2 border-t pt-4">
               <Button type="button" variant="outline" onClick={resetForm}>
                 Cancelar
               </Button>
-              <Button type="submit" disabled={isSubmitting} className="font-semibold">
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="font-semibold"
+              >
                 {isSubmitting ? (
                   <Loader2 className="size-4 animate-spin" />
                 ) : (

@@ -13,7 +13,10 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 
-interface DatePickerProps extends Pick<React.ComponentProps<'button'>, 'aria-invalid' | 'aria-describedby' | 'ref' | 'onBlur' | 'name'> {
+interface DatePickerProps extends Pick<
+  React.ComponentProps<'button'>,
+  'aria-invalid' | 'aria-describedby' | 'ref' | 'onBlur' | 'name'
+> {
   date: Date | undefined
   setDate: (date: Date | undefined) => void
   disabled?: boolean
@@ -43,20 +46,25 @@ export function DatePicker({
         id={id}
         disabled={disabled}
         className={cn(
-          'inline-flex shrink-0 items-center justify-start rounded-lg border border-border bg-background px-3 py-2 text-sm font-normal whitespace-nowrap transition-all outline-none focus-visible:ring-2 focus-visible:ring-ring select-none active:translate-y-px disabled:pointer-events-none disabled:opacity-50 h-10 gap-1.5 w-full justify-start text-left cursor-pointer',
+          'border-border bg-background focus-visible:ring-ring inline-flex min-h-11 w-full shrink-0 cursor-pointer items-center justify-start gap-1.5 rounded-md border px-3 py-2 text-left text-sm font-normal whitespace-normal transition-all outline-none select-none focus-visible:ring-2 active:translate-y-px disabled:pointer-events-none disabled:opacity-50',
           !date && 'text-muted-foreground',
-          className
+          className,
         )}
       >
-        <CalendarIcon className="mr-2 size-4 text-muted-foreground" />
+        <CalendarIcon className="text-muted-foreground mr-2 size-4" />
         {date ? (
           format(date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
         ) : (
           <span>Selecione uma data</span>
         )}
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0 border-border bg-popover" align="start">
+      <PopoverContent
+        className="border-border bg-popover w-auto max-w-[calc(100vw-8px)] overflow-x-auto p-0"
+        align="start"
+      >
         <Calendar
+          className="p-0 [--cell-size:44px] sm:p-3"
+          classNames={{ week: 'mt-2 flex w-full justify-center' }}
           mode="single"
           selected={date}
           onSelect={handleSelect}

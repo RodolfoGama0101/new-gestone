@@ -35,20 +35,18 @@ test('três tipos mantêm rótulo, ícone e sinal no extrato e painel', async ({
   const { uid } = await register(page)
   const now = Timestamp.now()
   for (const type of ['income', 'expense', 'investment']) {
-    await db
-      .doc('users/' + uid + '/transactions/' + type)
-      .set({
-        type,
-        amount: 10001,
-        description: 'Revisão ' + type,
-        categoryId: '',
-        date: now,
-        tags: [],
-        notes: null,
-        recurring: false,
-        createdAt: now,
-        updatedAt: now,
-      })
+    await db.doc('users/' + uid + '/transactions/' + type).set({
+      type,
+      amount: 10001,
+      description: 'Revisão ' + type,
+      categoryId: '',
+      date: now,
+      tags: [],
+      notes: null,
+      recurring: false,
+      createdAt: now,
+      updatedAt: now,
+    })
   }
   for (const route of ['/transactions', '/']) {
     await page.goto(route)
@@ -62,16 +60,17 @@ test('três tipos mantêm rótulo, ícone e sinal no extrato e painel', async ({
       )
       await expect(page.locator('body')).toHaveCSS(
         'background-color',
-        theme === 'dark' ? 'rgb(0, 0, 0)' : 'rgb(255, 255, 255)',
+        theme === 'dark' ? 'rgb(11, 14, 20)' : 'rgb(247, 247, 248)',
       )
       await page.screenshot({
         path:
-          'dogfood-output/rod-119/' +
+          'dogfood-output/redesign/' +
           theme +
           '-' +
           (route.slice(1) || 'dashboard') +
           '.png',
         fullPage: true,
+        animations: 'disabled',
       })
     }
   }

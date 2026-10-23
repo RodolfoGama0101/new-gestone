@@ -15,3 +15,5 @@ A matriz também cobre a fatura: [captura em 320 px](../audits/2026-10-22/rod-11
 Comparação em 320 px: [antes](../audits/2026-10-22/rod-118/before-320.png) e [depois](../audits/2026-10-22/rod-118/light-320.png), com os mesmos dados fictícios.
 
 Após integrar a apresentação compartilhada dos lançamentos e os gráficos acessíveis, painel e relatórios usam colunas que podem encolher abaixo da largura mínima do conteúdo. Os totais dos relatórios podem quebrar linha e seus cartões crescem com o texto, evitando cortes no reflow de 200%.
+
+O [redesign de outubro de 2026](redesign.md) acrescenta tokens semânticos, navegação agrupada, formulários responsivos e validação em 1536 px. Evidências atuais estão na [verificação do redesign](../audits/2026-10-23/redesign.md).

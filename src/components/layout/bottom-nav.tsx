@@ -1,122 +1,105 @@
 'use client'
 
-import * as React from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { MoreHorizontal } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import {
-  LayoutDashboard,
-  Receipt,
-  CreditCard,
-  Coins,
-  MoreHorizontal,
-  ArrowUpCircle,
-  ArrowDownCircle,
-  BarChart3,
-  Tag,
-  Settings,
-} from 'lucide-react'
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
+  SheetDescription,
   SheetTrigger,
 } from '@/components/ui/sheet'
-
-const mainItems = [
-  { label: 'Painel', href: '/', icon: LayoutDashboard },
-  { label: 'Extrato', href: '/transactions', icon: Receipt },
-  { label: 'Cartões', href: '/credit-cards', icon: CreditCard },
-  { label: 'Investir', href: '/investments', icon: Coins },
-]
-
-const extraItems = [
-  { label: 'Receitas', href: '/income', icon: ArrowUpCircle },
-  { label: 'Despesas', href: '/expenses', icon: ArrowDownCircle },
-  { label: 'Séries', href: '/series', icon: Coins },
-  { label: 'Orçamentos', href: '/budgets', icon: Coins },
-  { label: 'Relatórios', href: '/analytics', icon: BarChart3 },
-  { label: 'Categorias', href: '/categories', icon: Tag },
-  { label: 'Config.', href: '/settings', icon: Settings },
-]
+import { navigationGroups, mobileNavigationItems } from './navigation'
 
 export function BottomNav() {
   const pathname = usePathname()
-  const [isOpen, setIsOpen] = React.useState(false)
-
-  const isExtraActive = extraItems.some((item) => pathname === item.href)
-
+  const [open, setOpen] = useState(false)
+  const extraActive = !mobileNavigationItems.some(
+    (item) => item.href === pathname,
+  )
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-20 flex h-[calc(3.5rem+env(safe-area-inset-bottom))] items-center justify-around border-t border-border/80 bg-background/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden" aria-label="Navegação principal">
-      {mainItems.map((item) => {
-        const isActive = pathname === item.href
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-              aria-current={isActive ? 'page' : undefined}
-            className={cn(
-              'flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 text-muted-foreground transition-colors relative cursor-pointer h-full',
-              isActive && 'text-foreground dark:text-white font-semibold'
-            )}
-          >
-            <item.icon className="size-4 shrink-0" />
-            <span className={cn("max-w-full break-all text-xs font-medium leading-tight", isActive && "font-semibold")}>
-              {item.label}
-            </span>
-          </Link>
-        )
-      })}
-
-      {/* Botão Mais */}
-      <Sheet open={isOpen} onOpenChange={setIsOpen}>
-        <SheetTrigger render={
-          <button
-            className={cn(
-              'flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 text-muted-foreground transition-colors relative cursor-pointer h-full border-none bg-transparent outline-hidden focus-visible:ring-2 focus-visible:ring-ring',
-              isExtraActive && 'text-foreground dark:text-white'
-            )}
-            aria-label="Mais opções de navegação"
-          >
-            <MoreHorizontal className="size-4 shrink-0" />
-            <span className={cn("max-w-full break-all text-xs font-medium leading-tight", isExtraActive && "font-semibold")}>
-              Mais
-            </span>
-          </button>
-        } />
-        <SheetContent side="bottom" className="rounded-t-2xl pb-6 max-h-[40vh] border-t border-border">
-          <SheetHeader className="pb-2 border-b border-border/40">
-            <SheetTitle className="text-center text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              Mais Opções
-            </SheetTitle>
+    <nav
+      aria-label="Navegação principal"
+      className="bg-card fixed inset-x-0 bottom-0 z-30 flex h-[calc(4rem+env(safe-area-inset-bottom))] items-stretch border-t pb-[env(safe-area-inset-bottom)] md:hidden"
+    >
+      {mobileNavigationItems.map((item) => (
+        <Link
+          key={item.href}
+          href={item.href}
+          aria-current={pathname === item.href ? 'page' : undefined}
+          className={cn(
+            'flex min-w-0 flex-1 flex-col items-center justify-center gap-1 px-1 text-xs',
+            pathname === item.href
+              ? 'text-primary font-semibold'
+              : 'text-muted-foreground',
+          )}
+        >
+          <item.icon aria-hidden="true" className="size-5" />
+          {item.label}
+        </Link>
+      ))}
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetTrigger
+          className={cn(
+            'flex min-w-0 flex-1 flex-col items-center justify-center gap-1 text-xs',
+            extraActive
+              ? 'text-primary font-semibold'
+              : 'text-muted-foreground',
+          )}
+          aria-label="Mais opções de navegação"
+        >
+          <MoreHorizontal className="size-5" aria-hidden="true" />
+          Mais
+        </SheetTrigger>
+        <SheetContent
+          side="bottom"
+          className="max-h-[85dvh] overflow-y-auto rounded-t-xl pb-[calc(1rem+env(safe-area-inset-bottom))]"
+        >
+          <SheetHeader className="pr-14">
+            <SheetTitle>Mais opções</SheetTitle>
+            <SheetDescription>
+              Acesse todas as áreas do GestOne.
+            </SheetDescription>
           </SheetHeader>
-          <div className="grid grid-cols-3 gap-y-6 pt-6 px-4 justify-items-center">
-            {extraItems.map((item) => {
-              const isActive = pathname === item.href
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-              aria-current={isActive ? 'page' : undefined}
-                  onClick={() => setIsOpen(false)}
-                  className={cn(
-                    'flex flex-col items-center justify-center gap-1.5 p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-all w-full cursor-pointer',
-                    isActive && 'text-foreground dark:text-white bg-muted/30'
-                  )}
-                >
-                  <div className={cn(
-                    'size-9 rounded-lg flex items-center justify-center bg-muted/40 border border-border/40',
-                    isActive && 'bg-primary/10 border-primary/20 text-primary'
-                  )}>
-                    <item.icon className="size-5" />
-                  </div>
-                  <span className="text-[10px] font-medium text-center truncate w-full">
-                    {item.label}
-                  </span>
-                </Link>
-              )
-            })}
+          <div className="space-y-5 px-4 pb-4">
+            {navigationGroups.map((group) => (
+              <div key={group.label} className="space-y-1">
+                <p className="text-muted-foreground mb-2 text-xs font-medium">
+                  {group.label}
+                </p>
+                {group.items
+                  .filter(
+                    (item) =>
+                      !mobileNavigationItems.some(
+                        (main) => main.href === item.href,
+                      ),
+                  )
+                  .map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setOpen(false)}
+                      aria-current={pathname === item.href ? 'page' : undefined}
+                      className={cn(
+                        'flex min-h-11 items-center gap-3 rounded-md px-3 py-2 text-sm',
+                        pathname === item.href
+                          ? 'bg-accent text-primary font-semibold'
+                          : 'hover:bg-muted',
+                      )}
+                    >
+                      <item.icon
+                        className="size-5 shrink-0"
+                        aria-hidden="true"
+                      />
+                      {item.label}
+                    </Link>
+                  ))}
+              </div>
+            ))}
           </div>
         </SheetContent>
       </Sheet>

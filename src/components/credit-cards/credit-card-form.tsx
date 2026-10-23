@@ -8,11 +8,20 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { CreditCardService } from '@/services/credit-card.service'
 import { useAuth } from '@/contexts/auth-context'
-import { creditCardSchema, type CreditCardInput } from '@/lib/validations/credit-card.schema'
+import {
+  creditCardSchema,
+  type CreditCardInput,
+} from '@/lib/validations/credit-card.schema'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { CreditCardVisual } from '@/components/credit-cards/credit-card-visual'
 import { CreditCard } from '@/types/credit-card'
 import { Check, Loader2 } from 'lucide-react'
@@ -36,7 +45,10 @@ interface CreditCardFormProps {
   editingCard?: CreditCard
 }
 
-export function CreditCardForm({ onSuccess, editingCard }: CreditCardFormProps) {
+export function CreditCardForm({
+  onSuccess,
+  editingCard,
+}: CreditCardFormProps) {
   const { user } = useAuth()
   const queryClient = useQueryClient()
   const userId = user?.uid ?? ''
@@ -54,7 +66,10 @@ export function CreditCardForm({ onSuccess, editingCard }: CreditCardFormProps) 
   })
 
   const updateMutation = useMutation({
-    mutationFn: ({ cardId, data }: {
+    mutationFn: ({
+      cardId,
+      data,
+    }: {
       cardId: string
       data: Partial<Omit<CreditCard, 'id' | 'createdAt' | 'updatedAt'>>
     }) => CreditCardService.update(userId, cardId, data),
@@ -89,7 +104,14 @@ export function CreditCardForm({ onSuccess, editingCard }: CreditCardFormProps) 
   })
 
   // Assistir os campos para o live preview
-  const [watchName, watchBankName, watchBrand, watchHolderName, watchClosingDay, watchColor] = useWatch({
+  const [
+    watchName,
+    watchBankName,
+    watchBrand,
+    watchHolderName,
+    watchClosingDay,
+    watchColor,
+  ] = useWatch({
     control,
     name: ['name', 'bankName', 'brand', 'holderName', 'closingDay', 'color'],
   })
@@ -111,9 +133,14 @@ export function CreditCardForm({ onSuccess, editingCard }: CreditCardFormProps) 
   }
 
   return (
-    <form aria-busy={isLoading} onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-6 pt-2">
+    <form
+      aria-busy={isLoading}
+      onSubmit={handleSubmit(onSubmit)}
+      noValidate
+      className="space-y-6 pt-2"
+    >
       {/* Live Preview */}
-      <div className="flex justify-center bg-muted/20 p-4 rounded-xl border border-border/40">
+      <div className="bg-muted/20 border-border/40 flex justify-center rounded-xl border p-4">
         <div className="w-full max-w-[280px]">
           <CreditCardVisual
             name={watchName || 'Nome do Cartão'}
@@ -126,18 +153,25 @@ export function CreditCardForm({ onSuccess, editingCard }: CreditCardFormProps) 
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         {/* Nome do Cartão */}
         <div className="space-y-1.5">
           <Label htmlFor="name">Apelido do Cartão</Label>
           <Input
-            id="name" {...fieldErrorProps('name', errors.name)}
+            id="name"
+            {...fieldErrorProps('name', errors.name)}
             placeholder="Ex: Nubank, Azul Platinum"
             disabled={isLoading}
             {...register('name')}
           />
           {errors.name && (
-            <p id="name-error" role="alert" className="text-xs font-medium text-destructive">{errors.name.message}</p>
+            <p
+              id="name-error"
+              role="alert"
+              className="text-destructive text-xs font-medium"
+            >
+              {errors.name.message}
+            </p>
           )}
         </div>
 
@@ -145,13 +179,20 @@ export function CreditCardForm({ onSuccess, editingCard }: CreditCardFormProps) 
         <div className="space-y-1.5">
           <Label htmlFor="bankName">Nome do Banco</Label>
           <Input
-            id="bankName" {...fieldErrorProps('bankName', errors.bankName)}
+            id="bankName"
+            {...fieldErrorProps('bankName', errors.bankName)}
             placeholder="Ex: Itaú, Nubank, Bradesco"
             disabled={isLoading}
             {...register('bankName')}
           />
           {errors.bankName && (
-            <p id="bankName-error" role="alert" className="text-xs font-medium text-destructive">{errors.bankName.message}</p>
+            <p
+              id="bankName-error"
+              role="alert"
+              className="text-destructive text-xs font-medium"
+            >
+              {errors.bankName.message}
+            </p>
           )}
         </div>
 
@@ -159,13 +200,20 @@ export function CreditCardForm({ onSuccess, editingCard }: CreditCardFormProps) 
         <div className="space-y-1.5">
           <Label htmlFor="holderName">Nome do Titular</Label>
           <Input
-            id="holderName" {...fieldErrorProps('holderName', errors.holderName)}
+            id="holderName"
+            {...fieldErrorProps('holderName', errors.holderName)}
             placeholder="Ex: RODOLFO GAMA"
             disabled={isLoading}
             {...register('holderName')}
           />
           {errors.holderName && (
-            <p id="holderName-error" role="alert" className="text-xs font-medium text-destructive">{errors.holderName.message}</p>
+            <p
+              id="holderName-error"
+              role="alert"
+              className="text-destructive text-xs font-medium"
+            >
+              {errors.holderName.message}
+            </p>
           )}
         </div>
 
@@ -187,7 +235,11 @@ export function CreditCardForm({ onSuccess, editingCard }: CreditCardFormProps) 
                   { value: 'other', label: 'Outro' },
                 ]}
               >
-                <SelectTrigger id="brand" {...fieldErrorProps('brand', errors.brand)} className="w-full h-10 rounded-lg">
+                <SelectTrigger
+                  id="brand"
+                  {...fieldErrorProps('brand', errors.brand)}
+                  className="h-10 w-full rounded-lg"
+                >
                   <SelectValue placeholder="Selecione a bandeira" />
                 </SelectTrigger>
                 <SelectContent>
@@ -200,16 +252,29 @@ export function CreditCardForm({ onSuccess, editingCard }: CreditCardFormProps) 
             )}
           />
           {errors.brand && (
-            <p id="brand-error" role="alert" className="text-xs font-medium text-destructive">{errors.brand.message}</p>
+            <p
+              id="brand-error"
+              role="alert"
+              className="text-destructive text-xs font-medium"
+            >
+              {errors.brand.message}
+            </p>
           )}
         </div>
 
         {/* Dia de Fechamento */}
         <div className="space-y-1.5">
           <Label htmlFor="closingDay">Dia de Fechamento (1-31)</Label>
-          {editingCard && <p className="text-xs text-muted-foreground">Novas compras registram este fechamento. Compras antigas sem fechamento registrado usam a configuração atual e podem mudar de fatura ao alterá-la.</p>}
+          {editingCard && (
+            <p className="text-muted-foreground text-xs">
+              Novas compras registram este fechamento. Compras antigas sem
+              fechamento registrado usam a configuração atual e podem mudar de
+              fatura ao alterá-la.
+            </p>
+          )}
           <Input
-            id="closingDay" {...fieldErrorProps('closingDay', errors.closingDay)}
+            id="closingDay"
+            {...fieldErrorProps('closingDay', errors.closingDay)}
             type="number"
             min={1}
             max={31}
@@ -221,19 +286,49 @@ export function CreditCardForm({ onSuccess, editingCard }: CreditCardFormProps) 
             value={watchClosingDay}
           />
           {errors.closingDay && (
-            <p id="closingDay-error" role="alert" className="text-xs font-medium text-destructive">{errors.closingDay.message}</p>
+            <p
+              id="closingDay-error"
+              role="alert"
+              className="text-destructive text-xs font-medium"
+            >
+              {errors.closingDay.message}
+            </p>
           )}
         </div>
 
         <div className="space-y-1.5">
           <Label htmlFor="dueDay">Dia de vencimento (opcional)</Label>
-          <Controller name="dueDay" control={control} render={({ field }) => (
-            <Input id="dueDay" type="number" min={1} max={31} value={field.value ?? ''}
-              onChange={e => field.onChange(e.target.value ? Number(e.target.value) : null)}
-              disabled={isLoading} {...fieldErrorProps('dueDay', errors.dueDay)} />
-          )} />
-          {errors.dueDay && <p id="dueDay-error" role="alert" className="text-sm text-destructive">Informe um dia de 1 a 31.</p>}
-          <p className="text-sm text-muted-foreground">Se o vencimento for igual ou anterior ao fechamento, vence no mês seguinte. Meses curtos usam o último dia.</p>
+          <Controller
+            name="dueDay"
+            control={control}
+            render={({ field }) => (
+              <Input
+                id="dueDay"
+                type="number"
+                min={1}
+                max={31}
+                value={field.value ?? ''}
+                onChange={(e) =>
+                  field.onChange(e.target.value ? Number(e.target.value) : null)
+                }
+                disabled={isLoading}
+                {...fieldErrorProps('dueDay', errors.dueDay)}
+              />
+            )}
+          />
+          {errors.dueDay && (
+            <p
+              id="dueDay-error"
+              role="alert"
+              className="text-destructive text-sm"
+            >
+              Informe um dia de 1 a 31.
+            </p>
+          )}
+          <p className="text-muted-foreground text-sm">
+            Se o vencimento for igual ou anterior ao fechamento, vence no mês
+            seguinte. Meses curtos usam o último dia.
+          </p>
         </div>
         {/* Status (Ativo/Inativo) - apenas no edit */}
         {isEditMode && (
@@ -252,7 +347,11 @@ export function CreditCardForm({ onSuccess, editingCard }: CreditCardFormProps) 
                     { value: 'false', label: 'Inativo' },
                   ]}
                 >
-                  <SelectTrigger id="isActive" {...fieldErrorProps('isActive', errors.isActive)} className="w-full h-10 rounded-lg">
+                  <SelectTrigger
+                    id="isActive"
+                    {...fieldErrorProps('isActive', errors.isActive)}
+                    className="h-10 w-full rounded-lg"
+                  >
                     <SelectValue placeholder="Selecione o status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -268,7 +367,11 @@ export function CreditCardForm({ onSuccess, editingCard }: CreditCardFormProps) 
         {/* Seletor de Cores */}
         <div className="space-y-2 md:col-span-2">
           <Label>Cor do Cartão</Label>
-          <div role="group" aria-label="Cor do cartão" className="grid grid-cols-5 gap-y-3 justify-items-center">
+          <div
+            role="group"
+            aria-label="Cor do cartão"
+            className="grid grid-cols-4 justify-items-center gap-y-3 sm:grid-cols-5"
+          >
             {PRESET_COLORS.map((color) => (
               <button
                 key={color}
@@ -276,7 +379,7 @@ export function CreditCardForm({ onSuccess, editingCard }: CreditCardFormProps) 
                 onClick={() => setValue('color', color)}
                 aria-label={`Selecionar cor ${color}`}
                 aria-pressed={watchColor === color}
-                className="size-9 rounded-full border border-border flex items-center justify-center cursor-pointer transition-transform hover:scale-105 active:scale-95 animate-transition"
+                className="border-border animate-transition flex size-11 cursor-pointer items-center justify-center rounded-full border transition-transform hover:scale-105 active:scale-95"
                 style={{ backgroundColor: color }}
               >
                 {watchColor === color && (
@@ -288,7 +391,7 @@ export function CreditCardForm({ onSuccess, editingCard }: CreditCardFormProps) 
         </div>
       </div>
 
-      <div className="flex justify-end gap-2 pt-4 border-t border-border mt-6">
+      <div className="border-border mt-6 flex justify-end gap-2 border-t pt-4">
         <Button
           type="button"
           variant="outline"
@@ -312,7 +415,9 @@ export function CreditCardForm({ onSuccess, editingCard }: CreditCardFormProps) 
           )}
         </Button>
       </div>
-    <p role="status" className="sr-only">{isLoading ? 'Salvando cartão…' : ''}</p>
+      <p role="status" className="sr-only">
+        {isLoading ? 'Salvando cartão…' : ''}
+      </p>
     </form>
   )
 }

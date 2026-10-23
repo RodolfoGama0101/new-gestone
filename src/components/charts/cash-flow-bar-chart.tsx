@@ -33,7 +33,7 @@ export function CashFlowBarChart({ data }: CashFlowBarChartProps) {
   }
 
   return (
-    <Card className="border-border bg-card h-full rounded-md shadow-xs transition-all duration-200 hover:shadow-sm">
+    <Card className="border-border bg-card h-full rounded-xl shadow-xs transition-all duration-200 hover:shadow-sm">
       <CardHeader className="px-5 pt-4 pb-2">
         <CardTitle className="text-sm font-semibold">Fluxo de Caixa</CardTitle>
         <CardDescription className="text-muted-foreground text-xs">

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { format } from 'date-fns'
+import { format, parse } from 'date-fns'
 import { useBudget } from '@/hooks/use-budget'
 import { useCategories } from '@/hooks/use-categories'
 import { parseBudgetAmount } from '@/lib/utils/budget'
@@ -13,6 +13,8 @@ import { PageHeader } from '@/components/shared/page-header'
 import { LoadError } from '@/components/shared/load-error'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { Progress } from '@/components/ui/progress'
+import { MonthSelector } from '@/components/shared/month-selector'
 import { Button } from '@/components/ui/button'
 
 export default function BudgetsPage() {
@@ -49,22 +51,17 @@ export default function BudgetsPage() {
         title="Orçamentos e metas"
         description="Limites de consumo e meta de economia por mês, em reais."
       />
-      <label className="block max-w-xs space-y-1 text-sm">
-        Mês de competência
-        <Input
-          type="month"
-          value={month}
-          disabled={budget.saving}
-          onChange={(e) => {
-            if (e.target.value) {
-              setMonth(e.target.value)
-              setMessage('')
-              setGoal('')
-              setLimit('')
-            }
-          }}
-        />
-      </label>
+      <MonthSelector
+        value={parse(month, 'yyyy-MM', new Date())}
+        disabled={budget.saving}
+        label="Mês de competência"
+        onChange={(date) => {
+          setMonth(format(date, 'yyyy-MM'))
+          setMessage('')
+          setGoal('')
+          setLimit('')
+        }}
+      />
       <p className="text-muted-foreground text-sm">
         Compras no cartão seguem a competência da fatura, como no painel.
         Limites não são transportados para o mês seguinte. Investimentos contam
@@ -77,7 +74,7 @@ export default function BudgetsPage() {
           <Card>
             <CardContent className="space-y-4 pt-5">
               <h2 className="font-semibold">Meta de economia</h2>
-              <p>
+              <p className="text-xl font-semibold break-words tabular-nums">
                 Economia realizada: {formatCurrency(budget.data?.savings || 0)}
               </p>
               {budget.data?.goal ? (
@@ -89,6 +86,23 @@ export default function BudgetsPage() {
                 </p>
               ) : (
                 <p>Nenhuma meta definida para este mês.</p>
+              )}
+              {!!budget.data?.goal && (
+                <Progress
+                  aria-label="Progresso da meta de economia"
+                  aria-valuetext={
+                    formatCurrency(budget.data.savings) +
+                    ' de ' +
+                    formatCurrency(budget.data.goal)
+                  }
+                  value={Math.max(
+                    0,
+                    Math.min(
+                      100,
+                      (budget.data.savings / budget.data.goal) * 100,
+                    ),
+                  )}
+                />
               )}
               <p className="text-muted-foreground text-sm">
                 Economia = receitas menos despesas de consumo; inclui o valor
@@ -143,7 +157,7 @@ export default function BudgetsPage() {
                 return (
                   <div
                     key={item.categoryId}
-                    className="space-y-2 border-b pb-4"
+                    className="space-y-3 border-b pb-5 last:border-0"
                   >
                     <h3 className="font-medium">
                       {category?.name || item.name}
@@ -156,7 +170,25 @@ export default function BudgetsPage() {
                         ? `Excesso: ${formatCurrency(spent - item.amount)}`
                         : `Restante: ${formatCurrency(item.amount - spent)}`}
                     </p>
-                    <div className="flex gap-2">
+                    <Progress
+                      aria-label={'Consumo de ' + (category?.name || item.name)}
+                      aria-valuetext={
+                        formatCurrency(spent) +
+                        ' de ' +
+                        formatCurrency(item.amount) +
+                        (spent > item.amount ? ' — limite excedido' : '')
+                      }
+                      value={Math.max(
+                        0,
+                        Math.min(100, (spent / item.amount) * 100),
+                      )}
+                      className={
+                        spent > item.amount
+                          ? '[&_[data-slot=progress-indicator]]:bg-expense'
+                          : ''
+                      }
+                    />
+                    <div className="flex flex-wrap gap-2">
                       <Button
                         variant="outline"
                         disabled={budget.saving}

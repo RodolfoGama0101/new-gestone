@@ -8,24 +8,14 @@ import { BalanceCard } from '@/components/dashboard/balance-card'
 import { SummaryCards } from '@/components/dashboard/summary-cards'
 import { RecentTransactions } from '@/components/dashboard/recent-transactions'
 import { PageHeader } from '@/components/shared/page-header'
-import { Button } from '@/components/ui/button'
+import { MonthSelector } from '@/components/shared/month-selector'
 import { useAuth } from '@/contexts/auth-context'
-import { addMonths, subMonths, format } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
-import {
-  ChevronLeft,
-  ChevronRight,
-  CalendarDays,
-} from 'lucide-react'
 
 export default function DashboardPage() {
   const { user } = useAuth()
   const [selectedDate, setSelectedDate] = React.useState(new Date())
 
   const { summary, isLoading, error, refetch } = useAnalytics(selectedDate)
-
-  const handlePrevMonth = () => setSelectedDate(subMonths(selectedDate, 1))
-  const handleNextMonth = () => setSelectedDate(addMonths(selectedDate, 1))
 
   // Saudação amigável baseada no horário local — memoizada para não recalcular a cada render
   const greeting = React.useMemo(() => {
@@ -35,55 +25,27 @@ export default function DashboardPage() {
     return 'Boa noite'
   }, [])
 
-  const userFirstName = user?.displayName ? user.displayName.split(' ')[0] : 'Usuário'
-
-  // Seletor de Mês — memoizado para evitar recriar o JSX a cada re-render
-  const monthSelector = (
-      <div className="flex items-center gap-0.5 bg-background-100 dark:bg-card border border-border rounded-md p-0.5 shadow-sm">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handlePrevMonth}
-          className="size-7 cursor-pointer rounded-md hover:bg-accent shrink-0"
-          aria-label="Mês anterior"
-        >
-          <ChevronLeft className="size-3.5 text-muted-foreground" />
-        </Button>
-
-        <div className="flex items-center gap-1.5 px-2 min-w-[130px] justify-center">
-          <CalendarDays className="size-3 text-muted-foreground shrink-0" />
-          <span className="text-xs font-medium text-foreground capitalize leading-none">
-            {format(selectedDate, 'MMMM yyyy', { locale: ptBR })}
-          </span>
-        </div>
-
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleNextMonth}
-          className="size-7 cursor-pointer rounded-md hover:bg-accent shrink-0"
-          aria-label="Próximo mês"
-        >
-          <ChevronRight className="size-3.5 text-muted-foreground" />
-        </Button>
-      </div>
-    )
+  const userFirstName = user?.displayName
+    ? user.displayName.split(' ')[0]
+    : 'Usuário'
 
   if (error) return <LoadError error={error} retry={refetch} />
 
   return (
-    <div className="space-y-7 animate-in fade-in duration-300">
+    <div className="animate-in fade-in space-y-7 duration-300">
       {/* Header com saudação e seletor de mês */}
       <PageHeader
         title={`${greeting}, ${userFirstName}!`}
         description="Aqui está um resumo de sua saúde financeira atual."
-        action={monthSelector}
+        action={
+          <MonthSelector value={selectedDate} onChange={setSelectedDate} />
+        }
       />
 
       {/* Grid Principal */}
-      <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
         {/* Coluna principal: Saldo + Cards de Receita/Despesa */}
-        <div className="min-w-0 md:col-span-2 space-y-4">
+        <div className="min-w-0 space-y-4 xl:col-span-2">
           <BalanceCard
             balance={summary?.balance ?? 0}
             changePercent={summary?.balanceChangePercent ?? 0}
@@ -108,7 +70,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Coluna lateral: Lançamentos Recentes */}
-        <div className="min-w-0 md:col-span-1">
+        <div className="min-w-0 xl:col-span-1">
           <RecentTransactions />
         </div>
       </div>

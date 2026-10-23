@@ -2,6 +2,8 @@
 
 ## Design
 
+- [Redesign de UX/UI](design/redesign.md)
+
 - [Legibilidade das telas financeiras](design/financial-readability.md)
 
 ## Funcionalidades

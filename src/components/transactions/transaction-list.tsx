@@ -5,23 +5,28 @@ import { LoadError } from '@/components/shared/load-error'
 import * as React from 'react'
 import { useTransactions } from '@/hooks/use-transactions'
 import { useCategories } from '@/hooks/use-categories'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { ResponsiveDialog } from '@/components/shared/responsive-dialog'
 import { ConfirmDialog } from '@/components/shared/confirm-dialog'
 import { EmptyState } from '@/components/shared/empty-state'
 import { TransactionForm } from '@/components/transactions/transaction-form'
 import { TransactionRow } from '@/components/transactions/transaction-row'
 import { PageHeader } from '@/components/shared/page-header'
 import { Transaction } from '@/types/transaction'
-import { Plus, Loader2, LucideIcon, ChevronLeft, ChevronRight } from 'lucide-react'
+import {
+  Plus,
+  Loader2,
+  LucideIcon,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react'
 
 interface TransactionListProps {
   /** Tipo de transação a ser exibido e criado */
@@ -77,7 +82,11 @@ export function TransactionList({
   emptyDescription,
   deleteDescription,
 }: TransactionListProps) {
-  const { categories, error: categoriesError, refetch: refetchCategories } = useCategories()
+  const {
+    categories,
+    error: categoriesError,
+    refetch: refetchCategories,
+  } = useCategories()
   const {
     transactions,
     isLoading,
@@ -103,7 +112,7 @@ export function TransactionList({
    */
   const categoryMap = React.useMemo(
     () => new Map(categories.map((c) => [c.id, c])),
-    [categories]
+    [categories],
   )
 
   /** Referências estáveis para não forçar re-render dos TransactionRow memoizados */
@@ -131,40 +140,47 @@ export function TransactionList({
   if (isLoading) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
-        <Loader2 className="size-8 animate-spin text-primary" />
+        <Loader2 className="text-primary size-8 animate-spin" />
       </div>
     )
   }
 
-  if (error || categoriesError) return <LoadError error={error || categoriesError} retry={() => Promise.all([refetch(), refetchCategories()])} />
+  if (error || categoriesError)
+    return (
+      <LoadError
+        error={error || categoriesError}
+        retry={() => Promise.all([refetch(), refetchCategories()])}
+      />
+    )
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-300">
+    <div className="animate-in fade-in space-y-6 duration-300">
       {isFetching && <p role="status">Atualizando lançamentos…</p>}
       {/* Cabeçalho da página */}
-      <p role="status" className="sr-only">{transactions.length} lançamentos nesta página</p>
+      <p role="status" className="sr-only">
+        {transactions.length} lançamentos nesta página
+      </p>
       <PageHeader
         title={title}
         description={description}
         action={
-          <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-            <DialogTrigger render={
-              <Button className="min-h-11 text-sm rounded-md gap-1.5 cursor-pointer">
-                <Plus className="size-3.5" />
+          <ResponsiveDialog
+            open={isAddOpen}
+            onOpenChange={setIsAddOpen}
+            title={addDialogTitle}
+            description={addDialogDescription}
+            trigger={
+              <Button className="gap-2">
+                <Plus className="size-4" />
                 {addButtonLabel}
               </Button>
-            } />
-            <DialogContent className="sm:max-w-[450px] md:max-w-[600px] rounded-md">
-              <DialogHeader>
-                <DialogTitle>{addDialogTitle}</DialogTitle>
-                <DialogDescription>{addDialogDescription}</DialogDescription>
-              </DialogHeader>
-              <TransactionForm
-                defaultType={type}
-                onSuccess={() => setIsAddOpen(false)}
-              />
-            </DialogContent>
-          </Dialog>
+            }
+          >
+            <TransactionForm
+              defaultType={type}
+              onSuccess={() => setIsAddOpen(false)}
+            />
+          </ResponsiveDialog>
         }
       />
 
@@ -177,14 +193,16 @@ export function TransactionList({
         />
       ) : (
         <div className="space-y-4">
-          <Card className="border-border bg-card shadow-xs hover:shadow-sm transition-all duration-200 rounded-md">
-            <CardHeader className="pb-2 pt-4 px-5">
-              <CardTitle className="text-sm font-semibold">{listTitle}</CardTitle>
-              <CardDescription className="text-[10px] text-muted-foreground">
+          <Card className="border-border bg-card rounded-xl shadow-xs transition-all duration-200 hover:shadow-sm">
+            <CardHeader className="px-5 pt-4 pb-2">
+              <CardTitle className="text-sm font-semibold">
+                {listTitle}
+              </CardTitle>
+              <CardDescription className="text-muted-foreground text-xs">
                 {listDescription}
               </CardDescription>
             </CardHeader>
-            <CardContent className="divide-y divide-border/60 px-5 pb-4">
+            <CardContent className="divide-border/60 divide-y px-5 pb-4">
               {transactions.map((tx) => (
                 <TransactionRow
                   key={tx.id}
@@ -196,24 +214,23 @@ export function TransactionList({
               ))}
             </CardContent>
           </Card>
-
         </div>
       )}
 
       {/* A navegação permanece disponível mesmo após uma página ficar vazia. */}
       {(hasNextPage || hasPreviousPage) && (
-        <div className="flex flex-wrap items-center justify-between gap-2 pt-2 px-1">
+        <div className="flex flex-wrap items-center justify-between gap-2 px-1 pt-2">
           <Button
             variant="outline"
             size="sm"
             disabled={!hasPreviousPage}
             onClick={goToPreviousPage}
-            className="gap-1.5 cursor-pointer text-sm min-h-11"
+            className="min-h-11 cursor-pointer gap-1.5 text-sm"
           >
             <ChevronLeft className="size-3.5" />
             Anterior
           </Button>
-          <span className="text-xs text-muted-foreground font-medium">
+          <span className="text-muted-foreground text-xs font-medium">
             Página {currentPage}
           </span>
           <Button
@@ -221,7 +238,7 @@ export function TransactionList({
             size="sm"
             disabled={!hasNextPage}
             onClick={goToNextPage}
-            className="gap-1.5 cursor-pointer text-sm min-h-11"
+            className="min-h-11 cursor-pointer gap-1.5 text-sm"
           >
             Próximo
             <ChevronRight className="size-3.5" />
@@ -230,24 +247,20 @@ export function TransactionList({
       )}
 
       {/* Modal de Edição */}
-      <Dialog
+      <ResponsiveDialog
         open={editingTx !== null}
         onOpenChange={(open) => !open && setEditingTx(null)}
+        title={editDialogTitle}
+        description={editDialogDescription}
       >
-        <DialogContent className="sm:max-w-[450px] md:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>{editDialogTitle}</DialogTitle>
-            <DialogDescription>{editDialogDescription}</DialogDescription>
-          </DialogHeader>
-          {editingTx && (
-            <TransactionForm
-              defaultType={type}
-              editingTransaction={editingTx}
-              onSuccess={() => setEditingTx(null)}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
+        {editingTx && (
+          <TransactionForm
+            defaultType={editingTx.type}
+            editingTransaction={editingTx}
+            onSuccess={() => setEditingTx(null)}
+          />
+        )}
+      </ResponsiveDialog>
 
       {/* Confirmação de Exclusão */}
       <ConfirmDialog

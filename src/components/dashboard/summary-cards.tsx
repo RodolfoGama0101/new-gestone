@@ -46,12 +46,15 @@ export function SummaryCards({
     return (
       <div className="grid gap-4 xl:grid-cols-3">
         {[1, 2, 3].map((i) => (
-          <Card key={i} className="border-border bg-card shadow-xs rounded-md p-4 h-[102px] flex flex-col justify-between">
+          <Card
+            key={i}
+            className="border-border bg-card flex h-[102px] flex-col justify-between rounded-xl p-4 shadow-xs"
+          >
             <div className="flex items-center justify-between">
               <Skeleton className="h-3 w-14" />
               <Skeleton className="size-5 rounded-md" />
             </div>
-            <div className="flex items-baseline justify-between gap-2 mt-2">
+            <div className="mt-2 flex items-baseline justify-between gap-2">
               <Skeleton className="h-6 w-28" />
               <Skeleton className="h-4.5 w-10 rounded-full" />
             </div>
@@ -64,61 +67,64 @@ export function SummaryCards({
   return (
     <div className="grid gap-4 xl:grid-cols-3">
       {/* Income Card */}
-      <Card className="border-border bg-card shadow-xs hover:shadow-sm transition-all duration-200 rounded-md">
-        <CardHeader className="pb-1 pt-4 px-5 flex flex-row items-center justify-between space-y-0">
-          <CardTitle className="text-xs font-normal text-muted-foreground">
+      <Card className="border-border bg-card rounded-xl shadow-xs transition-all duration-200 hover:shadow-sm">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 px-5 pt-4 pb-1">
+          <CardTitle className="text-muted-foreground text-xs font-normal">
             Receitas
           </CardTitle>
-          <div className="size-6 rounded-md bg-green-100 dark:bg-green-1000/20 flex items-center justify-center border border-green-200/50 dark:border-green-800/20">
-            <ArrowUpCircle className="size-3.5 text-green-700 dark:text-green-500" />
+          <div className="bg-income/10 border-border flex size-6 items-center justify-center rounded-md border">
+            <ArrowUpCircle className="text-income size-3.5" />
           </div>
         </CardHeader>
-        <CardContent className="pb-4 px-5">
-          <span className="break-all text-xl sm:text-2xl font-semibold tracking-tight text-green-700 dark:text-green-500">
+        <CardContent className="px-5 pb-4">
+          <span className="text-income text-xl font-semibold tracking-tight break-words tabular-nums sm:text-2xl">
             {formatBRL(income)}
           </span>
-          <p className="mt-1 text-xs text-muted-foreground">
-            {incomeCount} {incomeCount === 1 ? 'recebimento' : 'recebimentos'} · {formatChange(incomeChange)}
+          <p className="text-muted-foreground mt-1 text-xs">
+            {incomeCount} {incomeCount === 1 ? 'recebimento' : 'recebimentos'} ·{' '}
+            {formatChange(incomeChange)}
           </p>
         </CardContent>
       </Card>
- 
+
       {/* Expense Card */}
-      <Card className="border-border bg-card shadow-xs hover:shadow-sm transition-all duration-200 rounded-md">
-        <CardHeader className="pb-1 pt-4 px-5 flex flex-row items-center justify-between space-y-0">
-          <CardTitle className="text-xs font-normal text-muted-foreground">
+      <Card className="border-border bg-card rounded-xl shadow-xs transition-all duration-200 hover:shadow-sm">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 px-5 pt-4 pb-1">
+          <CardTitle className="text-muted-foreground text-xs font-normal">
             Despesas
           </CardTitle>
-          <div className="size-6 rounded-md bg-red-100 dark:bg-red-1000/20 flex items-center justify-center border border-red-200/50 dark:border-red-800/20">
-            <ArrowDownCircle className="size-3.5 text-red-700 dark:text-red-500" />
+          <div className="bg-expense/10 border-border flex size-6 items-center justify-center rounded-md border">
+            <ArrowDownCircle className="text-expense size-3.5" />
           </div>
         </CardHeader>
-        <CardContent className="pb-4 px-5">
-          <span className="break-all text-xl sm:text-2xl font-semibold tracking-tight text-red-700 dark:text-red-500">
+        <CardContent className="px-5 pb-4">
+          <span className="text-expense text-xl font-semibold tracking-tight break-words tabular-nums sm:text-2xl">
             {formatBRL(expense)}
           </span>
-          <p className="mt-1 text-xs text-muted-foreground">
-            {expenseCount} {expenseCount === 1 ? 'pagamento' : 'pagamentos'} · {formatChange(expenseChange)}
+          <p className="text-muted-foreground mt-1 text-xs">
+            {expenseCount} {expenseCount === 1 ? 'pagamento' : 'pagamentos'} ·{' '}
+            {formatChange(expenseChange)}
           </p>
         </CardContent>
       </Card>
- 
+
       {/* Investment Card */}
-      <Card className="border-border bg-card shadow-xs hover:shadow-sm transition-all duration-200 rounded-md">
-        <CardHeader className="pb-1 pt-4 px-5 flex flex-row items-center justify-between space-y-0">
-          <CardTitle className="text-xs font-normal text-muted-foreground">
+      <Card className="border-border bg-card rounded-xl shadow-xs transition-all duration-200 hover:shadow-sm">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 px-5 pt-4 pb-1">
+          <CardTitle className="text-muted-foreground text-xs font-normal">
             Investimentos
           </CardTitle>
-          <div className="size-6 rounded-md bg-violet-100 dark:bg-violet-1000/20 flex items-center justify-center border border-violet-200/50 dark:border-violet-800/20">
-            <Coins className="size-3.5 text-violet-700 dark:text-violet-500" />
+          <div className="bg-investment/10 border-border flex size-6 items-center justify-center rounded-md border">
+            <Coins className="text-investment size-3.5" />
           </div>
         </CardHeader>
-        <CardContent className="pb-4 px-5">
-          <span className="break-all text-xl sm:text-2xl font-semibold tracking-tight text-violet-700 dark:text-violet-500">
+        <CardContent className="px-5 pb-4">
+          <span className="text-investment text-xl font-semibold tracking-tight break-words tabular-nums sm:text-2xl">
             {formatBRL(investment)}
           </span>
-          <p className="mt-1 text-xs text-muted-foreground">
-            {investmentCount} {investmentCount === 1 ? 'aporte' : 'aportes'} · {formatChange(investmentChange)}
+          <p className="text-muted-foreground mt-1 text-xs">
+            {investmentCount} {investmentCount === 1 ? 'aporte' : 'aportes'} ·{' '}
+            {formatChange(investmentChange)}
           </p>
         </CardContent>
       </Card>

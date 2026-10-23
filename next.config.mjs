@@ -10,6 +10,9 @@ const withPWA = withPWAInit({
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Keep emulator verification independent from an existing local dev server.
+  distDir:
+    process.env.NEXT_PUBLIC_USE_EMULATORS === 'true' ? '.next/e2e' : '.next',
   // Ativa o React Strict Mode para melhor detecção de problemas e profiling
   reactStrictMode: true,
   poweredByHeader: false,
@@ -22,7 +25,11 @@ const nextConfig = {
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           { key: 'X-Frame-Options', value: 'DENY' },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-          { key: 'Permissions-Policy', value: 'camera=(), geolocation=(), microphone=(), payment=(), usb=()' },
+          {
+            key: 'Permissions-Policy',
+            value:
+              'camera=(), geolocation=(), microphone=(), payment=(), usb=()',
+          },
         ],
       },
     ]

@@ -1,21 +1,20 @@
 'use client'
 
 import { formatMoney } from '@/lib/utils/format-money'
-
-import * as React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { AreaChart, Area, ResponsiveContainer } from 'recharts'
 import { Skeleton } from '@/components/ui/skeleton'
-
-interface DailyPoint {
-  date: string
-  balance: number
-}
+import {
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
+} from '@/components/ui/collapsible'
+import { Button } from '@/components/ui/button'
+import { AreaChart, Area, ResponsiveContainer } from 'recharts'
 
 interface BalanceCardProps {
-  balance: number // em centavos (ex: 1500 = R$ 15,00)
+  balance: number
   changePercent: number
-  data: DailyPoint[]
+  data: { date: string; balance: number }[]
   isLoading?: boolean
   futureCardExpenses?: number
   availableBalance?: number
@@ -31,97 +30,97 @@ export function BalanceCard({
   availableBalance = balance,
   referenceDate,
 }: BalanceCardProps) {
-  const formattedBalance = formatMoney(balance)
-
-  const isPositive = balance >= 0
-  const changeLabel = Number.isFinite(changePercent)
-    ? `${changePercent > 0 ? '+' : ''}${changePercent.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}% vs. mês anterior`
-    : 'Sem base anterior'
-
-  if (isLoading) {
+  if (isLoading)
     return (
-      <Card className="border-border bg-card flex h-[142px] flex-col justify-between rounded-md p-5 shadow-xs">
-        <div className="space-y-2">
-          <Skeleton className="h-3 w-20" />
-          <Skeleton className="h-7 w-48" />
-        </div>
-        <Skeleton className="h-10 w-full" />
+      <Card aria-label="Carregando resumo financeiro" aria-busy="true">
+        <CardContent className="space-y-5">
+          <Skeleton className="h-4 w-48" />
+          <Skeleton className="h-10 w-56" />
+          <Skeleton className="h-24 w-full" />
+        </CardContent>
       </Card>
     )
-  }
-
-  // Cor do Geist para a sparkline: azul Geist para saldo positivo, vermelho Geist para negativo
-  const chartColor = isPositive ? 'var(--income)' : 'var(--expense)'
-
+  const changeLabel = Number.isFinite(changePercent)
+    ? (changePercent > 0 ? '+' : '') +
+      changePercent.toLocaleString('pt-BR', { maximumFractionDigits: 1 }) +
+      '% vs. mês anterior'
+    : 'Sem base anterior'
   return (
-    <Card className="border-border bg-card overflow-hidden rounded-md shadow-xs transition-all duration-200 hover:shadow-sm">
-      <CardHeader className="px-5 pt-4 pb-1">
-        <CardTitle className="text-muted-foreground text-xs font-normal">
+    <Card className="border-t-primary relative min-w-0 gap-5 border-t-2">
+      <CardHeader>
+        <CardTitle className="text-muted-foreground text-sm">
           Saldo projetado do mês
         </CardTitle>
+        <p className="text-3xl font-semibold tracking-tight break-words tabular-nums sm:text-4xl">
+          {formatMoney(balance)}
+        </p>
+        <p className="text-muted-foreground text-xs">{changeLabel}</p>
       </CardHeader>
-      <CardContent className="px-5 pb-0">
-        <div className="flex items-baseline justify-between gap-4">
-          <span className="text-foreground break-all text-2xl sm:text-3xl font-semibold tracking-tight">
-            {formattedBalance}
-          </span>
-        </div>
-        <div className="mt-0.5 mb-2 flex min-h-[16px] flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-          <span className="text-muted-foreground text-xs">
-            {changeLabel}
-          </span>
-        </div>
-        <p className="text-muted-foreground text-xs">
+      <CardContent className="space-y-5">
+        <p className="text-muted-foreground text-sm leading-relaxed">
           Receitas menos despesas e investimentos do mês, incluindo a fatura
           deste mês.
         </p>
-        <div className="text-muted-foreground mt-2 space-y-1 text-xs">
-          <div className="flex flex-wrap items-center gap-1">
-            <span>Reserva para faturas após este mês:</span>
-            <span className="font-semibold text-red-600 dark:text-red-400">
+        <dl className="bg-muted grid gap-4 rounded-lg p-4 sm:grid-cols-2">
+          <div className="min-w-0 space-y-2">
+            <dt className="text-muted-foreground text-xs">
+              Reserva para faturas após este mês
+            </dt>
+            <dd className="text-lg font-semibold break-words tabular-nums">
               {formatMoney(futureCardExpenses)}
-            </span>
+            </dd>
           </div>
-          <div className="flex flex-wrap items-center gap-1">
-            <span>Disponível após reservas:</span>
-            <span className="text-foreground font-semibold">
+          <div className="min-w-0 space-y-2">
+            <dt className="text-muted-foreground text-xs">
+              Disponível após reservas
+            </dt>
+            <dd className="text-lg font-semibold break-words tabular-nums">
               {formatMoney(availableBalance)}
-            </span>
+            </dd>
           </div>
-          <p>
-            {referenceDate
-              ? `Reservas de compras realizadas até ${referenceDate.toLocaleDateString('pt-BR')}.`
-              : 'Reservas de compras realizadas para faturas dos próximos meses.'}{' '}
-            Projeção dos lançamentos cadastrados.
-          </p>
-        </div>
-      </CardContent>
-
-      {/* Sparkline with minimalist line */}
-      <div className="mt-2 h-12 w-full">
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart
-            data={data}
-            margin={{ top: 0, right: 0, left: 0, bottom: 0 }}
+        </dl>
+        <Collapsible className="space-y-2">
+          <CollapsibleTrigger
+            render={<Button variant="ghost" className="-ml-3 text-sm" />}
           >
-            <defs>
-              <linearGradient id="balanceGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={chartColor} stopOpacity={0.15} />
-                <stop offset="95%" stopColor={chartColor} stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <Area
-              type="monotone"
-              dataKey="balance"
-              stroke={chartColor}
-              strokeWidth={1.5}
-              fill="url(#balanceGradient)"
-              dot={false}
-              activeDot={false}
-            />
-          </AreaChart>
-        </ResponsiveContainer>
-      </div>
+            Entenda esta projeção
+          </CollapsibleTrigger>
+          <CollapsibleContent className="text-muted-foreground text-sm leading-relaxed">
+            {referenceDate
+              ? 'Reservas de compras realizadas até ' +
+                referenceDate.toLocaleDateString('pt-BR') +
+                '.'
+              : 'Reservas de compras realizadas para faturas dos próximos meses.'}{' '}
+            Projeção dos lançamentos cadastrados; não representa o saldo de uma
+            conta bancária. A reserva apenas evidencia compromissos futuros.
+          </CollapsibleContent>
+        </Collapsible>
+        {data.length > 1 ? (
+          <div aria-hidden="true" className="h-16 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart
+                data={data}
+                margin={{ top: 4, right: 0, left: 0, bottom: 0 }}
+              >
+                <Area
+                  type="monotone"
+                  dataKey="balance"
+                  stroke="var(--primary)"
+                  strokeWidth={2}
+                  fill="var(--primary)"
+                  fillOpacity={0.06}
+                  dot={false}
+                  activeDot={false}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        ) : (
+          <p className="text-muted-foreground border-t pt-4 text-xs">
+            A evolução aparece quando houver mais dados no período.
+          </p>
+        )}
+      </CardContent>
     </Card>
   )
 }

@@ -28,12 +28,12 @@ export function CategoryDonutChart({ data }: CategoryDonutChartProps) {
   }, [data])
 
   return (
-    <Card className="border-border bg-card h-full rounded-md shadow-xs transition-all duration-200 hover:shadow-sm">
+    <Card className="border-border bg-card h-full rounded-xl shadow-xs transition-all duration-200 hover:shadow-sm">
       <CardHeader className="px-5 pt-4 pb-2">
         <CardTitle className="text-sm font-semibold">
           Gastos por Categoria
         </CardTitle>
-        <CardDescription className="text-muted-foreground text-[10px]">
+        <CardDescription className="text-muted-foreground text-xs">
           Distribuição proporcional das despesas no período
         </CardDescription>
       </CardHeader>

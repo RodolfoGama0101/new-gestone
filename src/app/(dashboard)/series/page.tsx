@@ -1,5 +1,10 @@
 'use client'
 
+import {
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
+} from '@/components/ui/collapsible'
 import { useState } from 'react'
 import { addDays, format } from 'date-fns'
 import { useTransactionSeries } from '@/hooks/use-transaction-series'
@@ -94,68 +99,75 @@ function SeriesItem({
             </p>
           </details>
         )}
-        {item.kind === 'recurring' && !item.cancelledFrom && (
-          <form
-            className="flex flex-wrap items-end gap-2"
-            onSubmit={(e) => {
-              e.preventDefault()
-              void run(() =>
-                perform({
-                  kind: 'edit',
-                  id: item.id,
-                  amount: parseBudgetAmount(amount),
-                  description,
-                }),
-              )
-            }}
-          >
-            <label className="text-sm">
-              Descrição futura
-              <Input
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                required
-                minLength={3}
-                maxLength={200}
-              />
-            </label>
-            <label className="text-sm">
-              Valor mensal em R$
-              <Input
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                inputMode="decimal"
-                required
-              />
-            </label>
-            <Button type="submit" disabled={busy}>
-              Salvar futuras
-            </Button>
-          </form>
-        )}
-        <p className="text-muted-foreground text-sm">
-          O histórico e as ocorrências já geradas são editados individualmente
-          no extrato. Cancelar remove somente ocorrências com data igual ou
-          posterior ao corte escolhido.
-        </p>
-        <div className="flex flex-wrap items-end gap-2">
-          <label className="text-sm">
-            Cancelar a partir de
-            <Input
-              type="date"
-              min={format(new Date(), 'yyyy-MM-dd')}
-              value={from}
-              onChange={(e) => setFrom(e.target.value)}
-            />
-          </label>
-          <Button
-            variant="outline"
-            disabled={busy}
-            onClick={() => setConfirm(true)}
-          >
-            Cancelar futuras
-          </Button>
-        </div>
+        <Collapsible className="space-y-4 border-t pt-4">
+          <CollapsibleTrigger render={<Button variant="outline" />}>
+            Gerenciar ocorrências futuras
+          </CollapsibleTrigger>
+          <CollapsibleContent className="space-y-4">
+            {item.kind === 'recurring' && !item.cancelledFrom && (
+              <form
+                className="flex flex-wrap items-end gap-2"
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  void run(() =>
+                    perform({
+                      kind: 'edit',
+                      id: item.id,
+                      amount: parseBudgetAmount(amount),
+                      description,
+                    }),
+                  )
+                }}
+              >
+                <label className="text-sm">
+                  Descrição futura
+                  <Input
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    required
+                    minLength={3}
+                    maxLength={200}
+                  />
+                </label>
+                <label className="text-sm">
+                  Valor mensal em R$
+                  <Input
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    inputMode="decimal"
+                    required
+                  />
+                </label>
+                <Button type="submit" disabled={busy}>
+                  Salvar futuras
+                </Button>
+              </form>
+            )}
+            <p className="text-muted-foreground text-sm">
+              O histórico e as ocorrências já geradas são editados
+              individualmente no extrato. Cancelar remove somente ocorrências
+              com data igual ou posterior ao corte escolhido.
+            </p>
+            <div className="flex flex-wrap items-end gap-2">
+              <label className="text-sm">
+                Cancelar a partir de
+                <Input
+                  type="date"
+                  min={format(new Date(), 'yyyy-MM-dd')}
+                  value={from}
+                  onChange={(e) => setFrom(e.target.value)}
+                />
+              </label>
+              <Button
+                variant="outline"
+                disabled={busy}
+                onClick={() => setConfirm(true)}
+              >
+                Cancelar futuras
+              </Button>
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
         <ConfirmDialog
           isOpen={confirm}
           onClose={() => {
@@ -191,7 +203,7 @@ export default function SeriesPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Séries"
+        title="Recorrências e parcelas"
         description="Lançamentos recorrentes e compras parceladas. Crie uma série pelo formulário de lançamento."
       />
       <p className="text-muted-foreground text-sm">

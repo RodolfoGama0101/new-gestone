@@ -41,63 +41,55 @@ test('telas financeiras preservam textos longos, valores e ações em telas estr
       .repeat(2)
       .slice(0, 200)
   const now = Timestamp.now()
-  await db
-    .doc('users/' + uid + '/categories/' + categoryId)
-    .set({
-      name,
-      type: 'expense',
-      color: '#7c3aed',
-      icon: 'Wallet',
-      isDefault: false,
-      createdAt: now,
-      updatedAt: now,
-    })
-  await db
-    .doc('users/' + uid + '/transactions/layout')
-    .set({
-      type: 'expense',
-      amount: 999999999,
-      description,
-      categoryId,
-      date: now,
-      tags: [],
-      notes: description,
-      recurring: false,
-      createdAt: now,
-      updatedAt: now,
-    })
-  await db
-    .doc('users/' + uid + '/creditCards/layout-card')
-    .set({
-      name: 'Cartão de revisão responsiva',
-      bankName: 'Banco de teste',
-      holderName: 'Pessoa de teste',
-      brand: 'visa',
-      closingDay: 31,
-      color: '#2563eb',
-      isActive: true,
-      createdAt: now,
-      updatedAt: now,
-    })
-  await db
-    .doc('users/' + uid + '/transactions/layout-purchase')
-    .set({
-      type: 'expense',
-      amount: 999999999,
-      description,
-      categoryId,
-      date: now,
-      creditCardId: 'layout-card',
-      cardClosingDay: 31,
-      tags: [],
-      notes: null,
-      recurring: false,
-      createdAt: now,
-      updatedAt: now,
-    })
+  await db.doc('users/' + uid + '/categories/' + categoryId).set({
+    name,
+    type: 'expense',
+    color: '#7c3aed',
+    icon: 'Wallet',
+    isDefault: false,
+    createdAt: now,
+    updatedAt: now,
+  })
+  await db.doc('users/' + uid + '/transactions/layout').set({
+    type: 'expense',
+    amount: 999999999,
+    description,
+    categoryId,
+    date: now,
+    tags: [],
+    notes: description,
+    recurring: false,
+    createdAt: now,
+    updatedAt: now,
+  })
+  await db.doc('users/' + uid + '/creditCards/layout-card').set({
+    name: 'Cartão de revisão responsiva',
+    bankName: 'Banco de teste',
+    holderName: 'Pessoa de teste',
+    brand: 'visa',
+    closingDay: 31,
+    color: '#2563eb',
+    isActive: true,
+    createdAt: now,
+    updatedAt: now,
+  })
+  await db.doc('users/' + uid + '/transactions/layout-purchase').set({
+    type: 'expense',
+    amount: 999999999,
+    description,
+    categoryId,
+    date: now,
+    creditCardId: 'layout-card',
+    cardClosingDay: 31,
+    tags: [],
+    notes: null,
+    recurring: false,
+    createdAt: now,
+    updatedAt: now,
+  })
   for (const theme of ['light', 'dark']) {
     await page.evaluate((value) => localStorage.setItem('theme', value), theme)
-    for (const width of [320, 390, 768, 1280]) {
+    for (const width of [320, 390, 768, 1280, 1536]) {
       await page.setViewportSize({ width, height: 900 })
       for (const route of [
         '/transactions',
@@ -106,9 +98,10 @@ test('telas financeiras preservam textos longos, valores e ações em telas estr
         '/analytics',
         '/credit-cards',
       ]) {
+        await page.setViewportSize({ width, height: 900 })
         await page.goto(route)
         await expect(page.locator('main')).toBeVisible()
-        if (route === '/credit-cards')
+        if (route === '/credit-cards' && width >= 1280)
           await page
             .getByRole('button', {
               name: 'Selecionar cartão Cartão de revisão responsiva',
@@ -143,7 +136,7 @@ test('telas financeiras preservam textos longos, valores e ações em telas estr
             .toBe(true)
           await page.screenshot({
             path:
-              'dogfood-output/rod-118/' +
+              'dogfood-output/redesign/' +
               theme +
               '-' +
               width +
@@ -153,6 +146,7 @@ test('telas financeiras preservam textos longos, valores e ações em telas estr
               (route.slice(1) || 'dashboard') +
               '.png',
             fullPage: true,
+            animations: 'disabled',
           })
         }
       }

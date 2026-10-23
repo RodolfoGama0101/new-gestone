@@ -1,115 +1,49 @@
 'use client'
 
-import * as React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { ThemeToggle } from '@/components/shared/theme-toggle'
 import { Logo } from '@/components/shared/logo'
-import {
-  LayoutDashboard,
-  ArrowUpCircle,
-  ArrowDownCircle,
-  BarChart3,
-  Tag,
-  Settings,
-  Receipt,
-  Coins,
-  CreditCard,
-} from 'lucide-react'
-
-const navItems = [
-  { label: 'Painel', href: '/', icon: LayoutDashboard },
-  { label: 'Extrato', href: '/transactions', icon: Receipt },
-  { label: 'Receitas', href: '/income', icon: ArrowUpCircle },
-  { label: 'Despesas', href: '/expenses', icon: ArrowDownCircle },
-  { label: 'Investimentos', href: '/investments', icon: Coins },
-  { label: 'Cartões', href: '/credit-cards', icon: CreditCard },
-  { label: 'Séries', href: '/series', icon: Coins },
-  { label: 'Orçamentos', href: '/budgets', icon: Coins },
-  { label: 'Relatórios', href: '/analytics', icon: BarChart3 },
-  { label: 'Categorias', href: '/categories', icon: Tag },
-]
-
-const secondaryNavItems = [
-  { label: 'Configurações', href: '/settings', icon: Settings },
-]
+import { navigationGroups } from './navigation'
 
 export function Sidebar() {
   const pathname = usePathname()
-
   return (
-    <aside className="fixed inset-y-0 left-0 z-20 hidden w-52 flex-col md:flex border-r border-sidebar-border bg-sidebar">
-      {/* Brand Header */}
-      <div className="flex h-12 items-center px-4 border-b border-sidebar-border shrink-0">
+    <aside className="border-border bg-card fixed inset-y-0 left-0 z-20 hidden w-64 flex-col border-r md:flex">
+      <div className="flex h-16 shrink-0 items-center border-b px-6">
         <Logo variant="full" size="sm" />
       </div>
-
-      {/* Navigation */}
-      <nav aria-label="Navegação principal" className="flex-1 overflow-y-auto scrollbar-thin px-2 py-4 space-y-0.5">
-        {navItems.map((item) => {
-          const isActive = pathname === item.href
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              aria-current={isActive ? 'page' : undefined}
-              className={cn(
-                'group flex items-center gap-2.5 px-2.5 py-1.5 text-sm font-medium rounded-md transition-colors duration-100 relative cursor-pointer',
-                isActive
-                  ? 'bg-sidebar-accent text-sidebar-foreground font-semibold'
-                  : 'text-sidebar-foreground/75 hover:bg-sidebar-accent hover:text-sidebar-foreground'
-              )}
-            >
-              <item.icon
+      <nav
+        aria-label="Navegação principal"
+        className="flex-1 space-y-6 overflow-y-auto px-3 py-6"
+      >
+        {navigationGroups.map((group) => (
+          <div key={group.label} className="space-y-1">
+            <p className="text-muted-foreground px-3 pb-2 text-xs font-medium">
+              {group.label}
+            </p>
+            {group.items.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-current={pathname === item.href ? 'page' : undefined}
                 className={cn(
-                  'size-4 shrink-0 transition-transform duration-100',
-                  isActive
-                    ? 'text-sidebar-foreground'
-                    : 'text-sidebar-foreground/50 group-hover:text-sidebar-foreground group-hover:scale-105'
+                  'flex min-h-11 items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
+                  pathname === item.href
+                    ? 'bg-accent text-primary font-semibold'
+                    : 'text-muted-foreground hover:bg-muted hover:text-foreground',
                 )}
-              />
-              <span className="truncate">{item.label}</span>
-            </Link>
-          )
-        })}
-
-        {/* Separator */}
-        <div className="my-2 border-t border-sidebar-border/60" />
-
-        {secondaryNavItems.map((item) => {
-          const isActive = pathname === item.href
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              aria-current={isActive ? 'page' : undefined}
-              className={cn(
-                'group flex items-center gap-2.5 px-2.5 py-1.5 text-sm font-medium rounded-md transition-colors duration-100 relative cursor-pointer',
-                isActive
-                  ? 'bg-sidebar-accent text-sidebar-foreground font-semibold'
-                  : 'text-sidebar-foreground/75 hover:bg-sidebar-accent hover:text-sidebar-foreground'
-              )}
-            >
-              <item.icon
-                className={cn(
-                  'size-4 shrink-0 transition-transform duration-100',
-                  isActive
-                    ? 'text-sidebar-foreground'
-                    : 'text-sidebar-foreground/50 group-hover:text-sidebar-foreground group-hover:scale-105'
-                )}
-              />
-              <span className="truncate">{item.label}</span>
-            </Link>
-          )
-        })}
+              >
+                <item.icon aria-hidden="true" className="size-4 shrink-0" />
+                <span>{item.label}</span>
+              </Link>
+            ))}
+          </div>
+        ))}
       </nav>
-
-      {/* Footer */}
-      <div className="shrink-0 border-t border-sidebar-border px-4 h-12 flex items-center justify-between gap-2">
-        <span className="text-[10px] font-bold text-sidebar-foreground/45 uppercase tracking-wider select-none">
-          v1.0
-        </span>
+      <div className="flex min-h-16 shrink-0 items-center justify-between border-t px-6">
+        <span className="text-muted-foreground text-xs">Aparência</span>
         <ThemeToggle />
       </div>
     </aside>

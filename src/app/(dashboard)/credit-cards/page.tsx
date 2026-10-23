@@ -1,13 +1,32 @@
 'use client'
 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { LoadError } from '@/components/shared/load-error'
 
 import * as React from 'react'
 import { useCreditCards } from '@/hooks/use-credit-cards'
 import { PageHeader } from '@/components/shared/page-header'
 import { Button } from '@/components/ui/button'
-import { Plus, CreditCard as CardIcon, Loader2, Pencil, Trash2 } from 'lucide-react'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  Plus,
+  CreditCard as CardIcon,
+  Loader2,
+  Pencil,
+  Trash2,
+} from 'lucide-react'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { ConfirmDialog } from '@/components/shared/confirm-dialog'
 import { EmptyState } from '@/components/shared/empty-state'
 import { CreditCardForm } from '@/components/credit-cards/credit-card-form'
@@ -16,15 +35,21 @@ import { CreditCardBillSummary } from '@/components/credit-cards/credit-card-bil
 import { CreditCard } from '@/types/credit-card'
 
 export default function CreditCardsPage() {
-  const { creditCards, isLoading, error, refetch, archiveCreditCard } = useCreditCards()
+  const { creditCards, isLoading, error, refetch, archiveCreditCard } =
+    useCreditCards()
 
   const [isAddOpen, setIsAddOpen] = React.useState(false)
-  const [selectedCardId, setSelectedCardId] = React.useState<string | null>(null)
+  const [selectedCardId, setSelectedCardId] = React.useState<string | null>(
+    null,
+  )
   const [editingCard, setEditingCard] = React.useState<CreditCard | null>(null)
   const [archivingId, setArchivingId] = React.useState<string | null>(null)
   const [isArchiving, setIsArchiving] = React.useState(false)
 
-  const selectedCard = creditCards.find((card) => card.id === selectedCardId) ?? creditCards[0] ?? null
+  const selectedCard =
+    creditCards.find((card) => card.id === selectedCardId) ??
+    creditCards[0] ??
+    null
 
   const handleArchiveConfirm = async () => {
     if (!archivingId) return
@@ -44,19 +69,22 @@ export default function CreditCardsPage() {
   if (isLoading) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
-        <Loader2 className="size-8 animate-spin text-primary" />
+        <Loader2 className="text-primary size-8 animate-spin" />
       </div>
     )
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-300">
+    <div className="animate-in fade-in space-y-6 duration-300">
       {/* Cabeçalho */}
       <PageHeader
         title="Meus Cartões"
         description="Gerencie seus cartões de crédito e veja os lançamentos futuros."
         action={
-          <Button onClick={() => setIsAddOpen(true)} className="gap-1.5 font-semibold text-xs h-9 pr-4 pl-3 cursor-pointer">
+          <Button
+            onClick={() => setIsAddOpen(true)}
+            className="h-9 cursor-pointer gap-1.5 pr-4 pl-3 text-xs font-semibold"
+          >
             <Plus className="size-4" />
             Adicionar Cartão
           </Button>
@@ -68,15 +96,46 @@ export default function CreditCardsPage() {
           title="Nenhum cartão cadastrado"
           description="Você ainda não adicionou nenhum cartão de crédito. Adicione um para gerenciar suas faturas e despesas futuras."
           icon={CardIcon}
+          action={
+            <Button onClick={() => setIsAddOpen(true)}>Adicionar Cartão</Button>
+          }
         />
       ) : (
         <div className="grid gap-6 xl:grid-cols-3">
           {/* Coluna da esquerda: Lista de cartões */}
-          <div className="xl:col-span-1 min-w-0 space-y-4">
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-1">
+          <div className="min-w-0 xl:hidden">
+            <label
+              htmlFor="selected-card"
+              className="mb-2 block text-sm font-medium"
+            >
+              Cartão selecionado
+            </label>
+            <Select
+              value={selectedCard?.id || ''}
+              onValueChange={setSelectedCardId}
+              items={creditCards.map((card) => ({
+                value: card.id,
+                label: card.name + (card.archived ? ' — arquivado' : ''),
+              }))}
+            >
+              <SelectTrigger id="selected-card" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {creditCards.map((card) => (
+                  <SelectItem key={card.id} value={card.id}>
+                    {card.name}
+                    {card.archived ? ' — arquivado' : ''}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="hidden min-w-0 space-y-4 xl:col-span-1 xl:block">
+            <h3 className="text-muted-foreground px-1 text-xs font-semibold tracking-wider uppercase">
               Cartões cadastrados ({creditCards.length})
             </h3>
-            <div className="space-y-4 max-h-[70vh] overflow-y-auto scrollbar-thin pr-3 pl-1 py-1">
+            <div className="scrollbar-thin max-h-[70vh] space-y-4 overflow-y-auto py-1 pr-3 pl-1">
               {creditCards.map((card) => {
                 const isSelected = selectedCard?.id === card.id
                 return (
@@ -86,10 +145,10 @@ export default function CreditCardsPage() {
                     onClick={() => setSelectedCardId(card.id)}
                     aria-pressed={isSelected}
                     aria-label={`Selecionar cartão ${card.name}`}
-                    className={`relative cursor-pointer transition-all duration-200 rounded-xl p-1 border-2 ${
+                    className={`relative cursor-pointer rounded-xl border-2 p-1 transition-all duration-200 ${
                       isSelected
-                        ? 'border-primary shadow-md scale-[1.01]'
-                        : 'border-transparent hover:scale-[1.005] opacity-80 hover:opacity-100'
+                        ? 'border-primary scale-[1.01] shadow-md'
+                        : 'border-transparent opacity-80 hover:scale-[1.005] hover:opacity-100'
                     }`}
                   >
                     <CreditCardVisual
@@ -100,7 +159,11 @@ export default function CreditCardsPage() {
                       closingDay={card.closingDay}
                       color={card.color}
                     />
-                    {card.archived && <span className="block mt-2 text-xs text-muted-foreground">Arquivado · histórico disponível</span>}
+                    {card.archived && (
+                      <span className="text-muted-foreground mt-2 block text-xs">
+                        Arquivado · histórico disponível
+                      </span>
+                    )}
                   </button>
                 )
               })}
@@ -108,42 +171,50 @@ export default function CreditCardsPage() {
           </div>
 
           {/* Coluna da direita: Detalhes e Fatura do cartão selecionado */}
-          <div className="xl:col-span-2 min-w-0 space-y-4">
+          <div className="min-w-0 space-y-4 xl:col-span-2">
             {selectedCard ? (
-              <div className="space-y-4 animate-in fade-in duration-200">
-                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/40 pb-3 px-1">
+              <div className="animate-in fade-in space-y-4 duration-200">
+                <div className="border-border/40 flex flex-wrap items-center justify-between gap-3 border-b px-1 pb-3">
                   <div>
-                    <h2 className="break-words text-lg font-bold text-foreground">{selectedCard.name}</h2>
-                    <p className="text-xs text-muted-foreground">
-                      {selectedCard.bankName} • Titular: {selectedCard.holderName}
+                    <h2 className="text-foreground text-lg font-bold break-words">
+                      {selectedCard.name}
+                    </h2>
+                    <p className="text-muted-foreground text-xs">
+                      {selectedCard.bankName} • Titular:{' '}
+                      {selectedCard.holderName}
                     </p>
                   </div>
-                  {!selectedCard.archived && <div className="flex flex-wrap items-center gap-1.5">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="gap-1.5 min-h-11 text-sm cursor-pointer"
-                      onClick={() => setEditingCard(selectedCard)}
-                    >
-                      <Pencil className="size-3.5" />
-                      Editar
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="gap-1.5 min-h-11 text-sm text-destructive hover:bg-destructive/10 hover:text-destructive border-border/60 hover:border-destructive/20 cursor-pointer"
-                      onClick={() => setArchivingId(selectedCard.id)}
-                    >
-                      <Trash2 className="size-3.5" />
-                      Arquivar
-                    </Button>
-                  </div>}
+                  {!selectedCard.archived && (
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="min-h-11 cursor-pointer gap-1.5 text-sm"
+                        onClick={() => setEditingCard(selectedCard)}
+                      >
+                        <Pencil className="size-3.5" />
+                        Editar
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-destructive hover:bg-destructive/10 hover:text-destructive border-border/60 hover:border-destructive/20 min-h-11 cursor-pointer gap-1.5 text-sm"
+                        onClick={() => setArchivingId(selectedCard.id)}
+                      >
+                        <Trash2 className="size-3.5" />
+                        Arquivar
+                      </Button>
+                    </div>
+                  )}
                 </div>
 
-                <CreditCardBillSummary card={selectedCard} />
+                <CreditCardBillSummary
+                  key={selectedCard.id}
+                  card={selectedCard}
+                />
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center h-48 border border-dashed border-border rounded-xl text-muted-foreground bg-muted/5 text-sm">
+              <div className="border-border text-muted-foreground bg-muted/5 flex h-48 flex-col items-center justify-center rounded-xl border border-dashed text-sm">
                 Selecione um cartão para ver os detalhes da fatura.
               </div>
             )}
@@ -157,7 +228,8 @@ export default function CreditCardsPage() {
           <DialogHeader>
             <DialogTitle>Novo Cartão de Crédito</DialogTitle>
             <DialogDescription>
-              Cadastre um cartão para organizar suas despesas futuras e ciclos de fatura.
+              Cadastre um cartão para organizar suas despesas futuras e ciclos
+              de fatura.
             </DialogDescription>
           </DialogHeader>
           <CreditCardForm onSuccess={() => setIsAddOpen(false)} />
@@ -165,7 +237,10 @@ export default function CreditCardsPage() {
       </Dialog>
 
       {/* Modal - Editar Cartão */}
-      <Dialog open={editingCard !== null} onOpenChange={(open) => !open && setEditingCard(null)}>
+      <Dialog
+        open={editingCard !== null}
+        onOpenChange={(open) => !open && setEditingCard(null)}
+      >
         <DialogContent className="sm:max-w-[450px] md:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>Editar Cartão de Crédito</DialogTitle>

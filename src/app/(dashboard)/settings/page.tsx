@@ -5,34 +5,49 @@ import { usePreferences } from '@/providers/preferences-provider'
 import { auth } from '@/lib/firebase/config'
 import { AccountDeletionError, deleteAccount } from '@/lib/firebase/account'
 import { updateProfile, updatePassword } from 'firebase/auth'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ConfirmDialog } from '@/components/shared/confirm-dialog'
 import { ReauthDialog } from '@/components/auth/reauth-dialog'
 import { toast } from 'sonner'
-import { cn } from '@/lib/utils'
-import { 
-  Sun, 
-  Moon, 
-  Monitor, 
-  User, 
-  Lock, 
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import {
+  Sun,
+  Moon,
+  Monitor,
+  User,
+  Lock,
   Settings as SettingsIcon,
   Trash2,
-  Loader2
+  Loader2,
 } from 'lucide-react'
 import { PageHeader } from '@/components/shared/page-header'
 import { passwordSchema } from '@/lib/validations/auth.schema'
 import { useAuth } from '@/contexts/auth-context'
 
 export default function SettingsPage() {
-  const { theme, changeTheme, isLoading: isLoadingPreferences, isSaving: isSavingPreferences, error: preferencesError, refetch: refetchPreferences } = usePreferences()
+  const {
+    theme,
+    changeTheme,
+    isLoading: isLoadingPreferences,
+    isSaving: isSavingPreferences,
+    error: preferencesError,
+    refetch: refetchPreferences,
+  } = usePreferences()
   const { signOutUser } = useAuth()
   const user = auth.currentUser
 
-  const [activeTab, setActiveTab] = React.useState<'profile' | 'preferences' | 'security' | 'danger'>('profile')
+  const [activeTab, setActiveTab] = React.useState<
+    'profile' | 'preferences' | 'security' | 'danger'
+  >('profile')
 
   // Estados de Nome
   const [name, setName] = React.useState(user?.displayName ?? '')
@@ -45,7 +60,9 @@ export default function SettingsPage() {
   const [passwordError, setPasswordError] = React.useState<string | null>(null)
 
   // Modais de Controle de Fluxo
-  const [reauthAction, setReauthAction] = React.useState<'password' | 'delete' | null>(null)
+  const [reauthAction, setReauthAction] = React.useState<
+    'password' | 'delete' | null
+  >(null)
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = React.useState(false)
   const [deleteConfirmationText, setDeleteConfirmationText] = React.useState('')
   const [isDeletingAccount, setIsDeletingAccount] = React.useState(false)
@@ -77,8 +94,12 @@ export default function SettingsPage() {
     setPasswordError(null)
     const passwordValidation = passwordSchema.safeParse(newPassword)
     if (!passwordValidation.success) {
-      setPasswordError(passwordValidation.error.issues[0]?.message ?? 'Senha inválida.')
-      toast.error(passwordValidation.error.issues[0]?.message ?? 'Senha inválida.')
+      setPasswordError(
+        passwordValidation.error.issues[0]?.message ?? 'Senha inválida.',
+      )
+      toast.error(
+        passwordValidation.error.issues[0]?.message ?? 'Senha inválida.',
+      )
       return
     }
     if (newPassword !== confirmPassword) {
@@ -103,7 +124,9 @@ export default function SettingsPage() {
       if (authError.code === 'auth/requires-recent-login') {
         setReauthAction('password')
       } else {
-        toast.error('Erro ao alterar senha. Verifique os critérios de segurança.')
+        toast.error(
+          'Erro ao alterar senha. Verifique os critérios de segurança.',
+        )
       }
     } finally {
       setIsSavingPassword(false)
@@ -148,11 +171,18 @@ export default function SettingsPage() {
       // Uma navegação completa evita disputa com os redirecionamentos do layout após logout.
       window.location.replace('/register')
     } catch (error) {
-      if (error instanceof AccountDeletionError && error.code === 'auth/requires-recent-login') {
+      if (
+        error instanceof AccountDeletionError &&
+        error.code === 'auth/requires-recent-login'
+      ) {
         setReauthAction('delete')
         toast.error('A confirmação expirou. Confirme sua identidade novamente.')
       } else {
-        toast.error(error instanceof AccountDeletionError ? error.message : 'Erro ao apagar conta. Tente novamente mais tarde.')
+        toast.error(
+          error instanceof AccountDeletionError
+            ? error.message
+            : 'Erro ao apagar conta. Tente novamente mais tarde.',
+        )
       }
     } finally {
       setIsDeletingAccount(false)
@@ -170,56 +200,59 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-200">
+    <div className="animate-in fade-in space-y-6 duration-200">
       {/* Header */}
       <PageHeader
         title="Configurações"
         description="Gerencie seu perfil, preferências de exibição e segurança da conta."
       />
 
-      {/* Tabs Control */}
-      <div role="group" aria-label="Seções de configurações" className="flex border-b border-border overflow-x-auto overflow-y-hidden scrollbar-none">
-        {([
-          { id: 'profile', label: 'Meu Perfil', icon: User },
-          { id: 'preferences', label: 'Preferências', icon: SettingsIcon },
-          { id: 'security', label: 'Segurança', icon: Lock },
-          { id: 'danger', label: 'Zona de Risco', icon: Trash2 },
-        ] as const).map((tab) => {
-          const TabIcon = tab.icon
-          const isActive = activeTab === tab.id
-          return (
-            <button
-              key={tab.id}
-              id={'settings-' + tab.id}
-              aria-pressed={isActive}
-              aria-controls="settings-panel"
-              onClick={() => setActiveTab(tab.id)}
-              className={cn(
-                "flex items-center gap-1.5 px-4 py-2.5 border-b-2 text-xs font-semibold transition-all -mb-px shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer",
-                isActive
-                  ? "border-primary text-foreground"
-                  : "border-transparent text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <TabIcon className="size-3.5" />
-              {tab.label}
-            </button>
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) => {
+          if (
+            value === 'profile' ||
+            value === 'preferences' ||
+            value === 'security' ||
+            value === 'danger'
           )
-        })}
-      </div>
-
-      {/* Tab Contents */}
-      <div id="settings-panel" role="region" aria-labelledby={'settings-' + activeTab} className="max-w-2xl">
-        {activeTab === 'profile' && (
-          <Card className="border-border bg-card shadow-xs rounded-md">
-            <CardHeader className="pb-1 pt-4 px-5">
-              <CardTitle className="text-sm font-semibold">Meu Perfil</CardTitle>
-              <CardDescription className="text-xs text-muted-foreground">Atualize seu nome público de exibição</CardDescription>
+            setActiveTab(value)
+        }}
+      >
+        <TabsList aria-label="Seções de configurações">
+          <TabsTrigger value="profile">
+            <User className="size-4" aria-hidden="true" />
+            Perfil
+          </TabsTrigger>
+          <TabsTrigger value="preferences">
+            <SettingsIcon className="size-4" aria-hidden="true" />
+            Aparência
+          </TabsTrigger>
+          <TabsTrigger value="security">
+            <Lock className="size-4" aria-hidden="true" />
+            Segurança
+          </TabsTrigger>
+          <TabsTrigger value="danger">
+            <Trash2 className="size-4" aria-hidden="true" />
+            Exclusão da conta
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="profile" className="max-w-2xl">
+          <Card className="border-border bg-card rounded-xl shadow-xs">
+            <CardHeader className="px-5 pt-4 pb-1">
+              <CardTitle className="text-sm font-semibold">
+                Meu Perfil
+              </CardTitle>
+              <CardDescription className="text-muted-foreground text-xs">
+                Atualize seu nome público de exibição
+              </CardDescription>
             </CardHeader>
-            <CardContent className="px-5 pb-5 pt-3">
+            <CardContent className="px-5 pt-3 pb-5">
               <form onSubmit={handleSaveName} className="space-y-4">
                 <div className="space-y-1.5">
-                  <Label htmlFor="displayName" className="text-xs">Nome de Exibição</Label>
+                  <Label htmlFor="displayName" className="text-xs">
+                    Nome de Exibição
+                  </Label>
                   <Input
                     id="displayName"
                     value={name}
@@ -228,10 +261,14 @@ export default function SettingsPage() {
                     maxLength={50}
                     required
                     disabled={isSavingName}
-                    className="h-9 text-xs rounded-md"
+                    className="h-9 rounded-md text-xs"
                   />
                 </div>
-                <Button type="submit" disabled={isSavingName} className="w-full text-xs font-semibold h-9 rounded-md cursor-pointer gap-2">
+                <Button
+                  type="submit"
+                  disabled={isSavingName}
+                  className="h-9 w-full cursor-pointer gap-2 rounded-md text-xs font-semibold"
+                >
                   {isSavingName ? (
                     <>
                       <Loader2 className="size-3.5 animate-spin" />
@@ -244,25 +281,39 @@ export default function SettingsPage() {
               </form>
             </CardContent>
           </Card>
-        )}
+        </TabsContent>
 
-        {activeTab === 'preferences' && (
-          <Card className="border-border bg-card shadow-xs rounded-md">
-            <CardHeader className="pb-1 pt-4 px-5">
-              <CardTitle className="text-sm font-semibold">Preferências</CardTitle>
-              <CardDescription className="text-xs text-muted-foreground">Personalize o comportamento do aplicativo</CardDescription>
+        <TabsContent value="preferences" className="max-w-2xl">
+          <Card className="border-border bg-card rounded-xl shadow-xs">
+            <CardHeader className="px-5 pt-4 pb-1">
+              <CardTitle className="text-sm font-semibold">
+                Preferências
+              </CardTitle>
+              <CardDescription className="text-muted-foreground text-xs">
+                Personalize o comportamento do aplicativo
+              </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4 px-5 pb-5 pt-3">
+            <CardContent className="space-y-4 px-5 pt-3 pb-5">
               {/* Seletor de Tema */}
               <div className="space-y-2">
                 <Label className="text-xs">Tema da Interface</Label>
-                <div role="group" aria-label="Tema da interface" className="grid grid-cols-3 gap-2">
+                <div
+                  role="group"
+                  aria-label="Tema da interface"
+                  className="grid grid-cols-3 gap-2"
+                >
                   <Button
                     aria-pressed={theme === 'light'}
                     variant={theme === 'light' ? 'default' : 'outline'}
-                    className="gap-1.5 text-xs h-9 cursor-pointer justify-center rounded-md"
-                    disabled={isLoadingPreferences || isSavingPreferences || !!preferencesError}
-                    onClick={() => { void changeTheme('light').catch(() => undefined) }}
+                    className="h-9 cursor-pointer justify-center gap-1.5 rounded-md text-xs"
+                    disabled={
+                      isLoadingPreferences ||
+                      isSavingPreferences ||
+                      !!preferencesError
+                    }
+                    onClick={() => {
+                      void changeTheme('light').catch(() => undefined)
+                    }}
                   >
                     <Sun className="size-3.5" />
                     Claro
@@ -270,9 +321,15 @@ export default function SettingsPage() {
                   <Button
                     aria-pressed={theme === 'dark'}
                     variant={theme === 'dark' ? 'default' : 'outline'}
-                    className="gap-1.5 text-xs h-9 cursor-pointer justify-center rounded-md"
-                    disabled={isLoadingPreferences || isSavingPreferences || !!preferencesError}
-                    onClick={() => { void changeTheme('dark').catch(() => undefined) }}
+                    className="h-9 cursor-pointer justify-center gap-1.5 rounded-md text-xs"
+                    disabled={
+                      isLoadingPreferences ||
+                      isSavingPreferences ||
+                      !!preferencesError
+                    }
+                    onClick={() => {
+                      void changeTheme('dark').catch(() => undefined)
+                    }}
                   >
                     <Moon className="size-3.5" />
                     Escuro
@@ -280,9 +337,15 @@ export default function SettingsPage() {
                   <Button
                     aria-pressed={theme === 'system'}
                     variant={theme === 'system' ? 'default' : 'outline'}
-                    className="gap-1.5 text-xs h-9 cursor-pointer justify-center rounded-md"
-                    disabled={isLoadingPreferences || isSavingPreferences || !!preferencesError}
-                    onClick={() => { void changeTheme('system').catch(() => undefined) }}
+                    className="h-9 cursor-pointer justify-center gap-1.5 rounded-md text-xs"
+                    disabled={
+                      isLoadingPreferences ||
+                      isSavingPreferences ||
+                      !!preferencesError
+                    }
+                    onClick={() => {
+                      void changeTheme('system').catch(() => undefined)
+                    }}
                   >
                     <Monitor className="size-3.5" />
                     Sistema
@@ -290,55 +353,101 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              {preferencesError && <div role="alert">Não foi possível carregar seu tema. <Button variant="outline" onClick={refetchPreferences}>Tentar novamente</Button></div>}
-              <p role="status" className="text-xs text-muted-foreground">{isSavingPreferences ? 'Salvando tema…' : 'O tema é salvo na sua conta e recuperado em outros dispositivos.'}</p>
+              {preferencesError && (
+                <div role="alert">
+                  Não foi possível carregar seu tema.{' '}
+                  <Button variant="outline" onClick={refetchPreferences}>
+                    Tentar novamente
+                  </Button>
+                </div>
+              )}
+              <p role="status" className="text-muted-foreground text-xs">
+                {isSavingPreferences
+                  ? 'Salvando tema…'
+                  : 'O tema é salvo na sua conta e recuperado em outros dispositivos.'}
+              </p>
               <div className="space-y-2">
                 <p className="text-xs font-medium">Moeda Base</p>
                 <p className="text-sm">Real Brasileiro (BRL, R$)</p>
-                <p className="text-xs text-muted-foreground">Valores em reais, armazenados em centavos. O CSV usa vírgula decimal e não realiza conversão de moeda.</p>
+                <p className="text-muted-foreground text-xs">
+                  Valores em reais, armazenados em centavos. O CSV usa vírgula
+                  decimal e não realiza conversão de moeda.
+                </p>
               </div>
             </CardContent>
           </Card>
-        )}
+        </TabsContent>
 
-        {activeTab === 'security' && (
-          <Card className="border-border bg-card shadow-xs rounded-md">
-            <CardHeader className="pb-1 pt-4 px-5">
+        <TabsContent value="security" className="max-w-2xl">
+          <Card className="border-border bg-card rounded-xl shadow-xs">
+            <CardHeader className="px-5 pt-4 pb-1">
               <CardTitle className="text-sm font-semibold">Segurança</CardTitle>
-              <CardDescription className="text-xs text-muted-foreground">Altere a senha de acesso a sua conta</CardDescription>
+              <CardDescription className="text-muted-foreground text-xs">
+                Altere a senha de acesso a sua conta
+              </CardDescription>
             </CardHeader>
-            <CardContent className="px-5 pb-5 pt-3">
-              <form aria-busy={isSavingPassword} onSubmit={handleSavePassword} className="space-y-4">
+            <CardContent className="px-5 pt-3 pb-5">
+              <form
+                aria-busy={isSavingPassword}
+                onSubmit={handleSavePassword}
+                className="space-y-4"
+              >
                 <div className="space-y-1.5">
-                  <Label htmlFor="new-password" className="text-xs">Nova Senha</Label>
+                  <Label htmlFor="new-password" className="text-xs">
+                    Nova Senha
+                  </Label>
                   <Input
-                    id="new-password" autoComplete="new-password" aria-invalid={!!passwordError} aria-describedby={passwordError ? 'password-error' : undefined}
+                    id="new-password"
+                    autoComplete="new-password"
+                    aria-invalid={!!passwordError}
+                    aria-describedby={
+                      passwordError ? 'password-error' : undefined
+                    }
                     type="password"
                     placeholder="8+ caracteres, maiúscula, número e símbolo"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     required
                     disabled={isSavingPassword}
-                    className="h-9 text-xs rounded-md"
+                    className="h-9 rounded-md text-xs"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="confirm-password" className="text-xs">Confirmar Nova Senha</Label>
+                  <Label htmlFor="confirm-password" className="text-xs">
+                    Confirmar Nova Senha
+                  </Label>
                   <Input
-                    id="confirm-password" autoComplete="new-password" aria-invalid={!!passwordError} aria-describedby={passwordError ? 'password-error' : undefined}
+                    id="confirm-password"
+                    autoComplete="new-password"
+                    aria-invalid={!!passwordError}
+                    aria-describedby={
+                      passwordError ? 'password-error' : undefined
+                    }
                     type="password"
                     placeholder="Repita a nova senha"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
                     disabled={isSavingPassword}
-                    className="h-9 text-xs rounded-md"
+                    className="h-9 rounded-md text-xs"
                   />
                 </div>
 
-                {passwordError && <p id="password-error" role="alert" className="text-sm text-destructive">{passwordError}</p>}
-                <Button type="submit" disabled={isSavingPassword} className="w-full text-xs font-semibold h-9 rounded-md cursor-pointer gap-2">
+                {passwordError && (
+                  <p
+                    id="password-error"
+                    role="alert"
+                    className="text-destructive text-sm"
+                  >
+                    {passwordError}
+                  </p>
+                )}
+                <Button
+                  type="submit"
+                  disabled={isSavingPassword}
+                  className="h-9 w-full cursor-pointer gap-2 rounded-md text-xs font-semibold"
+                >
                   {isSavingPassword ? (
                     <>
                       <Loader2 className="size-3.5 animate-spin" />
@@ -351,21 +460,30 @@ export default function SettingsPage() {
               </form>
             </CardContent>
           </Card>
-        )}
+        </TabsContent>
 
-        {activeTab === 'danger' && (
-          <Card className="border-red-200 dark:border-red-900/30 bg-red-50/10 dark:bg-red-950/5 shadow-xs rounded-md">
-            <CardHeader className="pb-1 pt-4 px-5">
-              <CardTitle className="text-sm font-semibold text-red-700 dark:text-red-500">Excluir Conta</CardTitle>
-              <CardDescription className="text-xs text-red-600/80 dark:text-red-400/80">Ações permanentes e irreversíveis</CardDescription>
+        <TabsContent value="danger" className="max-w-2xl">
+          <Card className="border-destructive/30 bg-card rounded-md shadow-xs">
+            <CardHeader className="px-5 pt-4 pb-1">
+              <CardTitle className="text-destructive text-sm font-semibold">
+                Excluir Conta
+              </CardTitle>
+              <CardDescription className="text-destructive text-xs">
+                Ações permanentes e irreversíveis
+              </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4 px-5 pb-5 pt-3">
-              <p className="text-[11px] text-muted-foreground leading-normal font-medium">
-                Ao apagar sua conta, todos os lançamentos financeiros, relatórios, configurações e categorias salvas no Firestore serão removidos permanentemente. A ação não poderá ser desfeita.
+            <CardContent className="space-y-4 px-5 pt-3 pb-5">
+              <p className="text-muted-foreground text-xs leading-normal font-medium">
+                Ao apagar sua conta, todos os lançamentos financeiros,
+                relatórios, configurações e categorias salvas no Firestore serão
+                removidos permanentemente. A ação não poderá ser desfeita.
               </p>
 
               <div className="space-y-1.5">
-                <Label htmlFor="confirmDeleteText" className="text-[10px] font-bold text-muted-foreground uppercase">
+                <Label
+                  htmlFor="confirmDeleteText"
+                  className="text-muted-foreground text-xs font-bold uppercase"
+                >
                   Escreva &quot;EXCLUIR CONTA&quot; para liberar
                 </Label>
                 <Input
@@ -373,16 +491,19 @@ export default function SettingsPage() {
                   placeholder="EXCLUIR CONTA"
                   value={deleteConfirmationText}
                   onChange={(e) => setDeleteConfirmationText(e.target.value)}
-                  className="border-red-200/50 dark:border-red-900/20 focus-visible:ring-red-500 h-9 text-xs rounded-md"
+                  className="border-destructive/30 focus-visible:ring-destructive h-9 rounded-md text-xs"
                 />
               </div>
 
-              <Button 
-                type="button" 
-                variant="destructive" 
+              <Button
+                type="button"
+                variant="destructive"
                 onClick={() => setIsDeleteConfirmOpen(true)}
-                disabled={deleteConfirmationText !== 'EXCLUIR CONTA' || isDeletingAccount}
-                className="w-full text-xs font-semibold cursor-pointer rounded-md h-9 gap-2"
+                disabled={
+                  deleteConfirmationText !== 'EXCLUIR CONTA' ||
+                  isDeletingAccount
+                }
+                className="h-9 w-full cursor-pointer gap-2 rounded-md text-xs font-semibold"
               >
                 {isDeletingAccount ? (
                   <>
@@ -395,8 +516,8 @@ export default function SettingsPage() {
               </Button>
             </CardContent>
           </Card>
-        )}
-      </div>
+        </TabsContent>
+      </Tabs>
 
       {/* Confirmação de Ação Destrutiva */}
       <ConfirmDialog
@@ -414,9 +535,13 @@ export default function SettingsPage() {
         isOpen={reauthAction !== null}
         onClose={() => setReauthAction(null)}
         onSuccess={handleReauthSuccess}
-        title={reauthAction === 'delete' ? 'Confirmar Exclusão de Conta' : 'Redefinição de Senha'}
+        title={
+          reauthAction === 'delete'
+            ? 'Confirmar Exclusão de Conta'
+            : 'Redefinição de Senha'
+        }
         description={
-          reauthAction === 'delete' 
+          reauthAction === 'delete'
             ? 'Para apagar sua conta definitivamente, confirme sua identidade.'
             : 'Confirme sua identidade para autorizar a alteração segura da senha.'
         }

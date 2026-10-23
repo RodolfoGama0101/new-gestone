@@ -1,4 +1,3 @@
-import * as React from 'react'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 
@@ -8,40 +7,23 @@ interface CategoryBadgeProps {
   className?: string
 }
 
-// Helper to determine if a hex color is light or dark for readability
-function isLightColor(hexColor: string): boolean {
-  // Remove hash if present
-  const hex = hexColor.replace('#', '')
-  if (hex.length !== 6) return false
-  
-  const r = parseInt(hex.substring(0, 2), 16)
-  const g = parseInt(hex.substring(2, 4), 16)
-  const b = parseInt(hex.substring(4, 6), 16)
-  
-  // Calculate relative luminance
-  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
-  
-  return luminance > 0.6
-}
-
 export function CategoryBadge({ name, color, className }: CategoryBadgeProps) {
-  const textColorClass = React.useMemo(() => {
-    // Treat preset / named colors or fallbacks safely
-    if (!color.startsWith('#')) return 'text-white'
-    return isLightColor(color) ? 'text-neutral-900 font-bold' : 'text-white'
-  }, [color])
-
   return (
     <Badge
+      variant="secondary"
       className={cn(
-        "h-auto min-h-6 max-w-full whitespace-normal break-words text-xs font-semibold px-2 py-1 rounded-md border-none",
-        textColorClass,
-        className
+        'border-border text-foreground h-auto min-h-6 max-w-full gap-2 rounded-md px-2 py-1 text-xs font-medium whitespace-normal',
+        className,
       )}
-      style={{ backgroundColor: color }}
     >
-      {name}
+      <span
+        aria-hidden="true"
+        className="size-2 shrink-0 rounded-full border border-current"
+        style={{ backgroundColor: color }}
+      />
+      <span className="min-w-0 [overflow-wrap:anywhere] break-words">
+        {name}
+      </span>
     </Badge>
   )
 }
-

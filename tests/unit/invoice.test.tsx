@@ -1,6 +1,7 @@
 /** @jest-environment jsdom */
 import '@testing-library/jest-dom'
 import { render, screen, fireEvent } from '@testing-library/react'
+jest.mock('@/components/transactions/transaction-form', () => ({ TransactionForm: () => <p>Formulário de compra</p> }))
 import { CreditCardBillSummary } from '@/components/credit-cards/credit-card-bill-summary'
 import { useCardInvoice } from '@/hooks/use-card-invoice'
 import type { CreditCard } from '@/types/credit-card'
@@ -27,8 +28,8 @@ test('total completo permanece correto ao navegar mais de 100 compras', () => {
 test('navegação cronológica passa por setembro, outubro, novembro, dezembro e janeiro', () => {
   render(<CreditCardBillSummary card={card} />)
   for (const label of ['setembro 2026', 'outubro 2026', 'novembro 2026', 'dezembro 2026', 'janeiro 2027']) {
-    expect(screen.getByText(`Fatura de ${label}`)).toBeVisible()
-    fireEvent.click(screen.getByRole('button', { name: 'Próxima fatura' }))
+    expect(screen.getByText(label)).toBeVisible()
+    fireEvent.click(screen.getByRole('button', { name: 'Próximo mês' }))
   }
 })
 test('consulta com erro oferece nova tentativa, sem total parcial', () => {

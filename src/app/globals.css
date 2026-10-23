@@ -2,7 +2,6 @@
 @import 'tw-animate-css';
 @import 'shadcn/tailwind.css';
 
-
 @custom-variant dark (&:is(.dark *));
 
 @theme {
@@ -40,6 +39,9 @@
   --color-income: var(--income);
   --color-income-foreground: var(--income-foreground);
 
+  --color-investment: var(--investment);
+  --color-investment-foreground: var(--investment-foreground);
+  --color-warning: var(--warning);
   --color-expense: var(--expense);
   --color-expense-foreground: var(--expense-foreground);
 
@@ -49,9 +51,9 @@
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
 
-  --radius-lg: var(--radius);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-sm: calc(var(--radius) - 4px);
+  --radius-lg: 12px;
+  --radius-md: 6px;
+  --radius-sm: 4px;
 }
 
 /*
@@ -119,7 +121,7 @@
   }
   :root {
     /* Backgrounds */
-    --background: #ffffff;
+    --background: #f7f7f8;
     --foreground: #111111;
 
     /* Cards */
@@ -168,7 +170,7 @@
     /* Spacing tokens */
     --space-page: 2rem;
     --space-card: 1.5rem;
-    --header-height: 3rem; /* 48px */
+    --header-height: 4rem; /* 48px */
 
     /* Sidebar */
     --sidebar: #f7f7f8;
@@ -181,33 +183,40 @@
     --sidebar-ring: #002fa7;
 
     /* Semantic colors */
-    --income: #28a948;
+    --income: #107d32;
+    --investment: #7132b4;
+    --investment-foreground: #ffffff;
+    --warning: #915000;
     --income-foreground: #ffffff;
     --expense: #c90030;
     --expense-foreground: #ffffff;
 
     /* Geist Shadows */
     --shadow-card: 0 2px 2px rgba(0, 0, 0, 0.04);
-    --shadow-elevated: 0 1px 1px rgba(0, 0, 0, 0.02), 0 4px 8px -4px rgba(0, 0, 0, 0.04), 0 16px 24px -8px rgba(0, 0, 0, 0.06);
-    --shadow-float: 0 1px 1px rgba(0, 0, 0, 0.02), 0 8px 16px -4px rgba(0, 0, 0, 0.04), 0 24px 32px -8px rgba(0, 0, 0, 0.06);
+    --shadow-elevated:
+      0 1px 1px rgba(0, 0, 0, 0.02), 0 4px 8px -4px rgba(0, 0, 0, 0.04),
+      0 16px 24px -8px rgba(0, 0, 0, 0.06);
+    --shadow-float:
+      0 1px 1px rgba(0, 0, 0, 0.02), 0 8px 16px -4px rgba(0, 0, 0, 0.04),
+      0 24px 32px -8px rgba(0, 0, 0, 0.06);
   }
 
   .dark {
     /* Backgrounds */
-    --background: #000000;
+    --background: #0b0e14;
     --foreground: #ededed;
 
     /* Cards */
-    --card: #0a0a0a;
+    --card: #121722;
     --card-foreground: #ededed;
 
     /* Popovers */
-    --popover: #000000;
+    --popover: #121722;
     --popover-foreground: #ededed;
 
     /* Primary */
-    --primary: #ffffff;
-    --primary-foreground: #000000;
+    --primary: #9aafff;
+    --primary-foreground: #0b0e14;
 
     /* Secondary */
     --secondary: #111111;
@@ -228,7 +237,7 @@
     /* Borders & Inputs */
     --border: #333333;
     --input: #333333;
-    --ring: #002fa7;
+    --ring: #9aafff;
 
     /* Charts */
     --chart-1: #5f7dff;
@@ -248,7 +257,10 @@
     --sidebar-ring: #5f7dff;
 
     /* Semantic colors */
-    --income: #4ce15e;
+    --income: #71df9b;
+    --investment: #c5a3ff;
+    --investment-foreground: #0b0e14;
+    --warning: #ffcb70;
     --income-foreground: #000000;
     --expense: #ff676d;
     --expense-foreground: #000000;
@@ -266,14 +278,15 @@
   *,
   *::before,
   *::after {
-    transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow;
+    transition-property:
+      background-color, border-color, color, fill, stroke, opacity, box-shadow;
     transition-duration: 180ms;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   body {
     @apply bg-background text-foreground;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -337,22 +350,49 @@
   button,
   select,
   summary,
-  [role="button"],
-  [role="tab"],
-  [role="link"],
-  [role="menuitem"],
-  [role="checkbox"],
-  [role="radio"],
-  input[type="button"],
-  input[type="submit"],
-  input[type="reset"],
-  input[type="checkbox"],
-  input[type="radio"],
-  input[type="file"]::file-selector-button,
-  [data-slot="dropdown-menu-item"],
-  [data-slot="select-item"],
-  [data-slot="select-trigger"],
-  [data-slot="dialog-close"] {
+  [role='button'],
+  [role='tab'],
+  [role='link'],
+  [role='menuitem'],
+  [role='checkbox'],
+  [role='radio'],
+  input[type='button'],
+  input[type='submit'],
+  input[type='reset'],
+  input[type='checkbox'],
+  input[type='radio'],
+  input[type='file']::file-selector-button,
+  [data-slot='dropdown-menu-item'],
+  [data-slot='select-item'],
+  [data-slot='select-trigger'],
+  [data-slot='dialog-close'] {
     cursor: pointer;
+  }
+}
+
+.responsive-dialog {
+  animation: none;
+  top: auto;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  max-width: 100%;
+  max-height: 92dvh;
+  transform: none;
+  border-radius: 12px 12px 0 0;
+  padding: 24px 16px max(24px, env(safe-area-inset-bottom));
+  overscroll-behavior: contain;
+  scroll-padding-bottom: 24px;
+}
+@media (min-width: 768px) {
+  .responsive-dialog {
+    top: 50%;
+    bottom: auto;
+    left: 50%;
+    max-height: 90dvh;
+    max-width: min(36rem, calc(100% - 2rem));
+    transform: translate(-50%, -50%);
+    border-radius: 12px;
+    padding: 24px;
   }
 }

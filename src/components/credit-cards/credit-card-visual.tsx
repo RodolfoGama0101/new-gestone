@@ -29,7 +29,7 @@ export function CreditCardVisual({
     switch (brand) {
       case 'visa':
         return (
-          <span className="italic font-bold text-white text-base tracking-wider select-none leading-none">
+          <span className="text-base leading-none font-bold tracking-wider text-white italic select-none">
             VISA
           </span>
         )
@@ -42,7 +42,7 @@ export function CreditCardVisual({
         )
       case 'elo':
         return (
-          <span className="font-extrabold text-white text-[10px] select-none tracking-tighter italic border border-white/60 px-1 py-0.5 rounded-xs leading-none">
+          <span className="rounded-xs border border-white/60 px-1 py-0.5 text-xs leading-none font-extrabold tracking-tighter text-white italic select-none">
             elo
           </span>
         )
@@ -61,16 +61,20 @@ export function CreditCardVisual({
     return (
       <div
         style={cardStyle}
-        className="flex items-center gap-3 px-3 py-2 rounded-lg border border-white/10 text-white shadow-xs shrink-0 min-w-[180px] max-w-[240px] text-xs"
+        className="flex max-w-[240px] min-w-[180px] shrink-0 items-center gap-3 rounded-lg border border-white/10 px-3 py-2 text-xs text-white shadow-xs"
       >
-        <div className="size-6.5 rounded-sm bg-white/10 flex items-center justify-center shrink-0 border border-white/5">
+        <div className="flex size-6.5 shrink-0 items-center justify-center rounded-sm border border-white/5 bg-white/10">
           {renderBrandLogo()}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="font-semibold truncate leading-tight text-white">{name}</p>
-          <p className="text-[9px] text-white truncate leading-none mt-0.5">{bankName}</p>
+          <p className="truncate leading-tight font-semibold text-white">
+            {name}
+          </p>
+          <p className="mt-0.5 truncate text-[9px] leading-none text-white">
+            {bankName}
+          </p>
         </div>
-        <span className="text-[9px] bg-black/20 px-1.5 py-0.5 rounded-full font-bold select-none text-white">
+        <span className="rounded-full bg-black/20 px-1.5 py-0.5 text-[9px] font-bold text-white select-none">
           D{closingDay}
         </span>
       </div>
@@ -80,44 +84,50 @@ export function CreditCardVisual({
   return (
     <div
       style={cardStyle}
-      className={`relative aspect-[1.586/1] w-full rounded-xl p-5 flex flex-col justify-between text-white shadow-md overflow-hidden border border-white/15 group transition-transform duration-300 hover:-translate-y-1 hover:scale-[1.01] select-none ${className}`}
+      className={`group relative flex aspect-[1.586/1] w-full flex-col justify-between overflow-hidden rounded-xl border border-white/15 p-5 text-white shadow-md transition-transform duration-300 select-none hover:-translate-y-1 hover:scale-[1.01] ${className}`}
     >
       {/* Brilho reflexo */}
-      <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/5 to-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-white/0 via-white/5 to-white/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
       {/* Linha superior: Banco e Bandeira */}
       <div className="flex items-center justify-between">
-        <span className="text-xs font-bold tracking-wide uppercase truncate max-w-[70%] text-white">
+        <span className="max-w-[70%] truncate text-xs font-bold tracking-wide text-white uppercase">
           {bankName || 'Banco'}
         </span>
-        <div className="h-5 flex items-center">{renderBrandLogo()}</div>
+        <div className="flex h-5 items-center">{renderBrandLogo()}</div>
       </div>
 
       {/* Linha do meio: Chip e Nome do cartão */}
-      <div className="flex items-center justify-between mt-1">
+      <div className="mt-1 flex items-center justify-between">
         {/* Chip decorativo */}
-        <div className="w-8 h-6 rounded-md bg-gradient-to-r from-[#ffe082] to-[#ffb300] relative border border-black/10 shadow-inner flex flex-col justify-between p-1 shrink-0">
-          <div className="w-full h-px bg-black/15" />
-          <div className="w-full h-px bg-black/15" />
-          <div className="w-full h-px bg-black/15" />
-          <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-px bg-black/15" />
+        <div className="relative flex h-6 w-8 shrink-0 flex-col justify-between rounded-md border border-black/10 bg-gradient-to-r from-[#ffe082] to-[#ffb300] p-1 shadow-inner">
+          <div className="h-px w-full bg-black/15" />
+          <div className="h-px w-full bg-black/15" />
+          <div className="h-px w-full bg-black/15" />
+          <div className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-black/15" />
         </div>
-        <span className="text-[9px] font-semibold bg-black/15 px-2 py-0.5 rounded-md border border-white/5 uppercase truncate max-w-[60%] text-white">
+        <span className="max-w-[60%] truncate rounded-md border border-white/5 bg-black/15 px-2 py-0.5 text-[9px] font-semibold text-white uppercase">
           {name || 'Nome'}
         </span>
       </div>
 
       {/* Linha inferior: Titular e Fechamento */}
-      <div className="flex items-end justify-between mt-2">
+      <div className="mt-2 flex items-end justify-between">
         <div className="min-w-0 flex-1 pr-2">
-          <p className="text-[8px] uppercase tracking-wider text-white leading-none">Titular</p>
-          <p className="text-xs font-semibold uppercase tracking-wide truncate mt-1 text-white">
+          <p className="text-[8px] leading-none tracking-wider text-white uppercase">
+            Titular
+          </p>
+          <p className="mt-1 truncate text-xs font-semibold tracking-wide text-white uppercase">
             {holderName || 'TITULAR'}
           </p>
         </div>
         <div className="shrink-0 text-right">
-          <p className="text-[8px] uppercase tracking-wider text-white leading-none">Fecha</p>
-          <p className="text-xs font-bold mt-1 text-white">Dia {closingDay || 1}</p>
+          <p className="text-[8px] leading-none tracking-wider text-white uppercase">
+            Fecha
+          </p>
+          <p className="mt-1 text-xs font-bold text-white">
+            Dia {closingDay || 1}
+          </p>
         </div>
       </div>
     </div>

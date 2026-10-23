@@ -6,7 +6,6 @@ import { LoadError } from '@/components/shared/load-error'
 import * as React from 'react'
 import { useQuery } from '@tanstack/react-query'
 
-
 import { useAuth } from '@/contexts/auth-context'
 import { useCategories } from '@/hooks/use-categories'
 import { Transaction } from '@/types/transaction'
@@ -33,9 +32,19 @@ const EMPTY_ARRAY: Transaction[] = []
 export default function AnalyticsPage() {
   const { user } = useAuth()
   const userId = user?.uid ?? ''
-  const { categories, error: categoriesError, refetch: refetchCategories, isLoading: isCategoriesLoading } = useCategories()
+  const {
+    categories,
+    error: categoriesError,
+    refetch: refetchCategories,
+    isLoading: isCategoriesLoading,
+  } = useCategories()
 
-  const { creditCards, error: cardsError, refetch: refetchCards, isLoading: isCardsLoading } = useCreditCards()
+  const {
+    creditCards,
+    error: cardsError,
+    refetch: refetchCards,
+    isLoading: isCardsLoading,
+  } = useCreditCards()
 
   // Quantidade de meses para exibição histórica (padrão: 6 meses)
   const [monthsCount, setMonthsCount] = React.useState(6)
@@ -43,19 +52,35 @@ export default function AnalyticsPage() {
 
   const startDate = React.useMemo(
     () => startOfMonth(subMonths(referenceDate, monthsCount - 1)),
-    [monthsCount, referenceDate]
+    [monthsCount, referenceDate],
   )
 
   // Busca todos os lançamentos do período selecionado
   const transactionsQuery = useQuery({
-    queryKey: ['analyticsHistory', userId, monthsCount, format(referenceDate, 'yyyy-MM-dd')],
-    queryFn: () => AnalyticsDataService.getHistory(userId, monthsCount, referenceDate),
+    queryKey: [
+      'analyticsHistory',
+      userId,
+      monthsCount,
+      format(referenceDate, 'yyyy-MM-dd'),
+    ],
+    queryFn: () =>
+      AnalyticsDataService.getHistory(userId, monthsCount, referenceDate),
     staleTime: 60000,
     enabled: !!userId,
   })
 
-  const isLoading = transactionsQuery.isLoading || isCategoriesLoading || isCardsLoading
-  const transactions = React.useMemo(() => filterTransactionPeriod(transactionsQuery.data ?? EMPTY_ARRAY, startDate, endOfMonth(referenceDate), creditCards), [transactionsQuery.data, startDate, referenceDate, creditCards])
+  const isLoading =
+    transactionsQuery.isLoading || isCategoriesLoading || isCardsLoading
+  const transactions = React.useMemo(
+    () =>
+      filterTransactionPeriod(
+        transactionsQuery.data ?? EMPTY_ARRAY,
+        startDate,
+        endOfMonth(referenceDate),
+        creditCards,
+      ),
+    [transactionsQuery.data, startDate, referenceDate, creditCards],
+  )
 
   // Prepara os dados para os gráficos
   const donutData = React.useMemo(() => {
@@ -63,7 +88,12 @@ export default function AnalyticsPage() {
   }, [transactions, categories])
 
   const monthlyHistory = React.useMemo(() => {
-    return AnalyticsHelper.getMonthlyHistory(transactions, monthsCount, referenceDate, creditCards)
+    return AnalyticsHelper.getMonthlyHistory(
+      transactions,
+      monthsCount,
+      referenceDate,
+      creditCards,
+    )
   }, [transactions, monthsCount, referenceDate, creditCards])
 
   const periodTotals = React.useMemo(() => {
@@ -89,40 +119,58 @@ export default function AnalyticsPage() {
 
   // Seletor de Período
   const periodSelector = (
-    <div className="flex items-center gap-0.5 bg-background-100 dark:bg-card border border-border rounded-md p-0.5 shadow-sm">
+    <div className="bg-card dark:bg-card border-border flex items-center gap-0.5 rounded-md border p-0.5 shadow-sm">
       {[3, 6, 12].map((count) => (
         <Button
           key={count}
           variant={monthsCount === count ? 'default' : 'ghost'}
           size="sm"
+          aria-pressed={monthsCount === count}
           onClick={() => setMonthsCount(count)}
-          className="text-xs font-semibold px-2.5 h-7 cursor-pointer rounded-md"
+          className="h-7 cursor-pointer rounded-md px-2.5 text-xs font-semibold"
         >
-          {count}M
+          {count} meses
         </Button>
       ))}
     </div>
   )
 
   const error = transactionsQuery.error || categoriesError || cardsError
-  if (error) return <LoadError error={error} retry={() => Promise.all([transactionsQuery.refetch(), refetchCategories(), refetchCards()])} />
+  if (error)
+    return (
+      <LoadError
+        error={error}
+        retry={() =>
+          Promise.all([
+            transactionsQuery.refetch(),
+            refetchCategories(),
+            refetchCards(),
+          ])
+        }
+      />
+    )
 
   if (isLoading) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
-        <Loader2 className="size-7 animate-spin text-primary" />
+        <Loader2 className="text-primary size-7 animate-spin" />
       </div>
     )
   }
 
   return (
-    <div className="space-y-6 [overflow-wrap:anywhere] animate-in fade-in duration-200">
+    <div className="animate-in fade-in space-y-6 [overflow-wrap:anywhere] duration-200">
       <PageHeader
         title="Relatórios"
         description="Analise seu fluxo de caixa e distribuição de despesas."
         action={periodSelector}
       />
 
+      <p className="text-muted-foreground text-sm">
+        Período: {format(startDate, 'dd/MM/yyyy')} a{' '}
+        {format(endOfMonth(referenceDate), 'dd/MM/yyyy')}. Compras no cartão
+        seguem a competência da fatura.
+      </p>
       {transactions.length === 0 ? (
         <EmptyState
           title="Sem dados suficientes"
@@ -134,30 +182,40 @@ export default function AnalyticsPage() {
           {/* KPI Summary Cards */}
           <div className="grid grid-cols-1 gap-4 xl:grid-cols-4">
             {/* Total Receitas */}
-            <Card className="border-border bg-card shadow-xs rounded-md p-4 flex flex-col justify-between min-h-20 gap-2">
-              <span className="text-xs font-normal text-muted-foreground">Total Receitas (Período)</span>
-              <span className="break-all text-xl font-semibold text-green-700 dark:text-green-500 tracking-tight leading-none">
+            <Card className="border-border bg-card flex min-h-20 flex-col justify-between gap-2 rounded-xl p-4 shadow-xs">
+              <span className="text-muted-foreground text-xs font-normal">
+                Total Receitas (Período)
+              </span>
+              <span className="text-income text-xl leading-none font-semibold tracking-tight break-words tabular-nums">
                 {formatMoney(periodTotals.income)}
               </span>
             </Card>
             {/* Total Despesas */}
-            <Card className="border-border bg-card shadow-xs rounded-md p-4 flex flex-col justify-between min-h-20 gap-2">
-              <span className="text-xs font-normal text-muted-foreground">Total Despesas (Período)</span>
-              <span className="break-all text-xl font-semibold text-red-700 dark:text-red-500 tracking-tight leading-none">
+            <Card className="border-border bg-card flex min-h-20 flex-col justify-between gap-2 rounded-xl p-4 shadow-xs">
+              <span className="text-muted-foreground text-xs font-normal">
+                Total Despesas (Período)
+              </span>
+              <span className="text-expense text-xl leading-none font-semibold tracking-tight break-words tabular-nums">
                 {formatMoney(periodTotals.expense)}
               </span>
             </Card>
             {/* Total Investimentos */}
-            <Card className="border-border bg-card shadow-xs rounded-md p-4 flex flex-col justify-between min-h-20 gap-2">
-              <span className="text-xs font-normal text-muted-foreground">Investido (Período)</span>
-              <span className="break-all text-xl font-semibold text-violet-700 dark:text-violet-500 tracking-tight leading-none">
+            <Card className="border-border bg-card flex min-h-20 flex-col justify-between gap-2 rounded-xl p-4 shadow-xs">
+              <span className="text-muted-foreground text-xs font-normal">
+                Investido (Período)
+              </span>
+              <span className="text-investment text-xl leading-none font-semibold tracking-tight break-words tabular-nums">
                 {formatMoney(periodTotals.investment)}
               </span>
             </Card>
             {/* Saldo Líquido */}
-            <Card className="border-border bg-card shadow-xs rounded-md p-4 flex flex-col justify-between min-h-20 gap-2">
-              <span className="text-xs font-normal text-muted-foreground">Saldo Líquido (Período)</span>
-              <span className={`break-all text-xl font-semibold tracking-tight leading-none ${periodTotals.balance >= 0 ? 'text-green-700 dark:text-green-500' : 'text-red-700 dark:text-red-500'}`}>
+            <Card className="border-border bg-card flex min-h-20 flex-col justify-between gap-2 rounded-xl p-4 shadow-xs">
+              <span className="text-muted-foreground text-xs font-normal">
+                Saldo Líquido (Período)
+              </span>
+              <span
+                className={`text-xl leading-none font-semibold tracking-tight break-words tabular-nums ${periodTotals.balance >= 0 ? 'text-income' : 'text-expense'}`}
+              >
                 {formatMoney(periodTotals.balance)}
               </span>
             </Card>
