@@ -3,6 +3,7 @@
 import { fieldErrorProps } from '@/lib/utils/form-accessibility'
 
 import * as React from 'react'
+import { format } from 'date-fns'
 import { LoadError } from '@/components/shared/load-error'
 import { useForm, Controller, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -567,10 +568,13 @@ export function TransactionForm({
             <>
               <label className="block text-sm">
                 Repetir até (opcional)
-                <Input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
+                <DatePicker
+                  aria-label="Repetir até (opcional)"
+                  date={parsePeriodDate(endDate)}
+                  setDate={(date) =>
+                    setEndDate(date ? format(date, 'yyyy-MM-dd') : '')
+                  }
+                  clearable
                 />
               </label>
               <p className="text-muted-foreground text-sm">

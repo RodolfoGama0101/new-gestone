@@ -20,6 +20,7 @@ export function CreditCardVisual({
   brand,
   holderName,
   closingDay,
+  color,
   className,
   compact = false,
 }: CreditCardVisualProps) {
@@ -28,7 +29,7 @@ export function CreditCardVisual({
     switch (brand) {
       case 'visa':
         return (
-          <span className="text-primary-foreground text-base leading-none font-medium tracking-wider italic select-none">
+          <span className="text-base leading-none font-medium tracking-wider text-white italic select-none">
             VISA
           </span>
         )
@@ -41,30 +42,30 @@ export function CreditCardVisual({
         )
       case 'elo':
         return (
-          <span className="border-primary-foreground/60 text-primary-foreground rounded-xs border px-1 py-0.5 text-xs leading-none font-medium tracking-tighter italic select-none">
+          <span className="rounded-xs border border-white/60 px-1 py-0.5 text-xs leading-none font-medium tracking-tighter text-white italic select-none">
             elo
           </span>
         )
       default:
-        return <CardIcon className="text-primary-foreground size-3.5" />
+        return <CardIcon className="size-3.5 text-white" />
     }
   }
 
   if (compact) {
     return (
-      <div className="border-border text-primary-foreground bg-primary flex max-w-full min-w-0 shrink-0 items-center gap-3 rounded-lg border px-3 py-2 text-xs">
+      <div className="flex max-w-full min-w-0 shrink-0 items-center gap-3 rounded-lg border border-white/15 bg-[#111111] px-3 py-2 text-xs text-white">
         <div className="flex size-6.5 shrink-0 items-center justify-center rounded-sm border border-white/5 bg-white/10">
           {renderBrandLogo()}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-primary-foreground truncate leading-tight font-semibold">
+          <p className="truncate leading-tight font-semibold text-white">
             {name}
           </p>
-          <p className="text-primary-foreground mt-0.5 truncate text-xs leading-none">
+          <p className="mt-0.5 truncate text-xs leading-none text-white">
             {bankName}
           </p>
         </div>
-        <span className="text-primary-foreground rounded-full bg-black/20 px-1.5 py-0.5 text-xs font-medium select-none">
+        <span className="rounded-full bg-black/20 px-1.5 py-0.5 text-xs font-medium text-white select-none">
           D{closingDay}
         </span>
       </div>
@@ -73,15 +74,17 @@ export function CreditCardVisual({
 
   return (
     <div
-      className={`bg-primary text-primary-foreground flex min-h-[180px] w-full min-w-0 flex-col justify-between overflow-hidden rounded-xl p-6 [overflow-wrap:anywhere] ${className ?? ''}`}
+      data-slot="credit-card-visual"
+      style={{ borderTopColor: color }}
+      className={`flex min-h-48 w-full max-w-[400px] min-w-0 flex-col justify-between gap-5 overflow-hidden rounded-xl border border-t-[3px] border-white/15 bg-[#111111] p-5 [overflow-wrap:anywhere] text-white ${className ?? ''}`}
     >
       <div className="flex items-center justify-between gap-3">
-        <span className="min-w-0 text-sm">{name}</span>
+        <span className="min-w-0 text-xs text-white/70">{name}</span>
         <CardIcon className="size-4 shrink-0" aria-hidden="true" />
       </div>
       <div>
-        <p className="text-lg font-medium">{bankName}</p>
-        <p className="mt-2 text-xs opacity-80">{holderName}</p>
+        <p className="text-xl font-medium">{bankName}</p>
+        <p className="mt-1 text-xs text-white/70">{holderName}</p>
       </div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <span className="text-xs">Fechamento · Dia {closingDay}</span>

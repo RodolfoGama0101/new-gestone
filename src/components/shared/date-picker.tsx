@@ -7,18 +7,25 @@ import { Calendar as CalendarIcon } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 import { Calendar } from '@/components/ui/calendar'
+import { Button } from '@/components/ui/button'
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
 
-interface DatePickerProps extends Pick<React.ComponentProps<'button'>, 'aria-invalid' | 'aria-describedby' | 'ref' | 'onBlur' | 'name'> {
+interface DatePickerProps extends Pick<
+  React.ComponentProps<'button'>,
+  'aria-label' | 'aria-invalid' | 'aria-describedby' | 'ref' | 'onBlur' | 'name'
+> {
   date: Date | undefined
   setDate: (date: Date | undefined) => void
   disabled?: boolean
   className?: string
   id?: string
+  clearable?: boolean
+  dateFormat?: string
+  minDate?: Date
 }
 
 export function DatePicker({
@@ -27,6 +34,9 @@ export function DatePicker({
   disabled = false,
   className = '',
   id,
+  clearable = false,
+  dateFormat = "dd 'de' MMMM 'de' yyyy",
+  minDate,
   ...buttonProps
 }: DatePickerProps) {
   const [isOpen, setIsOpen] = React.useState(false)
@@ -40,29 +50,48 @@ export function DatePicker({
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger
         {...buttonProps}
+        type="button"
         id={id}
         disabled={disabled}
         className={cn(
-          'inline-flex shrink-0 items-center justify-start rounded-lg border border-border bg-background px-3 py-2 text-sm font-normal whitespace-nowrap transition-all outline-none focus-visible:ring-2 focus-visible:ring-ring select-none active:translate-y-px disabled:pointer-events-none disabled:opacity-50 h-10 gap-1.5 w-full justify-start text-left cursor-pointer',
+          'border-border bg-background focus-visible:ring-ring inline-flex h-10 w-full min-w-0 cursor-pointer items-center justify-start gap-1.5 rounded-lg border px-3 py-2 text-left text-sm font-normal whitespace-nowrap transition-all outline-none select-none focus-visible:ring-2 active:translate-y-px disabled:pointer-events-none disabled:opacity-50',
           !date && 'text-muted-foreground',
-          className
+          className,
         )}
       >
-        <CalendarIcon className="mr-2 size-4 text-muted-foreground" />
+        <CalendarIcon className="text-muted-foreground mr-2 size-4 shrink-0" aria-hidden="true" />
         {date ? (
-          format(date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
+          <span className="min-w-0 truncate">
+            {format(date, dateFormat, { locale: ptBR })}
+          </span>
         ) : (
-          <span>Selecione uma data</span>
+          <span className="min-w-0 truncate">Selecione uma data</span>
         )}
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0 border-border bg-popover" align="start">
+      <PopoverContent
+        className="border-border bg-popover w-auto p-0"
+        align="start"
+      >
         <Calendar
           mode="single"
           selected={date}
+          defaultMonth={date}
           onSelect={handleSelect}
-          disabled={disabled}
+          disabled={disabled ? true : minDate ? { before: minDate } : undefined}
           locale={ptBR}
         />
+        {clearable && (
+          <div className="border-t p-2">
+            <Button
+              type="button"
+              variant="ghost"
+              className="w-full"
+              onClick={() => handleSelect(undefined)}
+            >
+              Limpar data
+            </Button>
+          </div>
+        )}
       </PopoverContent>
     </Popover>
   )

@@ -117,7 +117,7 @@ export default function CreditCardsPage() {
             <h3 className="text-muted-foreground px-1 text-sm font-medium">
               Cartões cadastrados ({creditCards.length})
             </h3>
-            <div className="max-h-[70vh] scrollbar-thin space-y-4 overflow-y-auto py-1 pr-3 pl-1">
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,240px),1fr))] items-start gap-4">
               {creditCards.map((card) => {
                 const isSelected = selectedCard?.id === card.id
                 return (
@@ -126,11 +126,11 @@ export default function CreditCardsPage() {
                     type="button"
                     onClick={() => setSelectedCardId(card.id)}
                     aria-pressed={isSelected}
-                    aria-label={`Selecionar cartão ${card.name}`}
-                    className={`relative w-full min-w-0 cursor-pointer rounded-xl border-2 p-1 text-left transition-all duration-200 ${
+                    aria-label={`Selecionar cartão ${card.name} · ${card.bankName}`}
+                    className={`focus-visible:ring-ring focus-visible:ring-offset-background relative w-full max-w-[400px] min-w-0 cursor-pointer rounded-xl text-left transition-shadow outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
                       isSelected
-                        ? 'border-primary'
-                        : 'hover:border-border border-transparent'
+                        ? 'ring-ring ring-offset-background ring-2 ring-offset-2'
+                        : 'hover:ring-border hover:ring-1'
                     }`}
                   >
                     <CreditCardVisual

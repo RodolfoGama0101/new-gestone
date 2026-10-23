@@ -193,3 +193,47 @@ futura e retorno à visualização do cartão.
 
 As falhas intermediárias e suas repetições estão registradas nesses logs;
 nenhum resultado desta revisão depende de contas ou dados de produção.
+
+## Correções dos controles e cartões — 23/10/2026
+
+Os filtros usam DatePicker (Calendar/Popover shadcn) e Select shadcn para cartão.
+Datas continuam civis, sem conversão UTC, com restauração pela URL, limpeza
+individual e validação de intervalo. O calendário abre no mês selecionado.
+Recorrência e encerramento de séries também reutilizam o DatePicker; o corte
+da série mantém a restrição de datas anteriores a hoje. Cartões homônimos
+mostram nome e banco no filtro e no nome acessível da seleção.
+
+Nas tabelas compartilhadas, categorias extensas têm nome integral com quebra
+de linha, sem cápsula. O Select compartilhado permite que as opções extensas
+quebrem dentro do menu. Cartões têm largura máxima de 400 px, grade responsiva,
+superfície escura e texto branco nos dois temas, com a cor cadastrada na borda
+superior. Isso corrige a superfície branca causada pelo token `primary` no
+tema escuro. A logo original não foi alterada.
+
+O QueryCache deixou de emitir `console.error` com um objeto genérico. Falhas
+continuam rejeitadas no TanStack Query e disponíveis para os estados de erro e
+retry existentes. Um aviso registra somente um código técnico conhecido, ou
+`unknown`, sem mensagens, chaves de consulta, UID ou payload. Um teste cobre a
+falha, a orientação de sessão e a recuperação por retry. O objeto `{}` informado
+no relato não permite identificar a causa da consulta original; não se presume
+que seja índice, permissão ou rede, nem se alteram regras para contorná-la.
+
+Validação desta correção:
+
+- Lint e tipos aprovados; 36 suítes e 177 testes unitários aprovados.
+- Build e suíte completa de 32 E2E/PWA aprovados na execução final, com a cópia
+  isolada e os emuladores fictícios já descritos acima. Regras e índices não
+  foram alterados nem republicados; testes de regras não foram repetidos nesta
+  correção de interface e diagnóstico.
+- A primeira execução encontrou overflow no campo de data em reflow de 200%;
+  a largura mínima e o texto vazio foram corrigidos e a matriz financeira
+  passou. O teste do intervalo passou a avançar o mês no calendário antes de
+  selecionar novembro; também verifica limpeza individual e desbloqueio do CSV.
+- Revisão visual de cartões e calendário em claro/escuro e desktop/móvel.
+  Capturas da matriz em `dogfood-output/rod127-controls-final/` (92 arquivos).
+- Logs em `dogfood-output/`: `rod127-controls-unit-final.log`,
+  `rod127-controls-lint-final.log`, `rod127-controls-types-final.log` e
+  `rod127-controls-e2e-final.log`. A execução inicial com os dois problemas está
+  registrada em `rod127-controls-e2e.log`.
+- Logo original intacta desde `415e265`; nenhuma alteração de regra financeira,
+  serviço de dados, autenticação, dependência ou configuração de produção.

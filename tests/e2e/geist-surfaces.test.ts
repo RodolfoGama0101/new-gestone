@@ -53,6 +53,18 @@ test('superfícies Geist preservam conteúdo e reflow nos dois temas', async ({
     createdAt: now,
     updatedAt: now,
   })
+  await user.collection('creditCards').doc('review-second').set({
+    name: 'Cartão de revisão',
+    bankName: 'Outro banco',
+    holderName: 'Conta de teste',
+    brand: 'mastercard',
+    closingDay: 12,
+    dueDay: 20,
+    color: '#820ad1',
+    isActive: true,
+    createdAt: now,
+    updatedAt: now,
+  })
   await user.collection('transactions').doc('review').set({
     type: 'expense',
     amount: 15000,
@@ -188,6 +200,16 @@ test('superfícies Geist preservam conteúdo e reflow nos dois temas', async ({
           animations: 'disabled',
         })
         if (route === '/credit-cards') {
+          const cards = page.locator('[data-slot="credit-card-visual"]')
+          await expect(cards).toHaveCount(2)
+          for (const card of await cards.all()) {
+            expect((await card.boundingBox())!.width).toBeLessThanOrEqual(400)
+            await expect(card).toHaveCSS('background-color', 'rgb(17, 17, 17)')
+          }
+          const other = page.getByRole('button', { name: 'Selecionar cartão Cartão de revisão · Outro banco', exact: true })
+          await other.click()
+          await expect(other).toHaveAttribute('aria-pressed', 'true')
+          await page.getByRole('button', { name: 'Selecionar cartão Cartão de revisão · Banco de teste', exact: true }).click()
           await expect(
             page.getByText('Próximas faturas', { exact: true }),
           ).toBeVisible()
@@ -230,6 +252,15 @@ test('superfícies Geist preservam conteúdo e reflow nos dois temas', async ({
           })
         }
         if (route === '/transactions') {
+          await page.getByLabel('Data inicial da compra').click()
+          await expect(page.locator('[data-slot="popover-content"]')).toBeVisible()
+          await page.screenshot({ path: `dogfood-output/rod127-surfaces/${theme}-${width}-calendar.png`, fullPage: true, animations: 'disabled' })
+          await page.keyboard.press('Escape')
+          await page.getByLabel('Cartão', { exact: true }).click()
+          await expect(page.getByRole('option', { name: 'Cartão de revisão · Banco de teste', exact: true })).toBeVisible()
+          await expect(page.getByRole('option', { name: 'Cartão de revisão · Outro banco', exact: true })).toBeVisible()
+          await page.screenshot({ path: `dogfood-output/rod127-surfaces/${theme}-${width}-card-select.png`, fullPage: true, animations: 'disabled' })
+          await page.keyboard.press('Escape')
           for (const [button, name] of [
             ['Novo Lançamento', 'transaction'],
             ['Importar CSV', 'import'],

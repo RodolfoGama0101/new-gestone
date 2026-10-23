@@ -1,13 +1,18 @@
 'use client'
 
-import { QueryClient, QueryClientProvider, QueryCache } from '@tanstack/react-query'
+import {
+  QueryClient,
+  QueryClientProvider,
+  QueryCache,
+} from '@tanstack/react-query'
 import { useState } from 'react'
+import { reportQueryError } from '@/lib/query-diagnostics'
 
 export function QueryProvider({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
     () =>
       new QueryClient({
-        queryCache: new QueryCache({ onError: () => console.error({ event: 'query-load-failed' }) }),
+        queryCache: new QueryCache({ onError: reportQueryError }),
         defaultOptions: {
           queries: {
             // Dados considerados "frescos" por 5 minutos — evita refetches desnecessários
@@ -21,12 +26,10 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
             refetchOnWindowFocus: false,
           },
         },
-      })
+      }),
   )
 
   return (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   )
 }

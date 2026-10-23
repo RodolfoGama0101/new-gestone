@@ -16,6 +16,7 @@ import { PageHeader } from '@/components/shared/page-header'
 import { LoadError } from '@/components/shared/load-error'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { DatePicker } from '@/components/shared/date-picker'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ConfirmDialog } from '@/components/shared/confirm-dialog'
 
@@ -158,11 +159,13 @@ function SeriesItem({
           <div className="border-border flex min-w-0 flex-wrap items-end gap-3 border-t pt-6">
             <label className="grid w-full min-w-0 gap-2 text-sm sm:w-auto">
               Cancelar a partir de
-              <Input
-                type="date"
-                min={format(new Date(), 'yyyy-MM-dd')}
-                value={from}
-                onChange={(e) => setFrom(e.target.value)}
+              <DatePicker
+                aria-label="Cancelar a partir de"
+                date={parsePeriodDate(from)}
+                minDate={parsePeriodDate(format(new Date(), 'yyyy-MM-dd'))}
+                setDate={(date) =>
+                  setFrom(date ? format(date, 'yyyy-MM-dd') : '')
+                }
               />
             </label>
             <Button

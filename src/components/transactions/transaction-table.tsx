@@ -86,7 +86,7 @@ export function TransactionTable({
                   </div>
                 </td>
                 <td data-label="Categoria">
-                  <span className="bg-accent text-muted-foreground inline-flex max-w-full rounded-full px-2.5 py-1 text-xs [overflow-wrap:anywhere]">
+                  <span className="text-muted-foreground block max-w-full text-xs leading-5 [overflow-wrap:anywhere]">
                     {category?.name ?? 'Sem categoria'}
                   </span>
                 </td>
