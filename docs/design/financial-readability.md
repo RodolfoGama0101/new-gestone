@@ -4,6 +4,13 @@ Painel, extrato, listas e faturas usam texto secundário de pelo menos 12 px e d
 
 Ações de lançamentos têm alvos de 44 px, sem ocultação por hover. Cabeçalhos e paginação quebram ações em linhas. O resumo mensal usa três colunas somente em telas largas. A navegação móvel reserva `safe-area-inset-bottom`.
 
+No redesign Geist (ROD-127), os resumos precedem o saldo projetado e o histórico
+ocupa a largura do conteúdo abaixo da projeção. Os valores dos resumos usam
+texto neutro e numerais tabulares; rótulos e ícones continuam identificando os
+tipos. O saldo conserva as definições de competência, reservas e disponível.
+Os cabeçalhos de data do extrato respeitam a altura de 64 px do cabeçalho da
+aplicação. No formulário, os botões de tipo se empilham em telas estreitas.
+
 O teste `tests/e2e/financial-layout.test.ts` usa emuladores, descrição de 200 caracteres, categoria longa e R$ 9.999.999,99. Exercita 320/390/768/1280 px, dois temas e redução de viewport equivalente a zoom de 200%. Capturas: `dogfood-output/rod-118/`.
 
 A revisão no Chromium não comprova a área segura em aparelho físico. A conferência física permanece pendente.

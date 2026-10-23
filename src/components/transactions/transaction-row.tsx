@@ -33,7 +33,7 @@ export const TransactionRow = React.memo(function TransactionRow({
   const Icon = presentation.icon
 
   return (
-    <div className="flex flex-col gap-3 py-3 lg:flex-row lg:items-center">
+    <div className="flex flex-col gap-4 py-4 lg:flex-row lg:items-center">
       <div className="flex min-w-0 flex-1 items-start gap-3">
         <span
           className={`flex size-8 shrink-0 items-center justify-center rounded-md ${presentation.color} ${presentation.background}`}
@@ -62,7 +62,7 @@ export const TransactionRow = React.memo(function TransactionRow({
       </div>
       <div className="flex min-w-0 flex-wrap items-center justify-between gap-2 lg:justify-end">
         <span
-          className={`text-sm font-semibold break-all tabular-nums ${presentation.color}`}
+          className={`text-sm font-medium break-all tabular-nums ${presentation.color}`}
         >
           {formatTransactionAmount(tx.type, tx.amount)}
         </span>

@@ -82,7 +82,7 @@ export function CsvImportButton() {
           <label className="space-y-2 text-sm">
             Arquivo CSV
             <input
-              className="block w-full"
+              className="block w-full rounded-md border border-input bg-background p-3 text-sm file:mr-3 file:rounded-md file:border-0 file:bg-muted file:px-3 file:py-2 file:text-foreground"
               type="file"
               accept=".csv,text/csv"
               disabled={busy}
@@ -139,9 +139,9 @@ export function CsvImportButton() {
                 as linhas rejeitadas no arquivo ou ajuste as categorias antes de
                 confirmar.
               </p>
-              <div className="max-h-64 overflow-auto">
-                <table className="w-full text-left text-sm">
-                  <caption>Prévia completa da importação</caption>
+              <div className="max-h-80 overflow-auto rounded-md border border-border">
+                <table className="w-full text-left text-sm [&_th]:bg-muted [&_th]:px-4 [&_th]:py-3 [&_th]:font-medium [&_td]:px-4 [&_td]:py-3">
+                  <caption className="border-b border-border px-4 py-3 text-left font-medium">Prévia completa da importação</caption>
                   <thead>
                     <tr>
                       <th>Linha</th>

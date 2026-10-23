@@ -30,15 +30,15 @@ export function RecentTransactions() {
 
   if (isLoading) {
     return (
-      <Card className="border-border bg-card h-full shadow-xs rounded-md">
-        <CardHeader className="pb-2 pt-4 px-5 flex flex-wrap flex-row items-center justify-between gap-2">
+      <Card className="h-full">
+        <CardHeader className="border-b border-border pb-6 flex flex-wrap flex-row items-center justify-between gap-4">
           <div className="space-y-1">
             <Skeleton className="h-4 w-28" />
             <Skeleton className="h-3 w-36" />
           </div>
           <Skeleton className="h-4 w-12" />
         </CardHeader>
-        <CardContent className="px-5 pb-4 space-y-3.5">
+        <CardContent className="space-y-4">
           {[...Array(5)].map((_, i) => (
             <div key={i} className="flex items-center gap-3 py-0.5">
               <Skeleton className="size-7 rounded-md" />
@@ -55,22 +55,22 @@ export function RecentTransactions() {
   }
 
   return (
-    <Card className="border-border bg-card h-full shadow-xs hover:shadow-sm transition-all duration-200 rounded-md">
-      <CardHeader className="pb-2 pt-4 px-5 flex flex-wrap flex-row items-center justify-between gap-2 space-y-0">
-        <div className="space-y-0.5">
-          <CardTitle className="text-sm font-semibold text-foreground">Lançamentos Recentes</CardTitle>
+    <Card className="h-full">
+      <CardHeader className="border-b border-border pb-6 flex flex-wrap flex-row items-center justify-between gap-4 space-y-0">
+        <div className="min-w-0 space-y-0.5 [overflow-wrap:anywhere]">
+          <CardTitle className="text-base font-medium text-foreground">Lançamentos Recentes</CardTitle>
           <CardDescription className="text-xs text-muted-foreground">Últimas 5 movimentações</CardDescription>
         </div>
         <Link
           href="/transactions"
-          className="flex items-center gap-0.5 text-xs font-medium text-muted-foreground hover:text-foreground shrink-0 cursor-pointer transition-colors"
+          className="flex min-h-10 min-w-0 max-w-full flex-wrap items-center gap-2 text-sm font-medium text-link hover:underline underline-offset-4"
         >
           Ver todos
           <ArrowRight className="size-3" />
         </Link>
       </CardHeader>
 
-      <CardContent className="px-5 pb-4">
+      <CardContent className="">
         {recent.length === 0 ? (
           <EmptyState
             title="Nenhuma movimentação"

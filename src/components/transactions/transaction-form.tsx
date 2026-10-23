@@ -190,18 +190,18 @@ export function TransactionForm({
 
   return (
     <form ref={formRef} aria-busy={isLoading} onSubmit={handleFormSubmit} noValidate className="space-y-5">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3.5">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-6">
         {/* Seletor de Tipo (Receita / Despesa / Investimento) */}
         <div className="space-y-1.5 md:col-span-2">
           <Label className="text-sm font-semibold text-foreground">Tipo de Lançamento</Label>
-          <div role="group" aria-label="Tipo de lançamento" className="grid grid-cols-3 gap-3">
+          <div role="group" aria-label="Tipo de lançamento" className="grid grid-cols-1 gap-2 sm:grid-cols-3">
             <Button
               type="button"
               aria-pressed={watchType === 'income'}
               variant={watchType === 'income' ? 'default' : 'outline'}
-              className={`w-full h-10 gap-2 cursor-pointer rounded-lg font-bold transition-all ${
+              className={`w-full min-h-11 h-auto gap-1 px-2 py-2 whitespace-normal rounded-lg font-medium ${
                 watchType === 'income' 
-                  ? 'bg-income text-income-foreground hover:bg-income/90 border-transparent shadow-xs'
+                  ? 'bg-primary text-primary-foreground hover:bg-primary/90'
                   : 'text-muted-foreground'
               }`}
               onClick={() => {
@@ -218,9 +218,9 @@ export function TransactionForm({
               type="button"
               aria-pressed={watchType === 'expense'}
               variant={watchType === 'expense' ? 'default' : 'outline'}
-              className={`w-full h-10 gap-2 cursor-pointer rounded-lg font-bold transition-all ${
+              className={`w-full min-h-11 h-auto gap-1 px-2 py-2 whitespace-normal rounded-lg font-medium ${
                 watchType === 'expense' 
-                  ? 'bg-expense text-expense-foreground hover:bg-expense/90 border-transparent shadow-xs'
+                  ? 'bg-primary text-primary-foreground hover:bg-primary/90'
                   : 'text-muted-foreground'
               }`}
               onClick={() => {
@@ -236,9 +236,9 @@ export function TransactionForm({
               type="button"
               aria-pressed={watchType === 'investment'}
               variant={watchType === 'investment' ? 'default' : 'outline'}
-              className={`w-full h-10 gap-2 cursor-pointer rounded-lg font-bold transition-all ${
+              className={`w-full min-h-11 h-auto gap-1 px-2 py-2 whitespace-normal rounded-lg font-medium ${
                 watchType === 'investment' 
-                  ? 'bg-violet-600 text-white hover:bg-violet-700 border-transparent shadow-xs' 
+                  ? 'bg-primary text-primary-foreground hover:bg-primary/90'
                   : 'text-muted-foreground'
               }`}
               onClick={() => {
@@ -409,7 +409,7 @@ export function TransactionForm({
         </div>
       </div>
 
-      {!isEditMode && <fieldset className="space-y-3 rounded-md border p-3" disabled={isLoading}>
+      {!isEditMode && <fieldset className="space-y-4 rounded-md border border-border bg-muted p-4" disabled={isLoading}>
         <legend className="px-1 text-sm font-medium">Frequência e parcelamento</legend>
         <label className="block text-sm">Modo do lançamento
           <select aria-label="Modo do lançamento" className="block h-11 w-full rounded-md border bg-background px-2" value={schedule} onChange={e => { setSchedule(e.target.value); seriesRequest.current = '' }}>
@@ -421,7 +421,7 @@ export function TransactionForm({
       </fieldset>}
       {editingTransaction?.seriesId && <p className="text-sm text-muted-foreground">Esta edição altera apenas esta ocorrência. Edite ou cancele futuras em Séries.</p>}
       {/* Botões de Ação */}
-      <Button type="submit" className="w-full h-11 font-bold rounded-lg text-sm cursor-pointer mt-2" disabled={isLoading}>
+      <Button type="submit" className="w-full h-11 font-medium rounded-lg text-sm cursor-pointer mt-2" disabled={isLoading}>
         {isLoading ? (
           <>
             <Loader2 className="mr-2 size-4 animate-spin" />

@@ -28,8 +28,18 @@ proporções ou variantes. O ícone ilustrativo do protótipo não substitui a l
 - Estrutura centralizada compartilhada entre login, cadastro e recuperação,
   reutilizando a logo original e preservando formulários, erros e foco.
 
-Os layouts específicos do painel e das demais telas financeiras continuam
-pendentes. A tarefa permanece em andamento até validar todo o escopo.
+- Painel com resumos neutros antes do saldo projetado, curva ampliada e histórico
+  em uma seção de largura completa. Os valores, reservas e explicações mantêm
+  os mesmos dados e cálculos.
+- Extrato e listas por tipo com espaçamento de 24 px, textos secundários de
+  pelo menos 12 px e linhas com ações visíveis. Cabeçalhos de datas respeitam
+  a altura atual do cabeçalho da aplicação.
+- Formulário com seleção neutra de tipo e botões empilhados em telas estreitas;
+  prévia CSV com tabela, cabeçalhos e arquivo visualmente delimitados.
+
+Os layouts específicos de cartões, faturas, séries, orçamentos, relatórios,
+categorias, configurações e offline continuam pendentes. A tarefa permanece em
+andamento até validar todo o escopo.
 
 ## Verificação local
 
@@ -46,6 +56,21 @@ foi encerrado. Portanto, os fluxos integrados ainda precisam de validação.
 Lint, tipos, 171 testes unitários e 808 testes de regras passaram.
 As telas de autenticação foram inspecionadas no build local na porta 3104,
 com capturas desktop e móvel em `dogfood-output/rod127-*.png`.
+
+Para conferir as telas financeiras sem disputar esses processos, a revisão
+seguinte usa uma cópia descartável em
+`dogfood-output/rod127-financial-review/`, sem `.env.local`, com os módulos já
+instalados. Somente na cópia, os endpoints dos emuladores e as respectivas
+guardas dos testes passam para Authentication 19099 e Firestore 18081; o
+projeto permanece `demo-gestone-e2e`. Os arquivos do produto mantêm as portas
+originais. Os resultados dessa execução devem ser distinguidos do comando
+E2E padrão.
+
+Nesta cópia, build de produção, lint, tipos, 171 testes unitários e 28 E2E
+passaram para a etapa de painel, listas, lançamento e CSV. O teste de reflow
+encontrou e permitiu corrigir o seletor de mês na largura equivalente a 160 px.
+As capturas da matriz estão em
+`dogfood-output/rod127-financial-review/dogfood-output/rod-118/`.
 
 ## Critérios de aceite
 

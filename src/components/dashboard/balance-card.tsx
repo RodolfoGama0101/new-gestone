@@ -40,7 +40,7 @@ export function BalanceCard({
 
   if (isLoading) {
     return (
-      <Card className="border-border bg-card flex h-[142px] flex-col justify-between rounded-md p-5 shadow-xs">
+      <Card className="flex min-h-80 flex-col justify-between p-6">
         <div className="space-y-2">
           <Skeleton className="h-3 w-20" />
           <Skeleton className="h-7 w-48" />
@@ -50,41 +50,41 @@ export function BalanceCard({
     )
   }
 
-  // Cor do Geist para a sparkline: azul Geist para saldo positivo, vermelho Geist para negativo
-  const chartColor = isPositive ? 'var(--income)' : 'var(--expense)'
+  // Azul para a evolução positiva; o saldo negativo mantém a sinalização de despesa.
+  const chartColor = isPositive ? 'var(--chart-1)' : 'var(--expense)'
 
   return (
-    <Card className="border-border bg-card overflow-hidden rounded-md shadow-xs transition-all duration-200 hover:shadow-sm">
-      <CardHeader className="px-5 pt-4 pb-1">
-        <CardTitle className="text-muted-foreground text-xs font-normal">
+    <Card className="overflow-hidden">
+      <CardHeader className="border-b border-border pb-6">
+        <CardTitle className="text-foreground text-base font-medium">
           Saldo projetado do mês
         </CardTitle>
       </CardHeader>
-      <CardContent className="px-5 pb-0">
+      <CardContent className="space-y-4">
         <div className="flex items-baseline justify-between gap-4">
-          <span className="text-foreground break-all text-2xl sm:text-3xl font-semibold tracking-tight">
+          <span className="text-foreground break-all text-3xl sm:text-4xl font-medium tracking-tight tabular-nums">
             {formattedBalance}
           </span>
         </div>
         <div className="mt-0.5 mb-2 flex min-h-[16px] flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-          <span className="text-muted-foreground text-xs">
+          <span className="text-muted-foreground text-sm">
             {changeLabel}
           </span>
         </div>
-        <p className="text-muted-foreground text-xs">
+        <p className="text-muted-foreground text-sm">
           Receitas menos despesas e investimentos do mês, incluindo a fatura
           deste mês.
         </p>
-        <div className="text-muted-foreground mt-2 space-y-1 text-xs">
-          <div className="flex flex-wrap items-center gap-1">
+        <div className="text-muted-foreground mt-6 space-y-4 border-t border-border pt-6 text-sm">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <span>Reserva para faturas após este mês:</span>
-            <span className="font-semibold text-red-600 dark:text-red-400">
+            <span className="font-medium tabular-nums text-foreground">
               {formatMoney(futureCardExpenses)}
             </span>
           </div>
-          <div className="flex flex-wrap items-center gap-1">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <span>Disponível após reservas:</span>
-            <span className="text-foreground font-semibold">
+            <span className="text-foreground font-medium tabular-nums">
               {formatMoney(availableBalance)}
             </span>
           </div>
@@ -97,8 +97,8 @@ export function BalanceCard({
         </div>
       </CardContent>
 
-      {/* Sparkline with minimalist line */}
-      <div className="mt-2 h-12 w-full">
+      {/* A curva usa os mesmos dados diários da projeção mensal. */}
+      <div className="mx-6 h-40 min-w-0">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
             data={data}

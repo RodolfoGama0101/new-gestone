@@ -46,7 +46,7 @@ export function SummaryCards({
     return (
       <div className="grid gap-4 xl:grid-cols-3">
         {[1, 2, 3].map((i) => (
-          <Card key={i} className="border-border bg-card shadow-xs rounded-md p-4 h-[102px] flex flex-col justify-between">
+          <Card key={i} className="min-h-36 justify-between p-6">
             <div className="flex items-center justify-between">
               <Skeleton className="h-3 w-14" />
               <Skeleton className="size-5 rounded-md" />
@@ -64,17 +64,17 @@ export function SummaryCards({
   return (
     <div className="grid gap-4 xl:grid-cols-3">
       {/* Income Card */}
-      <Card className="border-border bg-card shadow-xs hover:shadow-sm transition-all duration-200 rounded-md">
-        <CardHeader className="pb-1 pt-4 px-5 flex flex-row items-center justify-between space-y-0">
-          <CardTitle className="text-xs font-normal text-muted-foreground">
+      <Card className="gap-4">
+        <CardHeader className="flex min-w-0 flex-row flex-wrap items-center justify-between gap-3">
+          <CardTitle className="min-w-0 text-sm font-normal text-muted-foreground [overflow-wrap:anywhere]">
             Receitas
           </CardTitle>
-          <div className="size-6 rounded-md bg-green-100 dark:bg-green-1000/20 flex items-center justify-center border border-green-200/50 dark:border-green-800/20">
-            <ArrowUpCircle className="size-3.5 text-green-700 dark:text-green-500" />
+          <div className="flex size-8 items-center justify-center rounded-md border border-border bg-muted">
+            <ArrowUpCircle className="size-4 text-muted-foreground" />
           </div>
         </CardHeader>
-        <CardContent className="pb-4 px-5">
-          <span className="break-all text-xl sm:text-2xl font-semibold tracking-tight text-green-700 dark:text-green-500">
+        <CardContent className="space-y-2">
+          <span className="break-all text-2xl font-medium tracking-tight tabular-nums text-foreground">
             {formatBRL(income)}
           </span>
           <p className="mt-1 text-xs text-muted-foreground">
@@ -84,17 +84,17 @@ export function SummaryCards({
       </Card>
  
       {/* Expense Card */}
-      <Card className="border-border bg-card shadow-xs hover:shadow-sm transition-all duration-200 rounded-md">
-        <CardHeader className="pb-1 pt-4 px-5 flex flex-row items-center justify-between space-y-0">
-          <CardTitle className="text-xs font-normal text-muted-foreground">
+      <Card className="gap-4">
+        <CardHeader className="flex min-w-0 flex-row flex-wrap items-center justify-between gap-3">
+          <CardTitle className="min-w-0 text-sm font-normal text-muted-foreground [overflow-wrap:anywhere]">
             Despesas
           </CardTitle>
-          <div className="size-6 rounded-md bg-red-100 dark:bg-red-1000/20 flex items-center justify-center border border-red-200/50 dark:border-red-800/20">
-            <ArrowDownCircle className="size-3.5 text-red-700 dark:text-red-500" />
+          <div className="flex size-8 items-center justify-center rounded-md border border-border bg-muted">
+            <ArrowDownCircle className="size-4 text-muted-foreground" />
           </div>
         </CardHeader>
-        <CardContent className="pb-4 px-5">
-          <span className="break-all text-xl sm:text-2xl font-semibold tracking-tight text-red-700 dark:text-red-500">
+        <CardContent className="space-y-2">
+          <span className="break-all text-2xl font-medium tracking-tight tabular-nums text-foreground">
             {formatBRL(expense)}
           </span>
           <p className="mt-1 text-xs text-muted-foreground">
@@ -104,17 +104,17 @@ export function SummaryCards({
       </Card>
  
       {/* Investment Card */}
-      <Card className="border-border bg-card shadow-xs hover:shadow-sm transition-all duration-200 rounded-md">
-        <CardHeader className="pb-1 pt-4 px-5 flex flex-row items-center justify-between space-y-0">
-          <CardTitle className="text-xs font-normal text-muted-foreground">
+      <Card className="gap-4">
+        <CardHeader className="flex min-w-0 flex-row flex-wrap items-center justify-between gap-3">
+          <CardTitle className="min-w-0 text-sm font-normal text-muted-foreground [overflow-wrap:anywhere]">
             Investimentos
           </CardTitle>
-          <div className="size-6 rounded-md bg-violet-100 dark:bg-violet-1000/20 flex items-center justify-center border border-violet-200/50 dark:border-violet-800/20">
-            <Coins className="size-3.5 text-violet-700 dark:text-violet-500" />
+          <div className="flex size-8 items-center justify-center rounded-md border border-border bg-muted">
+            <Coins className="size-4 text-muted-foreground" />
           </div>
         </CardHeader>
-        <CardContent className="pb-4 px-5">
-          <span className="break-all text-xl sm:text-2xl font-semibold tracking-tight text-violet-700 dark:text-violet-500">
+        <CardContent className="space-y-2">
+          <span className="break-all text-2xl font-medium tracking-tight tabular-nums text-foreground">
             {formatBRL(investment)}
           </span>
           <p className="mt-1 text-xs text-muted-foreground">

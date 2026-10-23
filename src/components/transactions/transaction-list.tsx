@@ -139,7 +139,7 @@ export function TransactionList({
   if (error || categoriesError) return <LoadError error={error || categoriesError} retry={() => Promise.all([refetch(), refetchCategories()])} />
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-300">
+    <div className="space-y-8">
       {isFetching && <p role="status">Atualizando lançamentos…</p>}
       {/* Cabeçalho da página */}
       <p role="status" className="sr-only">{transactions.length} lançamentos nesta página</p>
@@ -154,7 +154,7 @@ export function TransactionList({
                 {addButtonLabel}
               </Button>
             } />
-            <DialogContent className="sm:max-w-[450px] md:max-w-[600px] rounded-md">
+            <DialogContent className="sm:max-w-[600px]">
               <DialogHeader>
                 <DialogTitle>{addDialogTitle}</DialogTitle>
                 <DialogDescription>{addDialogDescription}</DialogDescription>
@@ -177,14 +177,14 @@ export function TransactionList({
         />
       ) : (
         <div className="space-y-4">
-          <Card className="border-border bg-card shadow-xs hover:shadow-sm transition-all duration-200 rounded-md">
-            <CardHeader className="pb-2 pt-4 px-5">
-              <CardTitle className="text-sm font-semibold">{listTitle}</CardTitle>
-              <CardDescription className="text-[10px] text-muted-foreground">
+          <Card>
+            <CardHeader className="border-b border-border pb-6">
+              <CardTitle>{listTitle}</CardTitle>
+              <CardDescription className="text-sm text-muted-foreground">
                 {listDescription}
               </CardDescription>
             </CardHeader>
-            <CardContent className="divide-y divide-border/60 px-5 pb-4">
+            <CardContent className="divide-y divide-border">
               {transactions.map((tx) => (
                 <TransactionRow
                   key={tx.id}

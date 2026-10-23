@@ -39,20 +39,20 @@ export default function DashboardPage() {
 
   // Seletor de Mês — memoizado para evitar recriar o JSX a cada re-render
   const monthSelector = (
-      <div className="flex items-center gap-0.5 bg-background-100 dark:bg-card border border-border rounded-md p-0.5 shadow-sm">
+      <div className="flex max-w-full flex-wrap items-center justify-between gap-1 bg-background border border-border rounded-md p-1">
         <Button
           variant="ghost"
           size="icon"
           onClick={handlePrevMonth}
-          className="size-7 cursor-pointer rounded-md hover:bg-accent shrink-0"
+          className="size-10 rounded-md hover:bg-accent shrink-0"
           aria-label="Mês anterior"
         >
           <ChevronLeft className="size-3.5 text-muted-foreground" />
         </Button>
 
-        <div className="flex items-center gap-1.5 px-2 min-w-[130px] justify-center">
+        <div className="order-first flex w-full min-w-0 items-center justify-center gap-2 px-2 py-2 sm:order-none sm:w-auto">
           <CalendarDays className="size-3 text-muted-foreground shrink-0" />
-          <span className="text-xs font-medium text-foreground capitalize leading-none">
+          <span className="break-words text-center text-sm font-medium text-foreground capitalize">
             {format(selectedDate, 'MMMM yyyy', { locale: ptBR })}
           </span>
         </div>
@@ -61,7 +61,7 @@ export default function DashboardPage() {
           variant="ghost"
           size="icon"
           onClick={handleNextMonth}
-          className="size-7 cursor-pointer rounded-md hover:bg-accent shrink-0"
+          className="size-10 rounded-md hover:bg-accent shrink-0"
           aria-label="Próximo mês"
         >
           <ChevronRight className="size-3.5 text-muted-foreground" />
@@ -72,7 +72,7 @@ export default function DashboardPage() {
   if (error) return <LoadError error={error} retry={refetch} />
 
   return (
-    <div className="space-y-7 animate-in fade-in duration-300">
+    <div className="space-y-8">
       {/* Header com saudação e seletor de mês */}
       <PageHeader
         title={`${greeting}, ${userFirstName}!`}
@@ -81,18 +81,9 @@ export default function DashboardPage() {
       />
 
       {/* Grid Principal */}
-      <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+      <div className="flex flex-col gap-6">
         {/* Coluna principal: Saldo + Cards de Receita/Despesa */}
-        <div className="min-w-0 md:col-span-2 space-y-4">
-          <BalanceCard
-            balance={summary?.balance ?? 0}
-            changePercent={summary?.balanceChangePercent ?? 0}
-            data={summary?.dailyBalance ?? []}
-            isLoading={isLoading}
-            futureCardExpenses={summary?.futureCardExpenses ?? 0}
-            availableBalance={summary?.availableBalance ?? 0}
-            referenceDate={summary?.reservationReferenceDate}
-          />
+        <div className="flex min-w-0 flex-col gap-6">
           <SummaryCards
             income={summary?.income ?? 0}
             incomeChange={summary?.incomeChangePercent ?? 0}
@@ -105,10 +96,19 @@ export default function DashboardPage() {
             investmentCount={summary?.investmentCount ?? 0}
             isLoading={isLoading}
           />
+          <BalanceCard
+            balance={summary?.balance ?? 0}
+            changePercent={summary?.balanceChangePercent ?? 0}
+            data={summary?.dailyBalance ?? []}
+            isLoading={isLoading}
+            futureCardExpenses={summary?.futureCardExpenses ?? 0}
+            availableBalance={summary?.availableBalance ?? 0}
+            referenceDate={summary?.reservationReferenceDate}
+          />
         </div>
 
-        {/* Coluna lateral: Lançamentos Recentes */}
-        <div className="min-w-0 md:col-span-1">
+        {/* Histórico após os resumos e a projeção. */}
+        <div className="min-w-0">
           <RecentTransactions />
         </div>
       </div>

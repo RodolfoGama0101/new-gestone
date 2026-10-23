@@ -61,8 +61,8 @@ export function TransactionFilters() {
   }, [categories])
 
   return (
-    <div className="flex flex-col gap-4 p-4 rounded-md border border-border bg-background-200 dark:bg-card">
-      <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+    <div className="flex flex-col gap-6 p-6 rounded-md border border-border bg-card">
+      <div className="flex items-center gap-2 text-sm font-medium text-foreground">
         <Filter className="size-3.5 text-muted-foreground" />
         Filtros de Busca
       </div>
@@ -136,7 +136,7 @@ export function TransactionFilters() {
             variant="ghost"
             size="sm"
             onClick={handleClearFilters}
-            className="gap-1 text-[11px] h-7 rounded-md cursor-pointer text-muted-foreground hover:text-foreground"
+            className="gap-2 min-h-10 rounded-md text-sm text-muted-foreground hover:text-foreground"
           >
             <X className="size-3" />
             Limpar Filtros

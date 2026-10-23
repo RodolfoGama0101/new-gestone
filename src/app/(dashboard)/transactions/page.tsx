@@ -99,7 +99,7 @@ export default function TransactionsPage() {
   if (error || categoriesError) return <LoadError error={error || categoriesError} retry={() => Promise.all([refetch(), refetchCategories()])} />
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <p role="status" className="sr-only">{transactions.length} lançamentos nesta página</p>
       {/* Top Header */}
       {isFetching && <p role="status">Atualizando lançamentos…</p>}
@@ -160,14 +160,14 @@ export default function TransactionsPage() {
           {sortedDateKeys.map((dateKey) => (
             <div key={dateKey} className="space-y-1.5">
               {/* Cabeçalho do Dia sticky */}
-              <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider sticky top-[48px] bg-background/85 backdrop-blur-md py-1.5 z-10">
+              <h3 className="text-sm font-medium text-muted-foreground sticky top-[var(--header-height)] bg-background py-3 z-10">
                 {formatTransactionDate(new Date(dateKey + 'T00:00:00'), today)}
               </h3>
 
-              <Card className="border-border bg-card shadow-xs rounded-md">
+              <Card className="gap-0 py-0">
                 <CardContent className="divide-y divide-border/60 p-0">
                   {groupedTransactions[dateKey].map((tx) => (
-                    <div key={tx.id} className="px-4">
+                    <div key={tx.id} className="px-4 sm:px-6">
                       <TransactionRow transaction={tx} category={categories.find((category) => category.id === tx.categoryId)} onEdit={setEditingTx} onDelete={setDeletingId} showDate={false} />
                     </div>
                   ))}
