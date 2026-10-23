@@ -48,7 +48,7 @@ export function BottomNav() {
   const isExtraActive = extraItems.some((item) => pathname === item.href)
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-20 flex h-[calc(3.5rem+env(safe-area-inset-bottom))] items-center justify-around border-t border-border/80 bg-background/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden" aria-label="Navegação principal">
+    <nav className="fixed bottom-0 left-0 right-0 z-20 flex h-[calc(3.5rem+env(safe-area-inset-bottom))] items-center justify-around border-t border-border/80 bg-background pb-[env(safe-area-inset-bottom)] md:hidden" aria-label="Navegação principal">
       {mainItems.map((item) => {
         const isActive = pathname === item.href
         return (
@@ -85,7 +85,7 @@ export function BottomNav() {
             </span>
           </button>
         } />
-        <SheetContent side="bottom" className="rounded-t-2xl pb-6 max-h-[40vh] border-t border-border">
+        <SheetContent side="bottom" className="rounded-t-2xl pb-6 max-h-[80dvh] overflow-y-auto border-t border-border">
           <SheetHeader className="pb-2 border-b border-border/40">
             <SheetTitle className="text-center text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               Mais Opções
@@ -111,7 +111,7 @@ export function BottomNav() {
                   )}>
                     <item.icon className="size-5" />
                   </div>
-                  <span className="text-[10px] font-medium text-center truncate w-full">
+                  <span className="text-xs font-medium text-center truncate w-full">
                     {item.label}
                   </span>
                 </Link>

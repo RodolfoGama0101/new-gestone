@@ -53,7 +53,7 @@ export function Header() {
   const displayName = user?.displayName || user?.email?.split('@')[0] || 'Usuário'
 
   return (
-    <header className="sticky top-0 z-10 flex h-12 shrink-0 items-center justify-between border-b border-border bg-background/80 backdrop-blur-md px-4 sm:px-6">
+    <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between border-b border-border bg-background px-4 sm:px-6">
       {/* Left: Logo (mobile) + Breadcrumbs */}
       <div className="flex items-center gap-2.5 min-w-0">
         {/* Logo visível apenas em mobile */}
@@ -62,9 +62,9 @@ export function Header() {
         </div>
 
         <div className="hidden md:flex items-center gap-2 text-sm select-none">
-          <span className="text-xs font-medium text-muted-foreground">GestOne</span>
-          <span aria-hidden="true" className="text-xs text-muted-foreground/30 font-light">/</span>
-          <span className="text-xs font-medium text-foreground">{pageTitle}</span>
+          <span className="text-sm text-muted-foreground">GestOne</span>
+          <span aria-hidden="true" className="text-xs text-muted-foreground font-light">/</span>
+          <span className="text-sm font-medium text-foreground">{pageTitle}</span>
         </div>
 
         <h2 className="text-sm font-semibold text-foreground md:hidden truncate">
@@ -82,12 +82,12 @@ export function Header() {
         {user && (
           <DropdownMenu>
             <DropdownMenuTrigger className="flex items-center gap-1.5 rounded-md px-2 py-1 transition-colors hover:bg-accent outline-none focus-visible:ring-1 focus-visible:ring-ring cursor-pointer group">
-              <Avatar className="size-6 shrink-0">
-                <AvatarFallback className="bg-muted text-foreground text-[10px] font-bold">
+              <Avatar className="size-8 shrink-0">
+                <AvatarFallback className="bg-muted text-foreground text-xs font-bold">
                   {getInitials()}
                 </AvatarFallback>
               </Avatar>
-              <span className="hidden sm:block text-xs font-medium text-foreground max-w-[120px] truncate">
+              <span className="hidden sm:block text-sm font-medium text-foreground max-w-[120px] truncate">
                 {displayName}
               </span>
               <ChevronDown className="hidden sm:block size-3 text-muted-foreground transition-transform duration-100 group-data-[state=open]:rotate-180" />
@@ -98,13 +98,13 @@ export function Header() {
                 <DropdownMenuLabel className="font-normal p-2">
                   <div className="flex items-center gap-2">
                     <Avatar className="size-7 shrink-0">
-                      <AvatarFallback className="bg-muted text-foreground text-[10px] font-bold">
+                      <AvatarFallback className="bg-muted text-foreground text-xs font-bold">
                         {getInitials()}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex flex-col min-w-0">
                       <p className="text-xs font-semibold leading-none truncate">{displayName}</p>
-                      <p className="text-[10px] leading-none text-muted-foreground truncate mt-0.5">
+                      <p className="text-xs leading-none text-muted-foreground truncate mt-0.5">
                         {user.email}
                       </p>
                     </div>
