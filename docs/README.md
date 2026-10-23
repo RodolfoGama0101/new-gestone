@@ -2,6 +2,7 @@
 
 ## Design
 
+- [Redesign Geist — ROD-127](design/geist-redesign.md)
 - [Legibilidade das telas financeiras](design/financial-readability.md)
 
 ## Funcionalidades
