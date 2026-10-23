@@ -9,3 +9,7 @@ A data deriva sempre da âncora original: 31/janeiro → último dia de fevereir
 Editar futuras altera valor e descrição apenas das ocorrências ainda não geradas. O histórico continua editável individualmente. Cancelar bloqueia geração a partir da data escolhida e remove ocorrências com data igual ou posterior; hoje e datas futuras são aceitos. O bloqueio é confirmado antes da limpeza, que pode ser repetida após interrupção. Categorias arquivadas e cartões inativos impedem novos vínculos: a geração mostra erro e preserva o progresso; corrija o cadastro ou cancele a série.
 
 Transações antigas com recurring=true sem seriesId continuam avulsas. Não existe migração ou geração automática a partir desse sinalizador antigo. As regras novas precisam de publicação separada autorizada antes da liberação em produção.
+
+O campo Modo do lançamento usa o Select shadcn compartilhado, com rótulo associado, opções em 14 px e bloqueio durante o salvamento. As escolhas e regras de geração não mudam.
+
+Validação da troca do seletor: lint, tipos, 221 testes unitários, build e os dois E2E de recorrência/parcelamento aprovados. Build e E2E executados na cópia isolada com projeto demo-gestone-e2e e portas 29099/28081/3212.

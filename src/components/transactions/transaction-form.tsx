@@ -548,22 +548,32 @@ export function TransactionForm({
           <legend className="px-1 text-sm font-medium">
             Frequência e parcelamento
           </legend>
-          <label className="block text-sm">
-            Modo do lançamento
-            <select
-              aria-label="Modo do lançamento"
-              className="bg-background block h-11 w-full rounded-md border px-2"
+          <div className="space-y-1.5">
+            <Label htmlFor="schedule">Modo do lançamento</Label>
+            <Select
               value={schedule}
-              onChange={(e) => {
-                setSchedule(e.target.value)
+              disabled={isLoading}
+              items={[
+                { value: 'single', label: 'Avulso' },
+                { value: 'recurring', label: 'Recorrente mensal' },
+                { value: 'installment', label: 'Compra parcelada no cartão' },
+              ]}
+              onValueChange={(value) => {
+                if (!value) return
+                setSchedule(value)
                 seriesRequest.current = ''
               }}
             >
-              <option value="single">Avulso</option>
-              <option value="recurring">Recorrente mensal</option>
-              <option value="installment">Compra parcelada no cartão</option>
-            </select>
-          </label>
+              <SelectTrigger id="schedule" className="min-h-11">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="single">Avulso</SelectItem>
+                <SelectItem value="recurring">Recorrente mensal</SelectItem>
+                <SelectItem value="installment">Compra parcelada no cartão</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           {schedule === 'recurring' && (
             <>
               <label className="block text-sm">
