@@ -31,7 +31,7 @@ Validação local: **114 testes no emulador**, **61 testes do aplicativo**, lint
 
 As regras reforçam novas gravações e atualizações; não migram nem removem dados antigos. Antes de publicar, referências órfãs, tipos incompatíveis, perfis fora do esquema e tags antigas fora dos limites precisam de inspeção em ambiente autorizado: eles continuarão legíveis pelo dono, mas uma edição exigirá corrigir o payload. A migração automática de categorias preexistente também deve ser considerada nessa inspeção.
 
-A exclusão direta de categorias e cartões é negada. Categorias usam o fluxo autenticado de arquivamento/remoção da ROD-103. Cartões usam [arquivamento permanente](card-archival.md), inclusive quando vazios: as regras fecham novos vínculos e preservam o cadastro para consulta e edição do histórico. Alterar o tipo de uma categoria não arquivada ainda pode afetar lançamentos antigos. As regras não restringem o Admin SDK, que depende das credenciais e da validação das rotas do servidor.
+A exclusão direta de categorias e cartões é negada. Cartões sem compras, séries ou quitações podem ser excluídos pela [API autenticada de exclusão](features/card-deletion.md), com verificação transacional no Admin SDK; cartões com vínculos continuam preservados. Categorias usam o fluxo autenticado de arquivamento/remoção da ROD-103. Cartões usam [arquivamento permanente](card-archival.md), inclusive quando vazios: as regras fecham novos vínculos e preservam o cadastro para consulta e edição do histórico. Alterar o tipo de uma categoria não arquivada ainda pode afetar lançamentos antigos. As regras não restringem o Admin SDK, que depende das credenciais e da validação das rotas do servidor.
 
 Nenhuma regra foi publicada nem dado de produção acessado nesta implementação.
 

@@ -50,13 +50,38 @@ export function useCreditCards() {
   const archiveCardMutation = useMutation({
     mutationFn: (cardId: string) => CreditCardService.archive(userId, cardId),
     onSuccess: async () => {
-      await Promise.all(['creditCards', 'transactions', 'analytics', 'analyticsHistory'].map((key) =>
-        queryClient.invalidateQueries({ queryKey: [key, userId] })))
+      await Promise.all(
+        ['creditCards', 'transactions', 'analytics', 'analyticsHistory'].map(
+          (key) => queryClient.invalidateQueries({ queryKey: [key, userId] }),
+        ),
+      )
       toast.success('Cartão arquivado. O histórico foi preservado.')
     },
     onError: (error: unknown) => {
-      const message = error instanceof Error ? error.message : 'Erro ao arquivar cartão de crédito.'
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Erro ao arquivar cartão de crédito.'
       toast.error(message)
+    },
+  })
+
+  const deleteCardMutation = useMutation({
+    mutationFn: (cardId: string) => CreditCardService.delete(cardId),
+    onSuccess: async () => {
+      await Promise.all(
+        [
+          'creditCards',
+          'transactions',
+          'analytics',
+          'analyticsHistory',
+          'transactionSeries',
+          'invoicePayments',
+        ].map((key) =>
+          queryClient.invalidateQueries({ queryKey: [key, userId] }),
+        ),
+      )
+      toast.success('Cartão excluído')
     },
   })
 
@@ -71,5 +96,6 @@ export function useCreditCards() {
     isUpdating: updateCardMutation.isPending,
     archiveCreditCard: archiveCardMutation.mutateAsync,
     isArchiving: archiveCardMutation.isPending,
+    deleteCreditCard: deleteCardMutation.mutateAsync,
   }
 }

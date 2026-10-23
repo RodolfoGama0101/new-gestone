@@ -15,6 +15,7 @@ import {
   Trash2,
   Check,
   Wallet,
+  Archive,
 } from 'lucide-react'
 import {
   Dialog,
@@ -32,8 +33,14 @@ import { CreditCardBillSummary } from '@/components/credit-cards/credit-card-bil
 import { CreditCard } from '@/types/credit-card'
 
 export default function CreditCardsPage() {
-  const { creditCards, isLoading, error, refetch, archiveCreditCard } =
-    useCreditCards()
+  const {
+    creditCards,
+    isLoading,
+    error,
+    refetch,
+    archiveCreditCard,
+    deleteCreditCard,
+  } = useCreditCards()
 
   const [invoiceMonth, setInvoiceMonth] = React.useState<Date | null>(null)
   const openInvoice = (month: Date) => setInvoiceMonth(month)
@@ -44,6 +51,35 @@ export default function CreditCardsPage() {
   const [editingCard, setEditingCard] = React.useState<CreditCard | null>(null)
   const [archivingId, setArchivingId] = React.useState<string | null>(null)
   const [isArchiving, setIsArchiving] = React.useState(false)
+  const [deletingCard, setDeletingCard] = React.useState<CreditCard | null>(
+    null,
+  )
+  const [isDeleting, setIsDeleting] = React.useState(false)
+  const [deleteError, setDeleteError] = React.useState<string | null>(null)
+  const deletionInFlight = React.useRef(false)
+
+  const handleDeleteConfirm = async () => {
+    if (!deletingCard || deletionInFlight.current) return
+    deletionInFlight.current = true
+    setIsDeleting(true)
+    setDeleteError(null)
+    try {
+      await deleteCreditCard(deletingCard.id)
+      setDeletingCard(null)
+      setSelectedCardId((current) =>
+        current === deletingCard.id ? null : current,
+      )
+    } catch (error) {
+      setDeleteError(
+        error instanceof Error
+          ? error.message
+          : 'Não foi possível excluir o cartão. Tente novamente.',
+      )
+    } finally {
+      deletionInFlight.current = false
+      setIsDeleting(false)
+    }
+  }
 
   const selectedCard =
     creditCards.find((card) => card.id === selectedCardId) ??
@@ -208,11 +244,21 @@ export default function CreditCardsPage() {
                         variant="outline"
                         onClick={() => setArchivingId(selectedCard.id)}
                       >
-                        <Trash2 className="size-4" />
+                        <Archive className="size-4" />
                         Arquivar
                       </Button>
                     </div>
                   )}
+                  <Button
+                    variant="destructive"
+                    onClick={() => {
+                      setDeleteError(null)
+                      setDeletingCard(selectedCard)
+                    }}
+                  >
+                    <Trash2 className="size-4" />
+                    Excluir cartão
+                  </Button>
                 </CardContent>
               </Card>
             )}
@@ -270,6 +316,68 @@ export default function CreditCardsPage() {
               onSuccess={() => setEditingCard(null)}
             />
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={deletingCard !== null}
+        onOpenChange={(open) => {
+          if (!open && !deletionInFlight.current) {
+            setDeletingCard(null)
+            setDeleteError(null)
+          }
+        }}
+      >
+        <DialogContent
+          className="sm:max-w-[440px]"
+          showCloseButton={!isDeleting}
+        >
+          <DialogHeader>
+            <DialogTitle>Excluir cartão permanentemente?</DialogTitle>
+            <DialogDescription className="[overflow-wrap:anywhere]">
+              O cartão “{deletingCard?.name}” será apagado e não poderá ser
+              recuperado. Cartões com compras, séries ou pagamentos vinculados
+              não podem ser excluídos. Para preservar esse histórico, use
+              Arquivar.
+            </DialogDescription>
+          </DialogHeader>
+          {deleteError && (
+            <p role="alert" className="text-destructive text-sm">
+              {deleteError}
+            </p>
+          )}
+          <div
+            className="flex flex-wrap justify-end gap-2"
+            aria-busy={isDeleting}
+          >
+            <Button
+              variant="outline"
+              disabled={isDeleting}
+              onClick={() => {
+                setDeletingCard(null)
+                setDeleteError(null)
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={isDeleting}
+              onClick={handleDeleteConfirm}
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" />
+                  Excluindo…
+                </>
+              ) : (
+                'Excluir permanentemente'
+              )}
+            </Button>
+          </div>
+          <p role="status" className="sr-only">
+            {isDeleting ? 'Excluindo cartão…' : ''}
+          </p>
         </DialogContent>
       </Dialog>
 

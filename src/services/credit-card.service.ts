@@ -40,7 +40,10 @@ export const CreditCardService = {
     return cards
   },
 
-  async create(userId: string, data: Omit<CreditCard, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
+  async create(
+    userId: string,
+    data: Omit<CreditCard, 'id' | 'createdAt' | 'updatedAt'>,
+  ): Promise<string> {
     const colRef = this.getCollection(userId)
     const docRef = await addDoc(colRef, {
       ...data,
@@ -53,7 +56,7 @@ export const CreditCardService = {
   async update(
     userId: string,
     cardId: string,
-    data: Partial<Omit<CreditCard, 'id' | 'createdAt' | 'updatedAt'>>
+    data: Partial<Omit<CreditCard, 'id' | 'createdAt' | 'updatedAt'>>,
   ): Promise<void> {
     const docRef = doc(db, 'users', userId, 'creditCards', cardId)
     await updateDoc(docRef, {
@@ -65,6 +68,28 @@ export const CreditCardService = {
   async archive(userId: string, cardId: string): Promise<void> {
     // Uma única gravação fecha novos vínculos sem remover a referência histórica.
     const docRef = doc(db, 'users', userId, 'creditCards', cardId)
-    await updateDoc(docRef, { archived: true, isActive: false, updatedAt: serverTimestamp() })
+    await updateDoc(docRef, {
+      archived: true,
+      isActive: false,
+      updatedAt: serverTimestamp(),
+    })
+  },
+
+  async delete(cardId: string): Promise<void> {
+    const response = await fetch(
+      `/api/credit-cards/${encodeURIComponent(cardId)}`,
+      {
+        method: 'DELETE',
+        credentials: 'same-origin',
+      },
+    )
+    if (!response.ok) {
+      const result = await response.json().catch(() => null)
+      throw new Error(
+        typeof result?.error === 'string'
+          ? result.error
+          : 'Não foi possível excluir o cartão. Tente novamente.',
+      )
+    }
   },
 }

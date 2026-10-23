@@ -7,6 +7,7 @@
 
 ## Funcionalidades
 
+- [Exclusão de cartões](features/card-deletion.md)
 - [Aparência e personalização dos cartões](features/card-personalization.md)
 
 - [Apresentação dos lançamentos](features/transaction-presentation.md)

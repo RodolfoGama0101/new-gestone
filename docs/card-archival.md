@@ -1,6 +1,8 @@
 # Arquivamento de cartões — ROD-115
 
-Remover um cartão agora significa arquivá-lo permanentemente, com ou sem compras. Uma única atualização marca `archived: true` e `isActive: false`; não há consulta prévia nem exclusão do documento. Cartões antigos sem `archived` continuam funcionando como antes. A exclusão integral da conta mantém seu fluxo Admin existente.
+O fluxo de arquivamento descrito abaixo permanece disponível. Desde 23/10/2026, cartões sem compras, séries ou pagamentos também oferecem [exclusão permanente](features/card-deletion.md) pela API autenticada. Exclusões com vínculos são bloqueadas, sem arquivar automaticamente.
+
+Na implementação original, remover um cartão significa arquivá-lo permanentemente, com ou sem compras. Uma única atualização marca `archived: true` e `isActive: false`; não há consulta prévia nem exclusão do documento. Cartões antigos sem `archived` continuam funcionando como antes. A exclusão integral da conta mantém seu fluxo Admin existente.
 
 O cartão permanece na lista, identificado como arquivado, com faturas acessíveis. O cadastro arquivado não oferece edição nem outro arquivamento na interface. Novos lançamentos ocultam o cartão; a edição de uma despesa que já o utiliza mantém essa opção, identificada como arquivada. Os serviços de leitura continuam devolvendo todos os cartões para preservar nomes, relatórios e o fechamento de compras antigas sem `cardClosingDay`.
 
