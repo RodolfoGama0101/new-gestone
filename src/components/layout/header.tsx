@@ -91,7 +91,7 @@ export function Header() {
 
         {user && (
           <DropdownMenu>
-            <DropdownMenuTrigger className="hover:bg-accent focus-visible:ring-ring group flex cursor-pointer items-center gap-1.5 rounded-md px-2 py-1 transition-colors outline-none focus-visible:ring-1">
+            <DropdownMenuTrigger aria-label="Abrir menu da conta" className="hover:bg-accent focus-visible:ring-ring group flex min-h-11 min-w-11 cursor-pointer items-center justify-center gap-1.5 rounded-md px-2 py-1 transition-colors outline-none focus-visible:ring-1">
               <Avatar className="size-8 shrink-0">
                 <AvatarFallback className="bg-muted text-foreground text-xs font-bold">
                   {getInitials()}

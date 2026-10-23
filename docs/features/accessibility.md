@@ -9,3 +9,9 @@ Botões de tipo, tema, seção e cor anunciam seleção. Links de navegação id
 Os tokens de erro no tema claro, o breadcrumb e os rótulos da navegação móvel foram ajustados para contraste. A prévia do cartão mantém a cor escolhida sob uma camada escura e texto branco opaco, para legibilidade também em cores claras.
 
 Veja a [auditoria e seus limites](../audits/2026-10-22/accessibility.md). Os testes Playwright verificam teclado, foco, temas, mensagens e reflow. npm run test:e2e usa somente projetos fictícios.
+
+No painel, mês e novo lançamento ocupam linhas próprias abaixo de 640 px. O mês mantém as setas na mesma linha e anuncia sua alteração. O menu da conta tem nome acessível explícito, os botões de fechar diálogos e menus têm alvos de 48 px e as seções de configurações quebram linha. O indicador de desenvolvimento do Next.js fica desativado para não cobrir a navegação inferior; os erros de compilação e execução continuam disponíveis.
+
+A partir de 640 px, seletor de mês e botão de novo lançamento compartilham a mesma altura por alinhamento stretch, mantendo suas larguras conforme o conteúdo. A regressão está em `tests/e2e/mobile-navigation.test.ts`.
+
+Validação da correção em 23/10/2026: tipos, lint dos arquivos alterados e build passaram; a suíte com `npm test -- --runInBand --roots tests/unit` passou em 43 suítes/226 testes. O lint global encontrou erros em artefatos locais de `dogfood-output`; o Jest sem raiz explícita incluiu outros worktrees e apresentou colisões. O E2E não iniciou porque a porta 8081 estava ocupada. O novo teste de layout e a conferência visual permanecem pendentes.

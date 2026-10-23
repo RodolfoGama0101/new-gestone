@@ -6,6 +6,7 @@ interface PageHeaderProps {
   description?: string
   action?: React.ReactNode
   className?: string
+  actionClassName?: string
 }
 
 /**
@@ -17,6 +18,7 @@ export function PageHeader({
   description,
   action,
   className,
+  actionClassName,
 }: PageHeaderProps) {
   return (
     <div
@@ -37,7 +39,12 @@ export function PageHeader({
       </div>
 
       {action && (
-        <div className="flex max-w-full min-w-0 flex-wrap items-center gap-2 self-start [&_button]:h-auto [&_button]:min-h-10 [&_button]:max-w-full [&_button]:py-2 [&_button]:whitespace-normal [&>div]:flex-wrap">
+        <div
+          className={cn(
+            'flex max-w-full min-w-0 flex-wrap items-center gap-2 self-start [&_button]:h-auto [&_button]:min-h-10 [&_button]:max-w-full [&_button]:py-2 [&_button]:whitespace-normal [&>div]:flex-wrap',
+            actionClassName,
+          )}
+        >
           {action}
         </div>
       )}

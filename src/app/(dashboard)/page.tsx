@@ -32,7 +32,7 @@ export default function DashboardPage() {
 
   // Seletor de Mês — memoizado para evitar recriar o JSX a cada re-render
   const monthSelector = (
-    <div className="bg-background border-border flex max-w-full flex-wrap items-center justify-between gap-1 rounded-md border p-1">
+    <div className="bg-background border-border flex w-full min-w-0 items-center justify-between gap-1 rounded-md border p-1 sm:w-auto">
       <Button
         variant="ghost"
         size="icon"
@@ -43,7 +43,11 @@ export default function DashboardPage() {
         <ChevronLeft className="text-muted-foreground size-3.5" />
       </Button>
 
-      <div className="order-first flex w-full min-w-0 items-center justify-center gap-2 px-2 py-2 sm:order-none sm:w-auto">
+      <div
+        aria-live="polite"
+        aria-atomic="true"
+        className="flex min-w-0 items-center justify-center gap-2 px-2 py-2"
+      >
         <CalendarDays className="text-muted-foreground size-3 shrink-0" />
         <span className="text-foreground text-center text-sm font-medium break-words capitalize">
           {format(selectedDate, 'MMMM yyyy', { locale: ptBR })}
@@ -70,12 +74,13 @@ export default function DashboardPage() {
       <PageHeader
         title="Visão geral"
         description="Acompanhe seu saldo e os movimentos do mês."
+        actionClassName="w-full flex-col items-stretch sm:w-auto sm:flex-row [&_button]:min-h-11"
         action={
           <>
             {monthSelector}
             <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
               <DialogTrigger
-                render={<Button className="h-[50px]!">Novo lançamento</Button>}
+                render={<Button className="min-h-11">Novo lançamento</Button>}
               />
               <DialogContent>
                 <DialogHeader>

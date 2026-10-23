@@ -211,7 +211,7 @@ export default function SettingsPage() {
       <div
         role="group"
         aria-label="Seções de configurações"
-        className="border-border flex scrollbar-none gap-6 overflow-x-auto overflow-y-hidden border-b"
+        className="border-border flex flex-wrap gap-x-6 gap-y-2 border-b"
       >
         {(
           [

@@ -13,6 +13,8 @@ const nextConfig = {
   // Ativa o React Strict Mode para melhor detecção de problemas e profiling
   reactStrictMode: true,
   poweredByHeader: false,
+  // Evita que o indicador de desenvolvimento cubra a navegação móvel.
+  devIndicators: false,
 
   async headers() {
     return [
