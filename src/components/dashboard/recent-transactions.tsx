@@ -5,33 +5,45 @@ import { LoadError } from '@/components/shared/load-error'
 import * as React from 'react'
 import { useTransactions } from '@/hooks/use-transactions'
 import { useCategories } from '@/hooks/use-categories'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { EmptyState } from '@/components/shared/empty-state'
 import { Wallet, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
-import { TransactionRow } from '@/components/transactions/transaction-row'
+import { TransactionTable } from '@/components/transactions/transaction-table'
 import { Skeleton } from '@/components/ui/skeleton'
 
 export function RecentTransactions() {
-  const { categories, error: categoriesError, refetch: refetchCategories } = useCategories()
+  const {
+    categories,
+    error: categoriesError,
+    refetch: refetchCategories,
+  } = useCategories()
 
   // Busca os lançamentos mais recentes
-  const { transactions, isLoading, error, refetch } = useTransactions({ limitCount: 5 })
+  const { transactions, isLoading, error, refetch } = useTransactions({
+    limitCount: 5,
+  })
 
   const recent = transactions.slice(0, 5)
 
   // O(1) lookup em vez de categories.find() chamado N vezes no render
   const categoryMap = React.useMemo(
     () => new Map(categories.map((c) => [c.id, c])),
-    [categories]
+    [categories],
   )
 
-  if (error || categoriesError) return <LoadError error={error || categoriesError} retry={() => Promise.all([refetch(), refetchCategories()])} />
+  if (error || categoriesError)
+    return (
+      <LoadError
+        error={error || categoriesError}
+        retry={() => Promise.all([refetch(), refetchCategories()])}
+      />
+    )
 
   if (isLoading) {
     return (
       <Card className="h-full">
-        <CardHeader className="border-b border-border pb-6 flex flex-wrap flex-row items-center justify-between gap-4">
+        <CardHeader className="border-border flex flex-row flex-wrap items-center justify-between gap-4 border-b pb-6">
           <div className="space-y-1">
             <Skeleton className="h-4 w-28" />
             <Skeleton className="h-3 w-36" />
@@ -56,21 +68,22 @@ export function RecentTransactions() {
 
   return (
     <Card className="h-full">
-      <CardHeader className="border-b border-border pb-6 flex flex-wrap flex-row items-center justify-between gap-4 space-y-0">
+      <CardHeader className="border-border flex flex-row flex-wrap items-center justify-between gap-4 space-y-0 border-b pb-6">
         <div className="min-w-0 space-y-0.5 [overflow-wrap:anywhere]">
-          <CardTitle className="text-base font-medium text-foreground">Lançamentos Recentes</CardTitle>
-          <CardDescription className="text-xs text-muted-foreground">Últimas 5 movimentações</CardDescription>
+          <CardTitle className="text-foreground text-base font-medium">
+            Lançamentos recentes
+          </CardTitle>
         </div>
         <Link
           href="/transactions"
-          className="flex min-h-10 min-w-0 max-w-full flex-wrap items-center gap-2 text-sm font-medium text-link hover:underline underline-offset-4"
+          className="text-link flex min-h-10 max-w-full min-w-0 flex-wrap items-center gap-2 text-sm font-medium underline-offset-4 hover:underline"
         >
-          Ver todos
+          Ver extrato
           <ArrowRight className="size-3" />
         </Link>
       </CardHeader>
 
-      <CardContent className="">
+      <CardContent className="p-0">
         {recent.length === 0 ? (
           <EmptyState
             title="Nenhuma movimentação"
@@ -79,9 +92,11 @@ export function RecentTransactions() {
             compact
           />
         ) : (
-          <div className="divide-y divide-border/60">
-            {recent.map((tx) => <TransactionRow key={tx.id} transaction={tx} category={categoryMap.get(tx.categoryId)} />)}
-          </div>
+          <TransactionTable
+            transactions={recent}
+            categoryMap={categoryMap}
+            showDate={false}
+          />
         )}
       </CardContent>
     </Card>

@@ -9,17 +9,20 @@ import { SummaryCards } from '@/components/dashboard/summary-cards'
 import { RecentTransactions } from '@/components/dashboard/recent-transactions'
 import { PageHeader } from '@/components/shared/page-header'
 import { Button } from '@/components/ui/button'
-import { useAuth } from '@/contexts/auth-context'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import { TransactionForm } from '@/components/transactions/transaction-form'
 import { addMonths, subMonths, format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import {
-  ChevronLeft,
-  ChevronRight,
-  CalendarDays,
-} from 'lucide-react'
+import { ChevronLeft, ChevronRight, CalendarDays } from 'lucide-react'
 
 export default function DashboardPage() {
-  const { user } = useAuth()
+  const [isAddOpen, setIsAddOpen] = React.useState(false)
   const [selectedDate, setSelectedDate] = React.useState(new Date())
 
   const { summary, isLoading, error, refetch } = useAnalytics(selectedDate)
@@ -27,47 +30,37 @@ export default function DashboardPage() {
   const handlePrevMonth = () => setSelectedDate(subMonths(selectedDate, 1))
   const handleNextMonth = () => setSelectedDate(addMonths(selectedDate, 1))
 
-  // Saudação amigável baseada no horário local — memoizada para não recalcular a cada render
-  const greeting = React.useMemo(() => {
-    const hour = new Date().getHours()
-    if (hour < 12) return 'Bom dia'
-    if (hour < 18) return 'Boa tarde'
-    return 'Boa noite'
-  }, [])
-
-  const userFirstName = user?.displayName ? user.displayName.split(' ')[0] : 'Usuário'
-
   // Seletor de Mês — memoizado para evitar recriar o JSX a cada re-render
   const monthSelector = (
-      <div className="flex max-w-full flex-wrap items-center justify-between gap-1 bg-background border border-border rounded-md p-1">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handlePrevMonth}
-          className="size-10 rounded-md hover:bg-accent shrink-0"
-          aria-label="Mês anterior"
-        >
-          <ChevronLeft className="size-3.5 text-muted-foreground" />
-        </Button>
+    <div className="bg-background border-border flex max-w-full flex-wrap items-center justify-between gap-1 rounded-md border p-1">
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={handlePrevMonth}
+        className="hover:bg-accent size-10 shrink-0 rounded-md"
+        aria-label="Mês anterior"
+      >
+        <ChevronLeft className="text-muted-foreground size-3.5" />
+      </Button>
 
-        <div className="order-first flex w-full min-w-0 items-center justify-center gap-2 px-2 py-2 sm:order-none sm:w-auto">
-          <CalendarDays className="size-3 text-muted-foreground shrink-0" />
-          <span className="break-words text-center text-sm font-medium text-foreground capitalize">
-            {format(selectedDate, 'MMMM yyyy', { locale: ptBR })}
-          </span>
-        </div>
-
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleNextMonth}
-          className="size-10 rounded-md hover:bg-accent shrink-0"
-          aria-label="Próximo mês"
-        >
-          <ChevronRight className="size-3.5 text-muted-foreground" />
-        </Button>
+      <div className="order-first flex w-full min-w-0 items-center justify-center gap-2 px-2 py-2 sm:order-none sm:w-auto">
+        <CalendarDays className="text-muted-foreground size-3 shrink-0" />
+        <span className="text-foreground text-center text-sm font-medium break-words capitalize">
+          {format(selectedDate, 'MMMM yyyy', { locale: ptBR })}
+        </span>
       </div>
-    )
+
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={handleNextMonth}
+        className="hover:bg-accent size-10 shrink-0 rounded-md"
+        aria-label="Próximo mês"
+      >
+        <ChevronRight className="text-muted-foreground size-3.5" />
+      </Button>
+    </div>
+  )
 
   if (error) return <LoadError error={error} retry={refetch} />
 
@@ -75,9 +68,22 @@ export default function DashboardPage() {
     <div className="space-y-8">
       {/* Header com saudação e seletor de mês */}
       <PageHeader
-        title={`${greeting}, ${userFirstName}!`}
-        description="Aqui está um resumo de sua saúde financeira atual."
-        action={monthSelector}
+        title="Visão geral"
+        description="Acompanhe seu saldo e os movimentos do mês."
+        action={
+          <>
+            {monthSelector}
+            <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+              <DialogTrigger render={<Button>Novo lançamento</Button>} />
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Novo lançamento</DialogTitle>
+                </DialogHeader>
+                <TransactionForm onSuccess={() => setIsAddOpen(false)} />
+              </DialogContent>
+            </Dialog>
+          </>
+        }
       />
 
       {/* Grid Principal */}
@@ -97,6 +103,7 @@ export default function DashboardPage() {
             isLoading={isLoading}
           />
           <BalanceCard
+            selectedMonth={selectedDate}
             balance={summary?.balance ?? 0}
             changePercent={summary?.balanceChangePercent ?? 0}
             data={summary?.dailyBalance ?? []}

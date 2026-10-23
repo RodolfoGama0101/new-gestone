@@ -7,10 +7,10 @@ export default function RegisterPage() {
     <AuthFrame>
       <div className="mb-8 space-y-2 text-center">
         <h1 className="text-foreground text-2xl font-semibold tracking-tight">
-          Criar conta grátis
+          Crie sua conta
         </h1>
         <p className="text-muted-foreground text-sm">
-          Preencha os campos abaixo para começar
+          Comece a organizar suas finanças.
         </p>
       </div>
 

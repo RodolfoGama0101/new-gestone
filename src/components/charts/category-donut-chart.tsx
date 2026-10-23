@@ -1,108 +1,62 @@
 'use client'
 
 import { formatMoney } from '@/lib/utils/format-money'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import type { CategoryShare } from '@/lib/utils/analytics-helper'
 
-import * as React from 'react'
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import { CategoryShare } from '@/lib/utils/analytics-helper'
-import { GeistChartTooltip } from './geist-chart-tooltip'
-
-interface CategoryDonutChartProps {
-  data: CategoryShare[]
-}
-
-export function CategoryDonutChart({ data }: CategoryDonutChartProps) {
-  const formatBRL = (value: number) => {
-    return formatMoney(value)
-  }
-
-  const totalValue = React.useMemo(() => {
-    return data.reduce((acc, curr) => acc + curr.value, 0)
-  }, [data])
-
+export function CategoryDonutChart({ data }: { data: CategoryShare[] }) {
+  const total = data.reduce((sum, item) => sum + item.value, 0)
   return (
-    <Card className="min-w-0 h-full">
-      <CardHeader className="border-b border-border pb-6">
-        <CardTitle className="text-base font-medium">
-          Gastos por Categoria
-        </CardTitle>
-        <CardDescription className="text-muted-foreground text-xs">
-          Distribuição proporcional das despesas no período
-        </CardDescription>
+    <Card>
+      <CardHeader>
+        <CardTitle>Gastos por categoria</CardTitle>
       </CardHeader>
-      <CardContent className="min-w-0">
+      <CardContent>
         {data.length === 0 ? (
-          <div className="text-muted-foreground flex h-full items-center justify-center text-xs font-medium">
+          <p className="text-muted-foreground text-sm">
             Sem dados de despesas no período selecionado.
-          </div>
+          </p>
         ) : (
           <>
-            <div className="h-[240px]" aria-hidden="true">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={data}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="45%"
-                    innerRadius="55%"
-                    outerRadius="75%"
-                    paddingAngle={2}
-                  >
-                    {data.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    content={<GeistChartTooltip valueFormatter={formatBRL} />}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-            <p className="mb-3 text-sm font-medium">
-              Total: {formatBRL(totalValue)}
-            </p>
-            <ul
-              aria-label="Despesas por categoria"
-              className="divide-border divide-y text-sm"
-            >
-              {data.map((entry, index) => (
-                <li key={index} className="py-3">
-                  <div className="flex min-w-0 items-start gap-2">
-                    <span
-                      className="border-foreground mt-1 size-3 shrink-0 rounded-sm border"
-                      style={{ backgroundColor: entry.color }}
+            <ul aria-label="Despesas por categoria" className="space-y-5">
+              {data.map((item, index) => {
+                const ratio = total > 0 ? item.value / total : 0
+                return (
+                  <li key={index}>
+                    <div className="flex flex-wrap justify-between gap-3 text-sm">
+                      <span className="[overflow-wrap:anywhere]">
+                        {item.name}
+                      </span>
+                      <span className="tabular-nums">
+                        <span>{formatMoney(item.value)}</span>{' '}
+                        <span aria-hidden="true">·</span>{' '}
+                        <span className="text-muted-foreground">
+                          {ratio.toLocaleString('pt-BR', {
+                            style: 'percent',
+                            maximumFractionDigits: 1,
+                          })}
+                        </span>
+                      </span>
+                    </div>
+                    <div
+                      className="bg-accent mt-3 h-1.5 overflow-hidden rounded-full"
                       aria-hidden="true"
-                    />
-                    <span className="min-w-0 font-medium [overflow-wrap:anywhere] break-words">
-                      {entry.name}
-                    </span>
-                  </div>
-                  <div className="mt-1 flex flex-wrap justify-between gap-2 pl-5">
-                    <span className="break-all tabular-nums">
-                      {formatBRL(entry.value)}
-                    </span>
-                    <span>
-                      {(totalValue > 0
-                        ? entry.value / totalValue
-                        : 0
-                      ).toLocaleString('pt-BR', {
-                        style: 'percent',
-                        maximumFractionDigits: 1,
-                      })}
-                    </span>
-                  </div>
-                </li>
-              ))}
+                    >
+                      <div
+                        className="bg-primary h-full rounded-full"
+                        style={{ width: `${ratio * 100}%` }}
+                      />
+                    </div>
+                  </li>
+                )
+              })}
             </ul>
+            <div className="border-border mt-5 flex flex-wrap justify-between gap-3 border-t pt-4 text-sm">
+              <span>Total de despesas</span>
+              <span className="font-medium tabular-nums">
+                {formatMoney(total)}
+              </span>
+            </div>
           </>
         )}
       </CardContent>

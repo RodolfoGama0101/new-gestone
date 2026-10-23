@@ -2,7 +2,6 @@
 @import 'tw-animate-css';
 @import 'shadcn/tailwind.css';
 
-
 @custom-variant dark (&:is(.dark *));
 
 @theme {
@@ -168,7 +167,8 @@
     --link: #005ff2;
 
     /* Charts */
-    --chart-1: #002fa7;
+    --chart-1: #005ff2;
+    --chart-soft: #f0f7ff;
     --chart-2: #28a948;
     --chart-3: #ffae00;
     --chart-4: #a000f8;
@@ -193,24 +193,30 @@
     --sidebar-ring: #006bff;
 
     /* Semantic colors */
-    --income: #28a948;
+    --income: #107d32;
     --income-foreground: #ffffff;
-    --expense: #c90030;
+    --expense: #d8001b;
+    --warning: #aa4d00;
     --expense-foreground: #ffffff;
 
     /* Geist Shadows */
     --shadow-card: 0 2px 2px rgba(0, 0, 0, 0.04);
-    --shadow-elevated: 0 1px 1px rgba(0, 0, 0, 0.02), 0 4px 8px -4px rgba(0, 0, 0, 0.04), 0 16px 24px -8px rgba(0, 0, 0, 0.06);
-    --shadow-float: 0 1px 1px rgba(0, 0, 0, 0.02), 0 8px 16px -4px rgba(0, 0, 0, 0.04), 0 24px 32px -8px rgba(0, 0, 0, 0.06);
+    --shadow-elevated:
+      0 1px 1px rgba(0, 0, 0, 0.02), 0 4px 8px -4px rgba(0, 0, 0, 0.04),
+      0 16px 24px -8px rgba(0, 0, 0, 0.06);
+    --shadow-float:
+      0 1px 1px rgba(0, 0, 0, 0.02), 0 8px 16px -4px rgba(0, 0, 0, 0.04),
+      0 24px 32px -8px rgba(0, 0, 0, 0.06);
   }
 
   .dark {
+    --chart-soft: #071b33;
     /* Backgrounds */
     --background: #000000;
     --foreground: #ededed;
 
     /* Cards */
-    --card: #0a0a0a;
+    --card: #000000;
     --card-foreground: #ededed;
 
     /* Popovers */
@@ -226,11 +232,11 @@
     --secondary-foreground: #a1a1a1;
 
     /* Muted */
-    --muted: #111111;
+    --muted: #0a0a0a;
     --muted-foreground: #a1a1a1;
 
     /* Accent */
-    --accent: #111111;
+    --accent: #1a1a1a;
     --accent-foreground: #ffffff;
 
     /* Destructive */
@@ -244,26 +250,27 @@
     --link: #71aaff;
 
     /* Charts */
-    --chart-1: #5f7dff;
+    --chart-1: #71aaff;
     --chart-2: #4ce15e;
     --chart-3: #ffa600;
     --chart-4: #c979ff;
     --chart-5: #f97ea7;
 
     /* Sidebar */
-    --sidebar: #0a0a0a;
+    --sidebar: #000000;
     --sidebar-foreground: #ededed;
     --sidebar-primary: #ffffff;
     --sidebar-primary-foreground: #000000;
-    --sidebar-accent: #111111;
+    --sidebar-accent: #1a1a1a;
     --sidebar-accent-foreground: #ffffff;
     --sidebar-border: #ffffff24;
     --sidebar-ring: #71aaff;
 
     /* Semantic colors */
-    --income: #4ce15e;
+    --income: #62c073;
     --income-foreground: #000000;
     --expense: #ff676d;
+    --warning: #ffb224;
     --expense-foreground: #000000;
 
     /* Custom shadows for dark mode */
@@ -279,14 +286,15 @@
   *,
   *::before,
   *::after {
-    transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow;
+    transition-property:
+      background-color, border-color, color, fill, stroke, opacity, box-shadow;
     transition-duration: 180ms;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   body {
     @apply bg-background text-foreground;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -350,22 +358,121 @@
   button,
   select,
   summary,
-  [role="button"],
-  [role="tab"],
-  [role="link"],
-  [role="menuitem"],
-  [role="checkbox"],
-  [role="radio"],
-  input[type="button"],
-  input[type="submit"],
-  input[type="reset"],
-  input[type="checkbox"],
-  input[type="radio"],
-  input[type="file"]::file-selector-button,
-  [data-slot="dropdown-menu-item"],
-  [data-slot="select-item"],
-  [data-slot="select-trigger"],
-  [data-slot="dialog-close"] {
+  [role='button'],
+  [role='tab'],
+  [role='link'],
+  [role='menuitem'],
+  [role='checkbox'],
+  [role='radio'],
+  input[type='button'],
+  input[type='submit'],
+  input[type='reset'],
+  input[type='checkbox'],
+  input[type='radio'],
+  input[type='file']::file-selector-button,
+  [data-slot='dropdown-menu-item'],
+  [data-slot='select-item'],
+  [data-slot='select-trigger'],
+  [data-slot='dialog-close'] {
     cursor: pointer;
+  }
+}
+
+/* Tabelas do desenho aprovado: cabeçalho sutil e linhas sem cartões internos. */
+@layer components {
+  .financial-table {
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+  .financial-table th {
+    background: var(--muted);
+    color: var(--muted-foreground);
+    font-weight: 400;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .financial-table td {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+    overflow-wrap: anywhere;
+  }
+  .financial-table tr:last-child td {
+    border-bottom: 0;
+  }
+  @media (max-width: 639px) {
+    .financial-table,
+    .financial-table tbody,
+    .financial-table tr,
+    .financial-table td {
+      display: block;
+      width: 100%;
+    }
+    .financial-table thead {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+    }
+    .financial-table tr {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .financial-table tr:last-child {
+      border-bottom: 0;
+    }
+    .financial-table td {
+      border: 0;
+      padding: 6px 0;
+      text-align: left;
+    }
+    .financial-table td[data-label='Valor'] {
+      font-weight: 500;
+    }
+    .financial-table td[data-label='Ações'] > div {
+      justify-content: flex-start;
+      flex-wrap: wrap;
+    }
+  }
+  .transaction-table-container {
+    container-type: inline-size;
+    min-width: 0;
+    width: 100%;
+  }
+  @container (max-width: 639px) {
+    .financial-table,
+    .financial-table tbody,
+    .financial-table tr,
+    .financial-table td {
+      display: block;
+      width: 100%;
+    }
+    .financial-table thead {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+    }
+    .financial-table tr {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .financial-table tr:last-child {
+      border-bottom: 0;
+    }
+    .financial-table td {
+      border: 0;
+      padding: 6px 0;
+      text-align: left;
+    }
+    .financial-table td[data-label='Valor'] {
+      font-weight: 500;
+    }
+    .financial-table td[data-label='Ações'] > div {
+      justify-content: flex-start;
+      flex-wrap: wrap;
+    }
   }
 }

@@ -81,10 +81,60 @@ test('superfícies Geist preservam conteúdo e reflow nos dois temas', async ({
       amount: 10000,
       updatedAt: now,
     })
+  for (const [type, amount, description] of [
+    ['income', 400000, 'Receita para revisão do design'],
+    ['investment', 25000, 'Aporte para revisão do design'],
+  ] as const) {
+    await user.collection('transactions').doc(type).set({
+      type,
+      amount,
+      description,
+      categoryId: 'review',
+      date: now,
+      tags: [],
+      notes: null,
+      recurring: false,
+      createdAt: now,
+      updatedAt: now,
+    })
+  }
+  for (const kind of ['recurring', 'installment'] as const) {
+    await user
+      .collection('transactionSeries')
+      .doc(kind)
+      .set({
+        type: 'expense',
+        amount: 12000,
+        description:
+          kind === 'recurring'
+            ? 'Recorrência para revisão'
+            : 'Parcelamento para revisão',
+        categoryId: 'review',
+        date: now,
+        tags: [],
+        notes: null,
+        recurring: kind === 'recurring',
+        creditCardId: 'review',
+        cardClosingDay: 31,
+        kind,
+        count: kind === 'recurring' ? 1200 : 4,
+        nextIndex: kind === 'recurring' ? 1 : 4,
+        timezoneOffset: 180,
+        endDate: null,
+        cancelledFrom: null,
+        createdAt: now,
+        updatedAt: now,
+      })
+  }
   const routes = [
+    ['/', 'Visão geral'],
+    ['/transactions', 'Extrato'],
+    ['/income', 'Receitas'],
+    ['/expenses', 'Despesas'],
+    ['/investments', 'Investimentos'],
     ['/credit-cards', 'Meus Cartões'],
     ['/budgets', 'Orçamentos e metas'],
-    ['/series', 'Séries'],
+    ['/series', 'Séries de lançamentos'],
     ['/analytics', 'Relatórios'],
     ['/categories', 'Categorias'],
     ['/settings', 'Configurações'],
@@ -104,15 +154,125 @@ test('superfícies Geist preservam conteúdo e reflow nos dois temas', async ({
         ).toBeVisible()
         if (route === '/budgets')
           await expect(page.getByRole('progressbar')).toHaveCount(2)
-        if (route === '/credit-cards')
+        if (route === '/') {
+          await expect(
+            page.getByRole('img', { name: /Evolução do saldo/ }),
+          ).toBeVisible()
+          await expect(
+            page.getByRole('columnheader', { name: 'Descrição' }),
+          ).toHaveCount(1)
+          await expect(
+            page.getByRole('img', { name: /Evolução do saldo/ }),
+          ).toHaveCSS('height', '180px')
+          if (width === 1280)
+            await expect(page.locator('aside')).toHaveCSS('width', '200px')
+        }
+        if (route === '/series')
+          await expect(
+            page.getByText('Recorrência para revisão', { exact: true }),
+          ).toBeVisible()
+        await page.evaluate((value) => {
+          document.documentElement.classList.toggle('dark', value === 'dark')
+          document.documentElement.dataset.theme = value
+        }, theme)
+        await expect
+          .poll(() =>
+            page.evaluate(
+              () => document.documentElement.scrollWidth <= innerWidth,
+            ),
+          )
+          .toBe(true)
+        await page.screenshot({
+          path: `dogfood-output/rod127-surfaces/${theme}-${width}-${route.slice(1) || 'dashboard'}.png`,
+          fullPage: true,
+          animations: 'disabled',
+        })
+        if (route === '/credit-cards') {
+          await expect(
+            page.getByText('Próximas faturas', { exact: true }),
+          ).toBeVisible()
+          const future = page
+            .getByRole('button', { name: /^Ver fatura de / })
+            .first()
+          const futureHeading = (await future.getAttribute(
+            'aria-label',
+          ))!.replace('Ver fatura de ', 'Fatura de ')
+          await future.click()
+          await expect(
+            page.getByRole('heading', { name: futureHeading, exact: true }),
+          ).toBeVisible()
+          await page
+            .getByRole('button', { name: 'Voltar aos cartões', exact: true })
+            .click()
+          await page
+            .getByRole('button', { name: 'Ver fatura', exact: true })
+            .click()
+          await expect(
+            page.getByRole('heading', { level: 1, name: 'Fatura do cartão' }),
+          ).toBeVisible()
           await expect(
             page.getByText('Compra para revisão do design'),
           ).toBeVisible()
+          await expect
+            .poll(
+              async () =>
+                (
+                  await page
+                    .getByText('Compra para revisão do design', { exact: true })
+                    .boundingBox()
+                )?.height ?? 999,
+            )
+            .toBeLessThan(120)
+          await page.screenshot({
+            path: `dogfood-output/rod127-surfaces/${theme}-${width}-invoice.png`,
+            fullPage: true,
+            animations: 'disabled',
+          })
+        }
+        if (route === '/transactions') {
+          for (const [button, name] of [
+            ['Novo Lançamento', 'transaction'],
+            ['Importar CSV', 'import'],
+          ]) {
+            await page
+              .getByRole('button', { name: button, exact: true })
+              .click()
+            await expect(page.getByRole('dialog')).toBeVisible()
+            await page.screenshot({
+              path: `dogfood-output/rod127-surfaces/${theme}-${width}-${name}.png`,
+              fullPage: true,
+              animations: 'disabled',
+            })
+            await page.keyboard.press('Escape')
+          }
+        }
+        if (route === '/settings') {
+          for (const tab of ['Preferências', 'Segurança', 'Excluir conta']) {
+            await page.getByRole('button', { name: tab, exact: true }).click()
+            await page.screenshot({
+              path: `dogfood-output/rod127-surfaces/${theme}-${width}-settings-${tab}.png`,
+              fullPage: true,
+              animations: 'disabled',
+            })
+          }
+        }
+      }
+    }
+  }
+})
+
+test('autenticação segue a composição aprovada nos dois temas', async ({
+  page,
+}) => {
+  for (const width of [320, 1280]) {
+    await page.setViewportSize({ width, height: 900 })
+    for (const theme of ['light', 'dark']) {
+      for (const route of ['/login', '/register', '/forgot-password']) {
+        await page.goto(route)
+        await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
         await page.evaluate(
-          (value) => {
-            document.documentElement.classList.toggle('dark', value === 'dark')
-            document.documentElement.dataset.theme = value
-          },
+          (value) =>
+            document.documentElement.classList.toggle('dark', value === 'dark'),
           theme,
         )
         await expect

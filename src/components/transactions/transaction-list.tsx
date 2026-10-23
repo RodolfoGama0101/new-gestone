@@ -5,7 +5,7 @@ import { LoadError } from '@/components/shared/load-error'
 import * as React from 'react'
 import { useTransactions } from '@/hooks/use-transactions'
 import { useCategories } from '@/hooks/use-categories'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -18,10 +18,18 @@ import {
 import { ConfirmDialog } from '@/components/shared/confirm-dialog'
 import { EmptyState } from '@/components/shared/empty-state'
 import { TransactionForm } from '@/components/transactions/transaction-form'
-import { TransactionRow } from '@/components/transactions/transaction-row'
+import { TransactionNavigation } from '@/components/transactions/transaction-navigation'
+import { TransactionPageSummary } from '@/components/transactions/transaction-page-summary'
+import { TransactionTable } from '@/components/transactions/transaction-table'
 import { PageHeader } from '@/components/shared/page-header'
 import { Transaction } from '@/types/transaction'
-import { Plus, Loader2, LucideIcon, ChevronLeft, ChevronRight } from 'lucide-react'
+import {
+  Plus,
+  Loader2,
+  LucideIcon,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react'
 
 interface TransactionListProps {
   /** Tipo de transação a ser exibido e criado */
@@ -59,7 +67,7 @@ interface TransactionListProps {
  * Receitas e Despesas. Aplica memoizações para evitar re-renders desnecessários:
  *
  * - categoryMap: useMemo → O(1) lookup em vez de O(N) a cada render
- * - onEdit / onDelete: useCallback → referências estáveis para o React.memo do TransactionRow
+ * - onEdit / onDelete: useCallback → referências estáveis para as ações da tabela
  */
 export function TransactionList({
   type,
@@ -77,7 +85,11 @@ export function TransactionList({
   emptyDescription,
   deleteDescription,
 }: TransactionListProps) {
-  const { categories, error: categoriesError, refetch: refetchCategories } = useCategories()
+  const {
+    categories,
+    error: categoriesError,
+    refetch: refetchCategories,
+  } = useCategories()
   const {
     transactions,
     isLoading,
@@ -103,10 +115,10 @@ export function TransactionList({
    */
   const categoryMap = React.useMemo(
     () => new Map(categories.map((c) => [c.id, c])),
-    [categories]
+    [categories],
   )
 
-  /** Referências estáveis para não forçar re-render dos TransactionRow memoizados */
+  /** Referências estáveis para não forçar re-render dos componentes de apresentação */
   const handleEdit = React.useCallback((tx: Transaction) => {
     setEditingTx(tx)
   }, [])
@@ -131,29 +143,39 @@ export function TransactionList({
   if (isLoading) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
-        <Loader2 className="size-8 animate-spin text-primary" />
+        <Loader2 className="text-primary size-8 animate-spin" />
       </div>
     )
   }
 
-  if (error || categoriesError) return <LoadError error={error || categoriesError} retry={() => Promise.all([refetch(), refetchCategories()])} />
+  if (error || categoriesError)
+    return (
+      <LoadError
+        error={error || categoriesError}
+        retry={() => Promise.all([refetch(), refetchCategories()])}
+      />
+    )
 
   return (
     <div className="space-y-8">
       {isFetching && <p role="status">Atualizando lançamentos…</p>}
       {/* Cabeçalho da página */}
-      <p role="status" className="sr-only">{transactions.length} lançamentos nesta página</p>
+      <p role="status" className="sr-only">
+        {transactions.length} lançamentos nesta página
+      </p>
       <PageHeader
         title={title}
         description={description}
         action={
           <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-            <DialogTrigger render={
-              <Button className="min-h-11 text-sm rounded-md gap-1.5 cursor-pointer">
-                <Plus className="size-3.5" />
-                {addButtonLabel}
-              </Button>
-            } />
+            <DialogTrigger
+              render={
+                <Button className="min-h-11 cursor-pointer gap-1.5 rounded-md text-sm">
+                  <Plus className="size-3.5" />
+                  {addButtonLabel}
+                </Button>
+              }
+            />
             <DialogContent className="sm:max-w-[600px]">
               <DialogHeader>
                 <DialogTitle>{addDialogTitle}</DialogTitle>
@@ -168,6 +190,8 @@ export function TransactionList({
         }
       />
 
+      <TransactionPageSummary transactions={transactions} type={type} />
+      <TransactionNavigation />
       {/* Lista de transações */}
       {transactions.length === 0 ? (
         <EmptyState
@@ -178,42 +202,35 @@ export function TransactionList({
       ) : (
         <div className="space-y-4">
           <Card>
-            <CardHeader className="border-b border-border pb-6">
-              <CardTitle>{listTitle}</CardTitle>
-              <CardDescription className="text-sm text-muted-foreground">
-                {listDescription}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="divide-y divide-border">
-              {transactions.map((tx) => (
-                <TransactionRow
-                  key={tx.id}
-                  transaction={tx}
-                  category={categoryMap.get(tx.categoryId)}
-                  onEdit={handleEdit}
-                  onDelete={handleDeleteRequest}
-                />
-              ))}
+            <p className="sr-only">
+              {listTitle}. {listDescription}
+            </p>
+            <CardContent className="p-0">
+              <TransactionTable
+                transactions={transactions}
+                categoryMap={categoryMap}
+                onEdit={handleEdit}
+                onDelete={handleDeleteRequest}
+              />
             </CardContent>
           </Card>
-
         </div>
       )}
 
       {/* A navegação permanece disponível mesmo após uma página ficar vazia. */}
       {(hasNextPage || hasPreviousPage) && (
-        <div className="flex flex-wrap items-center justify-between gap-2 pt-2 px-1">
+        <div className="flex flex-wrap items-center justify-between gap-2 px-1 pt-2">
           <Button
             variant="outline"
             size="sm"
             disabled={!hasPreviousPage}
             onClick={goToPreviousPage}
-            className="gap-1.5 cursor-pointer text-sm min-h-11"
+            className="min-h-11 cursor-pointer gap-1.5 text-sm"
           >
             <ChevronLeft className="size-3.5" />
             Anterior
           </Button>
-          <span className="text-xs text-muted-foreground font-medium">
+          <span className="text-muted-foreground text-xs font-medium">
             Página {currentPage}
           </span>
           <Button
@@ -221,7 +238,7 @@ export function TransactionList({
             size="sm"
             disabled={!hasNextPage}
             onClick={goToNextPage}
-            className="gap-1.5 cursor-pointer text-sm min-h-11"
+            className="min-h-11 cursor-pointer gap-1.5 text-sm"
           >
             Próximo
             <ChevronRight className="size-3.5" />

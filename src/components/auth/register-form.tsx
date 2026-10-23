@@ -13,7 +13,10 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { GoogleAuthButton } from './google-auth-button'
-import { registerSchema, type RegisterInput } from '@/lib/validations/auth.schema'
+import {
+  registerSchema,
+  type RegisterInput,
+} from '@/lib/validations/auth.schema'
 import { useAuth } from '@/contexts/auth-context'
 import { CategoryService } from '@/services/category.service'
 import { useRouter } from 'next/navigation'
@@ -61,7 +64,9 @@ export function RegisterForm() {
           toast.error('A senha fornecida é muito fraca.')
           break
         case 'auth/session-service-unavailable':
-          toast.error('A conta foi criada, mas o serviço de sessão está indisponível. Tente fazer login novamente.')
+          toast.error(
+            'A conta foi criada, mas o serviço de sessão está indisponível. Tente fazer login novamente.',
+          )
           break
         default:
           toast.error('Erro ao criar a conta. Tente novamente.')
@@ -72,62 +77,112 @@ export function RegisterForm() {
   }
 
   return (
-    <div className="space-y-5">
-      <form aria-busy={isLoading} onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+    <div className="space-y-6">
+      <GoogleAuthButton />
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <Separator className="w-full" />
+        </div>
+        <div className="relative flex justify-center text-xs">
+          <span className="bg-muted text-muted-foreground px-3 font-medium">
+            ou continue com e-mail
+          </span>
+        </div>
+      </div>
+
+      <form
+        aria-busy={isLoading}
+        onSubmit={handleSubmit(onSubmit)}
+        className="space-y-5"
+        noValidate
+      >
         <div className="space-y-1.5">
-          <Label htmlFor="email" className="text-sm font-semibold text-foreground">
+          <Label
+            htmlFor="email"
+            className="text-foreground text-[13px] font-medium"
+          >
             E-mail
           </Label>
           <Input
-            id="email" autoComplete="email" {...fieldErrorProps('email', errors.email)}
+            id="email"
+            autoComplete="email"
+            {...fieldErrorProps('email', errors.email)}
             type="email"
             placeholder="exemplo@dominio.com"
             disabled={isLoading}
-            className={`h-11 ${errors.email ? 'border-destructive focus-visible:ring-destructive' : ''}`}
+            className={`h-10 ${errors.email ? 'border-destructive focus-visible:ring-destructive' : ''}`}
             {...register('email')}
           />
           {errors.email && (
-            <p id="email-error" role="alert" className="text-xs font-medium text-destructive">{errors.email.message}</p>
+            <p
+              id="email-error"
+              role="alert"
+              className="text-destructive text-xs font-medium"
+            >
+              {errors.email.message}
+            </p>
           )}
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="password" className="text-sm font-semibold text-foreground">
+          <Label
+            htmlFor="password"
+            className="text-foreground text-[13px] font-medium"
+          >
             Senha
           </Label>
           <Input
-            id="password" autoComplete="new-password" {...fieldErrorProps('password', errors.password)}
+            id="password"
+            autoComplete="new-password"
+            {...fieldErrorProps('password', errors.password)}
             type="password"
             placeholder="Ex: MinhaSenh@1"
             disabled={isLoading}
-            className={`h-11 ${errors.password ? 'border-destructive focus-visible:ring-destructive' : ''}`}
+            className={`h-10 ${errors.password ? 'border-destructive focus-visible:ring-destructive' : ''}`}
             {...register('password')}
           />
           {errors.password && (
-            <p id="password-error" role="alert" className="text-xs font-medium text-destructive">{errors.password.message}</p>
+            <p
+              id="password-error"
+              role="alert"
+              className="text-destructive text-xs font-medium"
+            >
+              {errors.password.message}
+            </p>
           )}
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="confirmPassword" className="text-sm font-semibold text-foreground">
+          <Label
+            htmlFor="confirmPassword"
+            className="text-foreground text-[13px] font-medium"
+          >
             Confirmar Senha
           </Label>
           <Input
-            id="confirmPassword" autoComplete="new-password" {...fieldErrorProps('confirmPassword', errors.confirmPassword)}
+            id="confirmPassword"
+            autoComplete="new-password"
+            {...fieldErrorProps('confirmPassword', errors.confirmPassword)}
             type="password"
             placeholder="Repita a senha"
             disabled={isLoading}
-            className={`h-11 ${errors.confirmPassword ? 'border-destructive focus-visible:ring-destructive' : ''}`}
+            className={`h-10 ${errors.confirmPassword ? 'border-destructive focus-visible:ring-destructive' : ''}`}
             {...register('confirmPassword')}
           />
           {errors.confirmPassword && (
-            <p id="confirmPassword-error" role="alert" className="text-xs font-medium text-destructive">{errors.confirmPassword.message}</p>
+            <p
+              id="confirmPassword-error"
+              role="alert"
+              className="text-destructive text-xs font-medium"
+            >
+              {errors.confirmPassword.message}
+            </p>
           )}
         </div>
 
         <Button
           type="submit"
-          className="w-full h-11 font-bold text-sm cursor-pointer"
+          className="h-10 w-full cursor-pointer text-sm font-medium"
           disabled={isLoading}
         >
           {isLoading ? (
@@ -139,19 +194,10 @@ export function RegisterForm() {
             'Criar conta grátis'
           )}
         </Button>
-      <p role="status" className="sr-only">{isLoading ? 'Criando sua conta…' : ''}</p>
-    </form>
-
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <Separator className="w-full" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-3 text-muted-foreground font-medium">Ou continuar com</span>
-        </div>
-      </div>
-
-      <GoogleAuthButton />
+        <p role="status" className="sr-only">
+          {isLoading ? 'Criando sua conta…' : ''}
+        </p>
+      </form>
     </div>
   )
 }

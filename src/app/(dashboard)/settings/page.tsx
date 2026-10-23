@@ -5,7 +5,13 @@ import { usePreferences } from '@/providers/preferences-provider'
 import { auth } from '@/lib/firebase/config'
 import { AccountDeletionError, deleteAccount } from '@/lib/firebase/account'
 import { updateProfile, updatePassword } from 'firebase/auth'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -13,26 +19,35 @@ import { ConfirmDialog } from '@/components/shared/confirm-dialog'
 import { ReauthDialog } from '@/components/auth/reauth-dialog'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
-import { 
-  Sun, 
-  Moon, 
-  Monitor, 
-  User, 
-  Lock, 
+import {
+  Sun,
+  Moon,
+  Monitor,
+  User,
+  Lock,
   Settings as SettingsIcon,
   Trash2,
-  Loader2
+  Loader2,
 } from 'lucide-react'
 import { PageHeader } from '@/components/shared/page-header'
 import { passwordSchema } from '@/lib/validations/auth.schema'
 import { useAuth } from '@/contexts/auth-context'
 
 export default function SettingsPage() {
-  const { theme, changeTheme, isLoading: isLoadingPreferences, isSaving: isSavingPreferences, error: preferencesError, refetch: refetchPreferences } = usePreferences()
+  const {
+    theme,
+    changeTheme,
+    isLoading: isLoadingPreferences,
+    isSaving: isSavingPreferences,
+    error: preferencesError,
+    refetch: refetchPreferences,
+  } = usePreferences()
   const { signOutUser } = useAuth()
   const user = auth.currentUser
 
-  const [activeTab, setActiveTab] = React.useState<'profile' | 'preferences' | 'security' | 'danger'>('profile')
+  const [activeTab, setActiveTab] = React.useState<
+    'profile' | 'preferences' | 'security' | 'danger'
+  >('profile')
 
   // Estados de Nome
   const [name, setName] = React.useState(user?.displayName ?? '')
@@ -45,7 +60,9 @@ export default function SettingsPage() {
   const [passwordError, setPasswordError] = React.useState<string | null>(null)
 
   // Modais de Controle de Fluxo
-  const [reauthAction, setReauthAction] = React.useState<'password' | 'delete' | null>(null)
+  const [reauthAction, setReauthAction] = React.useState<
+    'password' | 'delete' | null
+  >(null)
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = React.useState(false)
   const [deleteConfirmationText, setDeleteConfirmationText] = React.useState('')
   const [isDeletingAccount, setIsDeletingAccount] = React.useState(false)
@@ -77,8 +94,12 @@ export default function SettingsPage() {
     setPasswordError(null)
     const passwordValidation = passwordSchema.safeParse(newPassword)
     if (!passwordValidation.success) {
-      setPasswordError(passwordValidation.error.issues[0]?.message ?? 'Senha inválida.')
-      toast.error(passwordValidation.error.issues[0]?.message ?? 'Senha inválida.')
+      setPasswordError(
+        passwordValidation.error.issues[0]?.message ?? 'Senha inválida.',
+      )
+      toast.error(
+        passwordValidation.error.issues[0]?.message ?? 'Senha inválida.',
+      )
       return
     }
     if (newPassword !== confirmPassword) {
@@ -103,7 +124,9 @@ export default function SettingsPage() {
       if (authError.code === 'auth/requires-recent-login') {
         setReauthAction('password')
       } else {
-        toast.error('Erro ao alterar senha. Verifique os critérios de segurança.')
+        toast.error(
+          'Erro ao alterar senha. Verifique os critérios de segurança.',
+        )
       }
     } finally {
       setIsSavingPassword(false)
@@ -148,11 +171,18 @@ export default function SettingsPage() {
       // Uma navegação completa evita disputa com os redirecionamentos do layout após logout.
       window.location.replace('/register')
     } catch (error) {
-      if (error instanceof AccountDeletionError && error.code === 'auth/requires-recent-login') {
+      if (
+        error instanceof AccountDeletionError &&
+        error.code === 'auth/requires-recent-login'
+      ) {
         setReauthAction('delete')
         toast.error('A confirmação expirou. Confirme sua identidade novamente.')
       } else {
-        toast.error(error instanceof AccountDeletionError ? error.message : 'Erro ao apagar conta. Tente novamente mais tarde.')
+        toast.error(
+          error instanceof AccountDeletionError
+            ? error.message
+            : 'Erro ao apagar conta. Tente novamente mais tarde.',
+        )
       }
     } finally {
       setIsDeletingAccount(false)
@@ -170,7 +200,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-200">
+    <div className="animate-in fade-in space-y-6 duration-200">
       {/* Header */}
       <PageHeader
         title="Configurações"
@@ -178,14 +208,19 @@ export default function SettingsPage() {
       />
 
       {/* Tabs Control */}
-      <div role="group" aria-label="Seções de configurações" className="flex border-b border-border overflow-x-auto overflow-y-hidden scrollbar-none">
-        {([
-          { id: 'profile', label: 'Meu Perfil', icon: User },
-          { id: 'preferences', label: 'Preferências', icon: SettingsIcon },
-          { id: 'security', label: 'Segurança', icon: Lock },
-          { id: 'danger', label: 'Zona de Risco', icon: Trash2 },
-        ] as const).map((tab) => {
-          const TabIcon = tab.icon
+      <div
+        role="group"
+        aria-label="Seções de configurações"
+        className="border-border flex scrollbar-none gap-6 overflow-x-auto overflow-y-hidden border-b"
+      >
+        {(
+          [
+            { id: 'profile', label: 'Perfil', icon: User },
+            { id: 'preferences', label: 'Preferências', icon: SettingsIcon },
+            { id: 'security', label: 'Segurança', icon: Lock },
+            { id: 'danger', label: 'Excluir conta', icon: Trash2 },
+          ] as const
+        ).map((tab) => {
           const isActive = activeTab === tab.id
           return (
             <button
@@ -195,13 +230,12 @@ export default function SettingsPage() {
               aria-controls="settings-panel"
               onClick={() => setActiveTab(tab.id)}
               className={cn(
-                "flex items-center gap-1.5 px-4 py-2.5 border-b-2 text-sm font-semibold transition-all -mb-px shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer",
+                'focus-visible:ring-ring -mb-px flex shrink-0 cursor-pointer items-center gap-1.5 border-b-2 px-0 pt-0 pb-3.5 text-sm font-medium transition-all outline-none focus-visible:ring-2',
                 isActive
-                  ? "border-primary text-foreground"
-                  : "border-transparent text-muted-foreground hover:text-foreground"
+                  ? 'border-primary text-foreground'
+                  : 'text-muted-foreground hover:text-foreground border-transparent',
               )}
             >
-              <TabIcon className="size-3.5" />
               {tab.label}
             </button>
           )
@@ -209,17 +243,28 @@ export default function SettingsPage() {
       </div>
 
       {/* Tab Contents */}
-      <div id="settings-panel" role="region" aria-labelledby={'settings-' + activeTab} className="min-w-0 max-w-2xl [&_button]:max-w-full [&_button]:whitespace-normal [&_button]:h-auto [&_button]:min-h-10 [&_button]:py-2">
+      <div
+        id="settings-panel"
+        role="region"
+        aria-labelledby={'settings-' + activeTab}
+        className="max-w-[760px] min-w-0 [&_button]:h-auto [&_button]:min-h-10 [&_button]:max-w-full [&_button]:py-2 [&_button]:whitespace-normal"
+      >
         {activeTab === 'profile' && (
           <Card className="border-border bg-card rounded-md">
-            <CardHeader className="border-b border-border pb-6">
-              <CardTitle className="text-base font-medium">Meu Perfil</CardTitle>
-              <CardDescription className="text-sm text-muted-foreground">Atualize seu nome público de exibição</CardDescription>
+            <CardHeader className="border-border border-b pb-6">
+              <CardTitle className="text-base font-medium">
+                Informações do perfil
+              </CardTitle>
+              <CardDescription className="text-muted-foreground text-sm">
+                Atualize seu nome público de exibição
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSaveName} className="space-y-4">
                 <div className="space-y-1.5">
-                  <Label htmlFor="displayName" className="text-sm">Nome de Exibição</Label>
+                  <Label htmlFor="displayName" className="text-sm">
+                    Nome de Exibição
+                  </Label>
                   <Input
                     id="displayName"
                     value={name}
@@ -228,10 +273,23 @@ export default function SettingsPage() {
                     maxLength={50}
                     required
                     disabled={isSavingName}
-                    className="h-10 text-base md:text-sm rounded-md"
+                    className="h-10 rounded-md text-base md:text-sm"
                   />
                 </div>
-                <Button type="submit" disabled={isSavingName} className="w-full text-sm font-medium h-10 rounded-md cursor-pointer gap-2">
+                <div className="space-y-2">
+                  <Label htmlFor="profile-email">E-mail</Label>
+                  <Input
+                    id="profile-email"
+                    type="email"
+                    value={user?.email ?? ''}
+                    readOnly
+                  />
+                </div>
+                <Button
+                  type="submit"
+                  disabled={isSavingName}
+                  className="h-10 cursor-pointer gap-2 rounded-md text-sm font-medium"
+                >
                   {isSavingName ? (
                     <>
                       <Loader2 className="size-3.5 animate-spin" />
@@ -248,21 +306,35 @@ export default function SettingsPage() {
 
         {activeTab === 'preferences' && (
           <Card className="border-border bg-card rounded-md">
-            <CardHeader className="border-b border-border pb-6">
-              <CardTitle className="text-base font-medium">Preferências</CardTitle>
-              <CardDescription className="text-sm text-muted-foreground">Personalize o comportamento do aplicativo</CardDescription>
+            <CardHeader className="border-border border-b pb-6">
+              <CardTitle className="text-base font-medium">
+                Preferências
+              </CardTitle>
+              <CardDescription className="text-muted-foreground text-sm">
+                Personalize o comportamento do aplicativo
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Seletor de Tema */}
               <div className="space-y-2">
                 <Label className="text-sm">Tema da Interface</Label>
-                <div role="group" aria-label="Tema da interface" className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                <div
+                  role="group"
+                  aria-label="Tema da interface"
+                  className="grid grid-cols-1 gap-2 sm:grid-cols-3"
+                >
                   <Button
                     aria-pressed={theme === 'light'}
                     variant={theme === 'light' ? 'default' : 'outline'}
-                    className="gap-1.5 text-sm min-h-10 cursor-pointer justify-center rounded-md"
-                    disabled={isLoadingPreferences || isSavingPreferences || !!preferencesError}
-                    onClick={() => { void changeTheme('light').catch(() => undefined) }}
+                    className="min-h-10 cursor-pointer justify-center gap-1.5 rounded-md text-sm"
+                    disabled={
+                      isLoadingPreferences ||
+                      isSavingPreferences ||
+                      !!preferencesError
+                    }
+                    onClick={() => {
+                      void changeTheme('light').catch(() => undefined)
+                    }}
                   >
                     <Sun className="size-3.5" />
                     Claro
@@ -270,9 +342,15 @@ export default function SettingsPage() {
                   <Button
                     aria-pressed={theme === 'dark'}
                     variant={theme === 'dark' ? 'default' : 'outline'}
-                    className="gap-1.5 text-sm min-h-10 cursor-pointer justify-center rounded-md"
-                    disabled={isLoadingPreferences || isSavingPreferences || !!preferencesError}
-                    onClick={() => { void changeTheme('dark').catch(() => undefined) }}
+                    className="min-h-10 cursor-pointer justify-center gap-1.5 rounded-md text-sm"
+                    disabled={
+                      isLoadingPreferences ||
+                      isSavingPreferences ||
+                      !!preferencesError
+                    }
+                    onClick={() => {
+                      void changeTheme('dark').catch(() => undefined)
+                    }}
                   >
                     <Moon className="size-3.5" />
                     Escuro
@@ -280,9 +358,15 @@ export default function SettingsPage() {
                   <Button
                     aria-pressed={theme === 'system'}
                     variant={theme === 'system' ? 'default' : 'outline'}
-                    className="gap-1.5 text-sm min-h-10 cursor-pointer justify-center rounded-md"
-                    disabled={isLoadingPreferences || isSavingPreferences || !!preferencesError}
-                    onClick={() => { void changeTheme('system').catch(() => undefined) }}
+                    className="min-h-10 cursor-pointer justify-center gap-1.5 rounded-md text-sm"
+                    disabled={
+                      isLoadingPreferences ||
+                      isSavingPreferences ||
+                      !!preferencesError
+                    }
+                    onClick={() => {
+                      void changeTheme('system').catch(() => undefined)
+                    }}
                   >
                     <Monitor className="size-3.5" />
                     Sistema
@@ -290,12 +374,26 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              {preferencesError && <div role="alert">Não foi possível carregar seu tema. <Button variant="outline" onClick={refetchPreferences}>Tentar novamente</Button></div>}
-              <p role="status" className="text-sm text-muted-foreground">{isSavingPreferences ? 'Salvando tema…' : 'O tema é salvo na sua conta e recuperado em outros dispositivos.'}</p>
+              {preferencesError && (
+                <div role="alert">
+                  Não foi possível carregar seu tema.{' '}
+                  <Button variant="outline" onClick={refetchPreferences}>
+                    Tentar novamente
+                  </Button>
+                </div>
+              )}
+              <p role="status" className="text-muted-foreground text-sm">
+                {isSavingPreferences
+                  ? 'Salvando tema…'
+                  : 'O tema é salvo na sua conta e recuperado em outros dispositivos.'}
+              </p>
               <div className="space-y-2">
                 <p className="text-sm font-medium">Moeda Base</p>
                 <p className="text-sm">Real Brasileiro (BRL, R$)</p>
-                <p className="text-sm text-muted-foreground">Valores em reais, armazenados em centavos. O CSV usa vírgula decimal e não realiza conversão de moeda.</p>
+                <p className="text-muted-foreground text-sm">
+                  Valores em reais, armazenados em centavos. O CSV usa vírgula
+                  decimal e não realiza conversão de moeda.
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -303,42 +401,74 @@ export default function SettingsPage() {
 
         {activeTab === 'security' && (
           <Card className="border-border bg-card rounded-md">
-            <CardHeader className="border-b border-border pb-6">
+            <CardHeader className="border-border border-b pb-6">
               <CardTitle className="text-base font-medium">Segurança</CardTitle>
-              <CardDescription className="text-sm text-muted-foreground">Altere a senha de acesso a sua conta</CardDescription>
+              <CardDescription className="text-muted-foreground text-sm">
+                Altere a senha de acesso a sua conta
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <form aria-busy={isSavingPassword} onSubmit={handleSavePassword} className="space-y-4">
+              <form
+                aria-busy={isSavingPassword}
+                onSubmit={handleSavePassword}
+                className="space-y-4"
+              >
                 <div className="space-y-1.5">
-                  <Label htmlFor="new-password" className="text-sm">Nova Senha</Label>
+                  <Label htmlFor="new-password" className="text-sm">
+                    Nova Senha
+                  </Label>
                   <Input
-                    id="new-password" autoComplete="new-password" aria-invalid={!!passwordError} aria-describedby={passwordError ? 'password-error' : undefined}
+                    id="new-password"
+                    autoComplete="new-password"
+                    aria-invalid={!!passwordError}
+                    aria-describedby={
+                      passwordError ? 'password-error' : undefined
+                    }
                     type="password"
                     placeholder="8+ caracteres, maiúscula, número e símbolo"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     required
                     disabled={isSavingPassword}
-                    className="h-10 text-base md:text-sm rounded-md"
+                    className="h-10 rounded-md text-base md:text-sm"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="confirm-password" className="text-sm">Confirmar Nova Senha</Label>
+                  <Label htmlFor="confirm-password" className="text-sm">
+                    Confirmar Nova Senha
+                  </Label>
                   <Input
-                    id="confirm-password" autoComplete="new-password" aria-invalid={!!passwordError} aria-describedby={passwordError ? 'password-error' : undefined}
+                    id="confirm-password"
+                    autoComplete="new-password"
+                    aria-invalid={!!passwordError}
+                    aria-describedby={
+                      passwordError ? 'password-error' : undefined
+                    }
                     type="password"
                     placeholder="Repita a nova senha"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
                     disabled={isSavingPassword}
-                    className="h-10 text-base md:text-sm rounded-md"
+                    className="h-10 rounded-md text-base md:text-sm"
                   />
                 </div>
 
-                {passwordError && <p id="password-error" role="alert" className="text-sm text-destructive">{passwordError}</p>}
-                <Button type="submit" disabled={isSavingPassword} className="w-full text-sm font-medium h-10 rounded-md cursor-pointer gap-2">
+                {passwordError && (
+                  <p
+                    id="password-error"
+                    role="alert"
+                    className="text-destructive text-sm"
+                  >
+                    {passwordError}
+                  </p>
+                )}
+                <Button
+                  type="submit"
+                  disabled={isSavingPassword}
+                  className="h-10 w-full cursor-pointer gap-2 rounded-md text-sm font-medium"
+                >
                   {isSavingPassword ? (
                     <>
                       <Loader2 className="size-3.5 animate-spin" />
@@ -355,17 +485,26 @@ export default function SettingsPage() {
 
         {activeTab === 'danger' && (
           <Card className="border-destructive/30 bg-card rounded-md">
-            <CardHeader className="border-b border-border pb-6">
-              <CardTitle className="text-base font-medium text-destructive">Excluir Conta</CardTitle>
-              <CardDescription className="text-sm text-muted-foreground">Ações permanentes e irreversíveis</CardDescription>
+            <CardHeader className="border-border border-b pb-6">
+              <CardTitle className="text-destructive text-base font-medium">
+                Excluir Conta
+              </CardTitle>
+              <CardDescription className="text-muted-foreground text-sm">
+                Ações permanentes e irreversíveis
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <p className="text-sm text-muted-foreground leading-normal font-medium">
-                Ao apagar sua conta, todos os lançamentos financeiros, relatórios, configurações e categorias salvas no Firestore serão removidos permanentemente. A ação não poderá ser desfeita.
+              <p className="text-muted-foreground text-sm leading-normal font-medium">
+                Ao apagar sua conta, todos os lançamentos financeiros,
+                relatórios, configurações e categorias salvas no Firestore serão
+                removidos permanentemente. A ação não poderá ser desfeita.
               </p>
 
               <div className="space-y-1.5">
-                <Label htmlFor="confirmDeleteText" className="text-sm font-medium text-muted-foreground uppercase">
+                <Label
+                  htmlFor="confirmDeleteText"
+                  className="text-muted-foreground text-sm font-medium uppercase"
+                >
                   Escreva &quot;EXCLUIR CONTA&quot; para liberar
                 </Label>
                 <Input
@@ -373,16 +512,19 @@ export default function SettingsPage() {
                   placeholder="EXCLUIR CONTA"
                   value={deleteConfirmationText}
                   onChange={(e) => setDeleteConfirmationText(e.target.value)}
-                  className="border-red-200/50 dark:border-red-900/20 focus-visible:ring-red-500 h-10 text-base md:text-sm rounded-md"
+                  className="h-10 rounded-md border-red-200/50 text-base focus-visible:ring-red-500 md:text-sm dark:border-red-900/20"
                 />
               </div>
 
-              <Button 
-                type="button" 
-                variant="destructive" 
+              <Button
+                type="button"
+                variant="destructive"
                 onClick={() => setIsDeleteConfirmOpen(true)}
-                disabled={deleteConfirmationText !== 'EXCLUIR CONTA' || isDeletingAccount}
-                className="w-full text-sm font-semibold cursor-pointer rounded-md min-h-10 gap-2"
+                disabled={
+                  deleteConfirmationText !== 'EXCLUIR CONTA' ||
+                  isDeletingAccount
+                }
+                className="min-h-10 w-full cursor-pointer gap-2 rounded-md text-sm font-semibold"
               >
                 {isDeletingAccount ? (
                   <>
@@ -414,9 +556,13 @@ export default function SettingsPage() {
         isOpen={reauthAction !== null}
         onClose={() => setReauthAction(null)}
         onSuccess={handleReauthSuccess}
-        title={reauthAction === 'delete' ? 'Confirmar Exclusão de Conta' : 'Redefinição de Senha'}
+        title={
+          reauthAction === 'delete'
+            ? 'Confirmar Exclusão de Conta'
+            : 'Redefinição de Senha'
+        }
         description={
-          reauthAction === 'delete' 
+          reauthAction === 'delete'
             ? 'Para apagar sua conta definitivamente, confirme sua identidade.'
             : 'Confirme sua identidade para autorizar a alteração segura da senha.'
         }

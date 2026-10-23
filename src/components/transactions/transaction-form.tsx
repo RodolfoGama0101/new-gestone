@@ -13,15 +13,24 @@ import { useAuth } from '@/contexts/auth-context'
 import { TransactionSeriesService } from '@/services/transaction-series.service'
 import { parsePeriodDate } from '@/lib/utils/transaction-period'
 import { TransactionService } from '@/services/transaction.service'
-import { transactionSchema, type TransactionInput } from '@/lib/validations/transaction.schema'
+import {
+  transactionSchema,
+  type TransactionInput,
+} from '@/lib/validations/transaction.schema'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { CurrencyInput } from '@/components/shared/currency-input'
 import { DatePicker } from '@/components/shared/date-picker'
-import { Loader2, TrendingUp, TrendingDown, Coins } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 import { Transaction } from '@/types/transaction'
 import { parseFirestoreDate } from '@/lib/utils/parse-date'
 import { toast } from 'sonner'
@@ -42,8 +51,17 @@ export function TransactionForm({
   const formRef = React.useRef<HTMLFormElement>(null)
   const queryClient = useQueryClient()
   const userId = user?.uid ?? ''
-  const { categories, error: categoriesError, refetch: refetchCategories, isLoading: isCategoriesLoading } = useCategories()
-  const { creditCards, error: cardsError, refetch: refetchCards } = useCreditCards()
+  const {
+    categories,
+    error: categoriesError,
+    refetch: refetchCategories,
+    isLoading: isCategoriesLoading,
+  } = useCategories()
+  const {
+    creditCards,
+    error: cardsError,
+    refetch: refetchCards,
+  } = useCreditCards()
 
   const isEditMode = !!editingTransaction
 
@@ -54,23 +72,41 @@ export function TransactionForm({
 
   // Mutations diretas — o form não precisa buscar transações, apenas criar/atualizar
   const createMutation = useMutation({
-    mutationFn: async (data: Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'>) => {
+    mutationFn: async (
+      data: Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'>,
+    ) => {
       if (schedule === 'single') return TransactionService.create(userId, data)
       if (!seriesRequest.current) seriesRequest.current = crypto.randomUUID()
       const end = endDate ? parsePeriodDate(endDate, true) : undefined
       if (endDate && !end) throw new Error('Informe uma data final válida.')
-      await TransactionSeriesService.create(userId, seriesRequest.current, data, schedule === 'recurring' ? 'recurring' : 'installment', Number(installments), end)
+      await TransactionSeriesService.create(
+        userId,
+        seriesRequest.current,
+        data,
+        schedule === 'recurring' ? 'recurring' : 'installment',
+        Number(installments),
+        end,
+      )
       return seriesRequest.current
     },
     onSuccess: async () => {
       await invalidateTransactionData(queryClient, userId)
       toast.success('Lançamento registrado com sucesso!')
     },
-    onError: (error: Error) => toast.error(schedule === 'single' ? (error.message || 'Erro ao registrar lançamento.') : 'A série pode ter sido salva parcialmente. Repita sem mudar o modo ou abra Séries e use Gerar pendentes. ' + error.message),
+    onError: (error: Error) =>
+      toast.error(
+        schedule === 'single'
+          ? error.message || 'Erro ao registrar lançamento.'
+          : 'A série pode ter sido salva parcialmente. Repita sem mudar o modo ou abra Séries e use Gerar pendentes. ' +
+              error.message,
+      ),
   })
 
   const updateMutation = useMutation({
-    mutationFn: ({ transactionId, data }: {
+    mutationFn: ({
+      transactionId,
+      data,
+    }: {
       transactionId: string
       data: Partial<Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'>>
     }) => TransactionService.update(userId, transactionId, data),
@@ -115,7 +151,9 @@ export function TransactionForm({
 
   // Filtra as categorias pelo tipo ativo da transação
   const filteredCategories = categories.filter(
-    (c) => (!c.archived || c.id === editingTransaction?.categoryId) && (c.type === watchType || c.type === 'both')
+    (c) =>
+      (!c.archived || c.id === editingTransaction?.categoryId) &&
+      (c.type === watchType || c.type === 'both'),
   )
 
   // Mapeia categorias filtradas para o formato esperado pelo Select do Base UI
@@ -126,8 +164,12 @@ export function TransactionForm({
     }))
   }, [filteredCategories])
 
-  const selectableCards = creditCards.filter((card) => (!card.archived && card.isActive)
-    || (editingTransaction?.type === 'expense' && editingTransaction.creditCardId === card.id))
+  const selectableCards = creditCards.filter(
+    (card) =>
+      (!card.archived && card.isActive) ||
+      (editingTransaction?.type === 'expense' &&
+        editingTransaction.creditCardId === card.id),
+  )
   const cardSelectItems = [
     { value: 'none', label: 'Não usar cartão (Débito)' },
     ...selectableCards.map((card) => ({
@@ -137,12 +179,16 @@ export function TransactionForm({
   ]
 
   const onSubmit = async (data: TransactionInput) => {
-    const amountVal = typeof data.amount === 'string' ? parseInt(data.amount) : data.amount
+    const amountVal =
+      typeof data.amount === 'string' ? parseInt(data.amount) : data.amount
     if (amountVal <= 0) return
 
     try {
       const isExpense = data.type === 'expense'
-      const creditCardId = isExpense && data.creditCardId !== 'none' ? (data.creditCardId || null) : null
+      const creditCardId =
+        isExpense && data.creditCardId !== 'none'
+          ? data.creditCardId || null
+          : null
 
       if (isEditMode && editingTransaction) {
         await updateMutation.mutateAsync({
@@ -182,109 +228,135 @@ export function TransactionForm({
     void handleSubmit(onSubmit, () => {
       // Controllers registram depois dos inputs; o foco segue a ordem visual.
       requestAnimationFrame(() => {
-        formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus()
+        formRef.current
+          ?.querySelector<HTMLElement>('[aria-invalid="true"]')
+          ?.focus()
       })
     })(event)
   }
-  if (categoriesError || cardsError) return <LoadError error={categoriesError || cardsError} retry={() => Promise.all([refetchCategories(), refetchCards()])} />
+  if (categoriesError || cardsError)
+    return (
+      <LoadError
+        error={categoriesError || cardsError}
+        retry={() => Promise.all([refetchCategories(), refetchCards()])}
+      />
+    )
 
   return (
-    <form ref={formRef} aria-busy={isLoading} onSubmit={handleFormSubmit} noValidate className="space-y-5">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-6">
+    <form
+      ref={formRef}
+      aria-busy={isLoading}
+      onSubmit={handleFormSubmit}
+      noValidate
+      className="space-y-5"
+    >
+      <div className="grid grid-cols-1 gap-x-4 gap-y-6 md:grid-cols-2">
         {/* Seletor de Tipo (Receita / Despesa / Investimento) */}
         <div className="space-y-1.5 md:col-span-2">
-          <Label className="text-sm font-semibold text-foreground">Tipo de Lançamento</Label>
-          <div role="group" aria-label="Tipo de lançamento" className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-            <Button
-              type="button"
-              aria-pressed={watchType === 'income'}
-              variant={watchType === 'income' ? 'default' : 'outline'}
-              className={`w-full min-h-11 h-auto gap-1 px-2 py-2 whitespace-normal rounded-lg font-medium ${
-                watchType === 'income' 
-                  ? 'bg-primary text-primary-foreground hover:bg-primary/90'
-                  : 'text-muted-foreground'
-              }`}
-              onClick={() => {
-                setValue('type', 'income')
-                setValue('categoryId', '') // reseta categoria ao mudar tipo
-                setValue('creditCardId', 'none')
-              }}
-              disabled={isLoading}
+          <Label htmlFor="transaction-type" className="text-[13px] font-medium">
+            Tipo de lançamento
+          </Label>
+          <select
+            id="transaction-type"
+            className="border-input bg-background focus-visible:outline-ring h-10 w-full rounded-md border px-3 text-sm"
+            value={watchType}
+            disabled={isLoading}
+            onChange={(event) => {
+              const value = event.target.value as TransactionInput['type']
+              setValue('type', value)
+              setValue('categoryId', '')
+              if (value !== 'expense') setValue('creditCardId', 'none')
+            }}
+          >
+            <option value="expense">Despesa</option>
+            <option value="income">Receita</option>
+            <option value="investment">Investimento</option>
+          </select>
+        </div>
+
+        {/* Descrição */}
+        <div className="space-y-1.5 md:col-span-2">
+          <Label
+            htmlFor="description"
+            className="text-foreground text-sm font-semibold"
+          >
+            Descrição
+          </Label>
+          <Input
+            id="description"
+            {...fieldErrorProps('description', errors.description)}
+            placeholder="Ex: Aluguel, Supermercado"
+            disabled={isLoading}
+            {...register('description')}
+          />
+          {errors.description && (
+            <p
+              id="description-error"
+              role="alert"
+              className="text-destructive text-xs font-medium"
             >
-              <TrendingUp className="size-4" />
-              Receita
-            </Button>
-            <Button
-              type="button"
-              aria-pressed={watchType === 'expense'}
-              variant={watchType === 'expense' ? 'default' : 'outline'}
-              className={`w-full min-h-11 h-auto gap-1 px-2 py-2 whitespace-normal rounded-lg font-medium ${
-                watchType === 'expense' 
-                  ? 'bg-primary text-primary-foreground hover:bg-primary/90'
-                  : 'text-muted-foreground'
-              }`}
-              onClick={() => {
-                setValue('type', 'expense')
-                setValue('categoryId', '')
-              }}
-              disabled={isLoading}
-            >
-              <TrendingDown className="size-4" />
-              Despesa
-            </Button>
-            <Button
-              type="button"
-              aria-pressed={watchType === 'investment'}
-              variant={watchType === 'investment' ? 'default' : 'outline'}
-              className={`w-full min-h-11 h-auto gap-1 px-2 py-2 whitespace-normal rounded-lg font-medium ${
-                watchType === 'investment' 
-                  ? 'bg-primary text-primary-foreground hover:bg-primary/90'
-                  : 'text-muted-foreground'
-              }`}
-              onClick={() => {
-                setValue('type', 'investment')
-                setValue('categoryId', '')
-                setValue('creditCardId', 'none')
-              }}
-              disabled={isLoading}
-            >
-              <Coins className="size-4" />
-              Investir
-            </Button>
-          </div>
+              {errors.description.message}
+            </p>
+          )}
         </div>
 
         {/* Valor Monetário */}
         <div className="space-y-1.5">
-          <Label htmlFor="amount" className="text-sm font-semibold text-foreground">Valor</Label>
+          <Label
+            htmlFor="amount"
+            className="text-foreground text-sm font-semibold"
+          >
+            Valor
+          </Label>
           <Controller
             name="amount"
             control={control}
             render={({ field }) => (
               <CurrencyInput
-                ref={field.ref} onBlur={field.onBlur} name={field.name}
-                id="amount" {...fieldErrorProps('amount', errors.amount)}
-                value={typeof field.value === 'string' ? parseInt(field.value) : field.value}
+                ref={field.ref}
+                onBlur={field.onBlur}
+                name={field.name}
+                id="amount"
+                {...fieldErrorProps('amount', errors.amount)}
+                value={
+                  typeof field.value === 'string'
+                    ? parseInt(field.value)
+                    : field.value
+                }
                 onChange={field.onChange}
                 disabled={isLoading}
               />
             )}
           />
           {errors.amount && (
-            <p id="amount-error" role="alert" className="text-xs font-medium text-destructive">{errors.amount.message}</p>
+            <p
+              id="amount-error"
+              role="alert"
+              className="text-destructive text-xs font-medium"
+            >
+              {errors.amount.message}
+            </p>
           )}
         </div>
 
         {/* Data */}
         <div className="space-y-1.5">
-          <Label htmlFor="date" className="text-sm font-semibold text-foreground">Data</Label>
+          <Label
+            htmlFor="date"
+            className="text-foreground text-sm font-semibold"
+          >
+            Data
+          </Label>
           <Controller
             name="date"
             control={control}
             render={({ field }) => (
               <DatePicker
-                ref={field.ref} onBlur={field.onBlur} name={field.name}
-                id="date" {...fieldErrorProps('date', errors.date)}
+                ref={field.ref}
+                onBlur={field.onBlur}
+                name={field.name}
+                id="date"
+                {...fieldErrorProps('date', errors.date)}
                 date={field.value}
                 setDate={field.onChange}
                 disabled={isLoading}
@@ -292,27 +364,24 @@ export function TransactionForm({
             )}
           />
           {errors.date && (
-            <p id="date-error" role="alert" className="text-xs font-medium text-destructive">{errors.date.message}</p>
-          )}
-        </div>
-
-        {/* Descrição */}
-        <div className="space-y-1.5">
-          <Label htmlFor="description" className="text-sm font-semibold text-foreground">Descrição</Label>
-          <Input
-            id="description" {...fieldErrorProps('description', errors.description)}
-            placeholder="Ex: Aluguel, Supermercado"
-            disabled={isLoading}
-            {...register('description')}
-          />
-          {errors.description && (
-            <p id="description-error" role="alert" className="text-xs font-medium text-destructive">{errors.description.message}</p>
+            <p
+              id="date-error"
+              role="alert"
+              className="text-destructive text-xs font-medium"
+            >
+              {errors.date.message}
+            </p>
           )}
         </div>
 
         {/* Categoria */}
         <div className="space-y-1.5">
-          <Label htmlFor="categoryId" className="text-sm font-semibold text-foreground">Categoria</Label>
+          <Label
+            htmlFor="categoryId"
+            className="text-foreground text-sm font-semibold"
+          >
+            Categoria
+          </Label>
           <Controller
             name="categoryId"
             control={control}
@@ -323,7 +392,11 @@ export function TransactionForm({
                 disabled={isLoading || isCategoriesLoading}
                 items={categorySelectItems}
               >
-                <SelectTrigger id="categoryId" {...fieldErrorProps('categoryId', errors.categoryId)} className="w-full h-10 rounded-lg">
+                <SelectTrigger
+                  id="categoryId"
+                  {...fieldErrorProps('categoryId', errors.categoryId)}
+                  className="h-10 w-full rounded-lg"
+                >
                   <SelectValue placeholder="Selecione uma categoria" />
                 </SelectTrigger>
                 <SelectContent>
@@ -337,14 +410,25 @@ export function TransactionForm({
             )}
           />
           {errors.categoryId && (
-            <p id="categoryId-error" role="alert" className="text-xs font-medium text-destructive">{errors.categoryId.message}</p>
+            <p
+              id="categoryId-error"
+              role="alert"
+              className="text-destructive text-xs font-medium"
+            >
+              {errors.categoryId.message}
+            </p>
           )}
         </div>
 
         {/* Cartão de Crédito (Apenas para Despesa) */}
         {watchType === 'expense' && (
           <div className="space-y-1.5">
-            <Label htmlFor="creditCardId" className="text-sm font-semibold text-foreground">Forma de Pagamento (Cartão)</Label>
+            <Label
+              htmlFor="creditCardId"
+              className="text-foreground text-sm font-semibold"
+            >
+              Forma de Pagamento (Cartão)
+            </Label>
             <Controller
               name="creditCardId"
               control={control}
@@ -355,29 +439,54 @@ export function TransactionForm({
                   disabled={isLoading}
                   items={cardSelectItems}
                 >
-                  <SelectTrigger id="creditCardId" {...fieldErrorProps('creditCardId', errors.creditCardId)} className="w-full h-10 rounded-lg">
+                  <SelectTrigger
+                    id="creditCardId"
+                    {...fieldErrorProps('creditCardId', errors.creditCardId)}
+                    className="h-10 w-full rounded-lg"
+                  >
                     <SelectValue placeholder="Sem cartão (Débito)" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">Não usar cartão (Débito)</SelectItem>
+                    <SelectItem value="none">
+                      Não usar cartão (Débito)
+                    </SelectItem>
                     {selectableCards.map((card) => (
                       <SelectItem key={card.id} value={card.id}>
-                        {card.name} ({card.bankName}){card.archived ? ' — arquivado' : !card.isActive ? ' — inativo' : ''}
+                        {card.name} ({card.bankName})
+                        {card.archived
+                          ? ' — arquivado'
+                          : !card.isActive
+                            ? ' — inativo'
+                            : ''}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               )}
             />
-            {errors.creditCardId && <p id="creditCardId-error" role="alert" className="text-sm text-destructive">{errors.creditCardId.message}</p>}
+            {errors.creditCardId && (
+              <p
+                id="creditCardId-error"
+                role="alert"
+                className="text-destructive text-sm"
+              >
+                {errors.creditCardId.message}
+              </p>
+            )}
           </div>
         )}
 
         {/* Tags (Opcional) */}
         <div className="space-y-1.5 md:col-span-2">
-          <Label htmlFor="tags" className="text-sm font-semibold text-foreground">Tags (separadas por vírgula)</Label>
+          <Label
+            htmlFor="tags"
+            className="text-foreground text-sm font-semibold"
+          >
+            Tags (separadas por vírgula)
+          </Label>
           <Input
-            id="tags" {...fieldErrorProps('tags', errors.tags)}
+            id="tags"
+            {...fieldErrorProps('tags', errors.tags)}
             placeholder="Ex: essencial, compras, viagem"
             disabled={isLoading}
             onChange={(e) => {
@@ -390,38 +499,119 @@ export function TransactionForm({
             }}
             defaultValue={formatTags(editingTransaction?.tags)}
           />
-          {errors.tags && <p id="tags-error" role="alert" className="text-sm text-destructive">{errors.tags.message ?? 'Use até 20 tags, com no máximo 40 caracteres cada.'}</p>}
+          {errors.tags && (
+            <p
+              id="tags-error"
+              role="alert"
+              className="text-destructive text-sm"
+            >
+              {errors.tags.message ??
+                'Use até 20 tags, com no máximo 40 caracteres cada.'}
+            </p>
+          )}
         </div>
 
         {/* Notas adicionais */}
         <div className="space-y-1.5 md:col-span-2">
-          <Label htmlFor="notes" className="text-sm font-semibold text-foreground">Anotações / Notas</Label>
+          <Label
+            htmlFor="notes"
+            className="text-foreground text-sm font-semibold"
+          >
+            Anotações / Notas
+          </Label>
           <Textarea
-            id="notes" {...fieldErrorProps('notes', errors.notes)}
+            id="notes"
+            {...fieldErrorProps('notes', errors.notes)}
             rows={3}
             placeholder="Alguma observação importante sobre esta transação..."
             disabled={isLoading}
             {...register('notes')}
           />
           {errors.notes && (
-            <p id="notes-error" role="alert" className="text-xs font-medium text-destructive">{errors.notes.message}</p>
+            <p
+              id="notes-error"
+              role="alert"
+              className="text-destructive text-xs font-medium"
+            >
+              {errors.notes.message}
+            </p>
           )}
         </div>
       </div>
 
-      {!isEditMode && <fieldset className="space-y-4 rounded-md border border-border bg-muted p-4" disabled={isLoading}>
-        <legend className="px-1 text-sm font-medium">Frequência e parcelamento</legend>
-        <label className="block text-sm">Modo do lançamento
-          <select aria-label="Modo do lançamento" className="block h-11 w-full rounded-md border bg-background px-2" value={schedule} onChange={e => { setSchedule(e.target.value); seriesRequest.current = '' }}>
-            <option value="single">Avulso</option><option value="recurring">Recorrente mensal</option><option value="installment">Compra parcelada no cartão</option>
-          </select>
-        </label>
-        {schedule === 'recurring' && <><label className="block text-sm">Repetir até (opcional)<Input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} /></label><p className="text-sm text-muted-foreground">Valor por mês. Ocorrências vencidas são geradas ao abrir o app, até 120 por execução. Gerencie futuras em Séries.</p></>}
-        {schedule === 'installment' && <><label className="block text-sm">Quantidade de parcelas<Input type="number" min={2} max={120} value={installments} onChange={e => setInstallments(e.target.value)} /></label><p className="text-sm text-muted-foreground">Informe o valor total da compra acima e selecione um cartão ativo. O total será distribuído sem perda de centavos nas próximas faturas. Parcelas podem ser editadas individualmente.</p></>}
-      </fieldset>}
-      {editingTransaction?.seriesId && <p className="text-sm text-muted-foreground">Esta edição altera apenas esta ocorrência. Edite ou cancele futuras em Séries.</p>}
+      {!isEditMode && (
+        <fieldset
+          className="border-border bg-muted space-y-4 rounded-md border p-4"
+          disabled={isLoading}
+        >
+          <legend className="px-1 text-sm font-medium">
+            Frequência e parcelamento
+          </legend>
+          <label className="block text-sm">
+            Modo do lançamento
+            <select
+              aria-label="Modo do lançamento"
+              className="bg-background block h-11 w-full rounded-md border px-2"
+              value={schedule}
+              onChange={(e) => {
+                setSchedule(e.target.value)
+                seriesRequest.current = ''
+              }}
+            >
+              <option value="single">Avulso</option>
+              <option value="recurring">Recorrente mensal</option>
+              <option value="installment">Compra parcelada no cartão</option>
+            </select>
+          </label>
+          {schedule === 'recurring' && (
+            <>
+              <label className="block text-sm">
+                Repetir até (opcional)
+                <Input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                />
+              </label>
+              <p className="text-muted-foreground text-sm">
+                Valor por mês. Ocorrências vencidas são geradas ao abrir o app,
+                até 120 por execução. Gerencie futuras em Séries.
+              </p>
+            </>
+          )}
+          {schedule === 'installment' && (
+            <>
+              <label className="block text-sm">
+                Quantidade de parcelas
+                <Input
+                  type="number"
+                  min={2}
+                  max={120}
+                  value={installments}
+                  onChange={(e) => setInstallments(e.target.value)}
+                />
+              </label>
+              <p className="text-muted-foreground text-sm">
+                Informe o valor total da compra acima e selecione um cartão
+                ativo. O total será distribuído sem perda de centavos nas
+                próximas faturas. Parcelas podem ser editadas individualmente.
+              </p>
+            </>
+          )}
+        </fieldset>
+      )}
+      {editingTransaction?.seriesId && (
+        <p className="text-muted-foreground text-sm">
+          Esta edição altera apenas esta ocorrência. Edite ou cancele futuras em
+          Séries.
+        </p>
+      )}
       {/* Botões de Ação */}
-      <Button type="submit" className="w-full h-11 font-medium rounded-lg text-sm cursor-pointer mt-2" disabled={isLoading}>
+      <Button
+        type="submit"
+        className="mt-2 h-11 w-full cursor-pointer rounded-lg text-sm font-medium"
+        disabled={isLoading}
+      >
         {isLoading ? (
           <>
             <Loader2 className="mr-2 size-4 animate-spin" />
@@ -433,7 +623,9 @@ export function TransactionForm({
           'Confirmar Lançamento'
         )}
       </Button>
-    <p role="status" className="sr-only">{isLoading ? 'Salvando lançamento…' : ''}</p>
+      <p role="status" className="sr-only">
+        {isLoading ? 'Salvando lançamento…' : ''}
+      </p>
     </form>
   )
 }

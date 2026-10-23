@@ -1,25 +1,22 @@
 'use client'
 
 import { formatMoney } from '@/lib/utils/format-money'
-
-import * as React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { AreaChart, Area, ResponsiveContainer } from 'recharts'
 import { Skeleton } from '@/components/ui/skeleton'
 
 interface DailyPoint {
   date: string
   balance: number
 }
-
 interface BalanceCardProps {
-  balance: number // em centavos (ex: 1500 = R$ 15,00)
+  balance: number
   changePercent: number
   data: DailyPoint[]
   isLoading?: boolean
   futureCardExpenses?: number
   availableBalance?: number
   referenceDate?: Date
+  selectedMonth?: Date
 }
 
 export function BalanceCard({
@@ -30,98 +27,132 @@ export function BalanceCard({
   futureCardExpenses = 0,
   availableBalance = balance,
   referenceDate,
+  selectedMonth,
 }: BalanceCardProps) {
-  const formattedBalance = formatMoney(balance)
+  if (isLoading)
+    return (
+      <Card>
+        <CardHeader>
+          <Skeleton className="h-6 w-40" />
+        </CardHeader>
+        <CardContent className="space-y-5">
+          <Skeleton className="h-10 w-48" />
+          <Skeleton className="h-44 w-full" />
+        </CardContent>
+      </Card>
+    )
 
-  const isPositive = balance >= 0
+  // O SVG também representa séries constantes ou com um único ponto.
+  // Somente a coordenada visual é normalizada; os valores são centavos.
+  const points = data.filter((point) => Number.isFinite(point.balance))
+  const min = Math.min(0, ...points.map((point) => point.balance))
+  const max = Math.max(0, ...points.map((point) => point.balance))
+  const range = max - min || 1
+  const coordinates = points.map(
+    (point, index) =>
+      `${points.length === 1 ? 300 : (index / (points.length - 1)) * 600},${155 - ((point.balance - min) / range) * 135}`,
+  )
+  const path =
+    coordinates.length === 1
+      ? `M0 ${coordinates[0].split(',')[1]}H600`
+      : coordinates.length
+        ? `M${coordinates.join('L')}`
+        : ''
+  const labels =
+    points.length > 2
+      ? [
+          points[0],
+          points[Math.floor((points.length - 1) / 2)],
+          points[points.length - 1],
+        ]
+      : points
   const changeLabel = Number.isFinite(changePercent)
     ? `${changePercent > 0 ? '+' : ''}${changePercent.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}% vs. mês anterior`
     : 'Sem base anterior'
 
-  if (isLoading) {
-    return (
-      <Card className="flex min-h-80 flex-col justify-between p-6">
-        <div className="space-y-2">
-          <Skeleton className="h-3 w-20" />
-          <Skeleton className="h-7 w-48" />
-        </div>
-        <Skeleton className="h-10 w-full" />
-      </Card>
-    )
-  }
-
-  // Azul para a evolução positiva; o saldo negativo mantém a sinalização de despesa.
-  const chartColor = isPositive ? 'var(--chart-1)' : 'var(--expense)'
-
   return (
-    <Card className="overflow-hidden">
-      <CardHeader className="border-b border-border pb-6">
-        <CardTitle className="text-foreground text-base font-medium">
-          Saldo projetado do mês
-        </CardTitle>
+    <Card>
+      <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">
+        <CardTitle>Saldo do mês</CardTitle>
+        {selectedMonth && (
+          <span className="bg-accent text-muted-foreground rounded-full px-2.5 py-1 text-xs">
+            {selectedMonth.toLocaleDateString('pt-BR', {
+              month: 'long',
+              year: 'numeric',
+            })}
+          </span>
+        )}
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex items-baseline justify-between gap-4">
-          <span className="text-foreground break-all text-3xl sm:text-4xl font-medium tracking-tight tabular-nums">
-            {formattedBalance}
-          </span>
-        </div>
-        <div className="mt-0.5 mb-2 flex min-h-[16px] flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-          <span className="text-muted-foreground text-sm">
-            {changeLabel}
-          </span>
-        </div>
-        <p className="text-muted-foreground text-sm">
-          Receitas menos despesas e investimentos do mês, incluindo a fatura
-          deste mês.
+      <CardContent>
+        <p className="text-4xl leading-10 font-medium tracking-tight break-all tabular-nums">
+          {formatMoney(balance)}
         </p>
-        <div className="text-muted-foreground mt-6 space-y-4 border-t border-border pt-6 text-sm">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <span>Reserva para faturas após este mês:</span>
-            <span className="font-medium tabular-nums text-foreground">
+        <p className="text-muted-foreground mt-2 text-[13px]">
+          Receitas − despesas − investimentos
+        </p>
+        <p className="sr-only">{changeLabel}. Inclui a fatura deste mês.</p>
+        {path ? (
+          <>
+            <svg
+              className="mt-5 block h-[180px] w-full"
+              viewBox="0 0 600 180"
+              preserveAspectRatio="none"
+              role="img"
+              aria-label={`Evolução do saldo do mês. Saldo projetado: ${formatMoney(balance)}`}
+            >
+              <path
+                d="M0 20H600 M0 65H600 M0 110H600 M0 155H600"
+                stroke="var(--border)"
+                fill="none"
+              />
+              <path d={`${path}V155H0Z`} fill="var(--chart-soft)" />
+              <path
+                d={path}
+                stroke="var(--link)"
+                strokeWidth="2"
+                fill="none"
+                vectorEffect="non-scaling-stroke"
+              />
+            </svg>
+            <div className="text-muted-foreground flex flex-wrap justify-between gap-2 text-xs">
+              {labels.map((point, index) => (
+                <span key={index}>{point.date}</span>
+              ))}
+            </div>
+          </>
+        ) : (
+          <p className="text-muted-foreground py-8 text-sm">
+            Sem dados de evolução para este mês.
+          </p>
+        )}
+        <dl className="mt-2 text-[13px]">
+          <div className="border-border flex flex-wrap items-center justify-between gap-3 border-b py-4">
+            <dt className="text-muted-foreground">
+              Reserva para faturas futuras
+            </dt>
+            <dd className="font-medium tabular-nums">
               {formatMoney(futureCardExpenses)}
-            </span>
+            </dd>
           </div>
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <span>Disponível após reservas:</span>
-            <span className="text-foreground font-medium tabular-nums">
+          <div className="flex flex-wrap items-center justify-between gap-3 py-4">
+            <dt>Saldo disponível após reserva</dt>
+            <dd className="font-medium tabular-nums">
               {formatMoney(availableBalance)}
-            </span>
+            </dd>
           </div>
+        </dl>
+        <details className="text-muted-foreground text-xs">
+          <summary className="focus-visible:outline-ring cursor-pointer py-2">
+            Sobre a projeção
+          </summary>
           <p>
             {referenceDate
               ? `Reservas de compras realizadas até ${referenceDate.toLocaleDateString('pt-BR')}.`
               : 'Reservas de compras realizadas para faturas dos próximos meses.'}{' '}
-            Projeção dos lançamentos cadastrados.
+            Projeção dos lançamentos cadastrados. {changeLabel}.
           </p>
-        </div>
+        </details>
       </CardContent>
-
-      {/* A curva usa os mesmos dados diários da projeção mensal. */}
-      <div className="mx-6 h-40 min-w-0">
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart
-            data={data}
-            margin={{ top: 0, right: 0, left: 0, bottom: 0 }}
-          >
-            <defs>
-              <linearGradient id="balanceGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={chartColor} stopOpacity={0.15} />
-                <stop offset="95%" stopColor={chartColor} stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <Area
-              type="monotone"
-              dataKey="balance"
-              stroke={chartColor}
-              strokeWidth={1.5}
-              fill="url(#balanceGradient)"
-              dot={false}
-              activeDot={false}
-            />
-          </AreaChart>
-        </ResponsiveContainer>
-      </div>
     </Card>
   )
 }

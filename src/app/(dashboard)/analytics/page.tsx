@@ -1,11 +1,9 @@
 'use client'
 
-import { formatMoney } from '@/lib/utils/format-money'
 import { LoadError } from '@/components/shared/load-error'
 
 import * as React from 'react'
 import { useQuery } from '@tanstack/react-query'
-
 
 import { useAuth } from '@/contexts/auth-context'
 import { useCategories } from '@/hooks/use-categories'
@@ -16,7 +14,6 @@ import { CashFlowBarChart } from '@/components/charts/cash-flow-bar-chart'
 import { BalanceTrendAreaChart } from '@/components/charts/balance-trend-area-chart'
 import { PageHeader } from '@/components/shared/page-header'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
 import { EmptyState } from '@/components/shared/empty-state'
 import { startOfMonth, subMonths, endOfMonth } from 'date-fns'
 import { BarChart3, Loader2 } from 'lucide-react'
@@ -33,9 +30,19 @@ const EMPTY_ARRAY: Transaction[] = []
 export default function AnalyticsPage() {
   const { user } = useAuth()
   const userId = user?.uid ?? ''
-  const { categories, error: categoriesError, refetch: refetchCategories, isLoading: isCategoriesLoading } = useCategories()
+  const {
+    categories,
+    error: categoriesError,
+    refetch: refetchCategories,
+    isLoading: isCategoriesLoading,
+  } = useCategories()
 
-  const { creditCards, error: cardsError, refetch: refetchCards, isLoading: isCardsLoading } = useCreditCards()
+  const {
+    creditCards,
+    error: cardsError,
+    refetch: refetchCards,
+    isLoading: isCardsLoading,
+  } = useCreditCards()
 
   // Quantidade de meses para exibição histórica (padrão: 6 meses)
   const [monthsCount, setMonthsCount] = React.useState(6)
@@ -43,19 +50,35 @@ export default function AnalyticsPage() {
 
   const startDate = React.useMemo(
     () => startOfMonth(subMonths(referenceDate, monthsCount - 1)),
-    [monthsCount, referenceDate]
+    [monthsCount, referenceDate],
   )
 
   // Busca todos os lançamentos do período selecionado
   const transactionsQuery = useQuery({
-    queryKey: ['analyticsHistory', userId, monthsCount, format(referenceDate, 'yyyy-MM-dd')],
-    queryFn: () => AnalyticsDataService.getHistory(userId, monthsCount, referenceDate),
+    queryKey: [
+      'analyticsHistory',
+      userId,
+      monthsCount,
+      format(referenceDate, 'yyyy-MM-dd'),
+    ],
+    queryFn: () =>
+      AnalyticsDataService.getHistory(userId, monthsCount, referenceDate),
     staleTime: 60000,
     enabled: !!userId,
   })
 
-  const isLoading = transactionsQuery.isLoading || isCategoriesLoading || isCardsLoading
-  const transactions = React.useMemo(() => filterTransactionPeriod(transactionsQuery.data ?? EMPTY_ARRAY, startDate, endOfMonth(referenceDate), creditCards), [transactionsQuery.data, startDate, referenceDate, creditCards])
+  const isLoading =
+    transactionsQuery.isLoading || isCategoriesLoading || isCardsLoading
+  const transactions = React.useMemo(
+    () =>
+      filterTransactionPeriod(
+        transactionsQuery.data ?? EMPTY_ARRAY,
+        startDate,
+        endOfMonth(referenceDate),
+        creditCards,
+      ),
+    [transactionsQuery.data, startDate, referenceDate, creditCards],
+  )
 
   // Prepara os dados para os gráficos
   const donutData = React.useMemo(() => {
@@ -63,40 +86,24 @@ export default function AnalyticsPage() {
   }, [transactions, categories])
 
   const monthlyHistory = React.useMemo(() => {
-    return AnalyticsHelper.getMonthlyHistory(transactions, monthsCount, referenceDate, creditCards)
+    return AnalyticsHelper.getMonthlyHistory(
+      transactions,
+      monthsCount,
+      referenceDate,
+      creditCards,
+    )
   }, [transactions, monthsCount, referenceDate, creditCards])
-
-  const periodTotals = React.useMemo(() => {
-    let income = 0
-    let expense = 0
-    let investment = 0
-    transactions.forEach((tx) => {
-      if (tx.type === 'income') {
-        income += tx.amount
-      } else if (tx.type === 'investment') {
-        investment += tx.amount
-      } else {
-        expense += tx.amount
-      }
-    })
-    return {
-      income,
-      expense,
-      investment,
-      balance: income - expense - investment,
-    }
-  }, [transactions])
 
   // Seletor de Período
   const periodSelector = (
-    <div className="flex items-center gap-0.5 bg-background-100 dark:bg-card border border-border rounded-md p-1">
+    <div className="bg-background-100 dark:bg-card border-border flex items-center gap-0.5 rounded-md border p-1">
       {[3, 6, 12].map((count) => (
         <Button
           key={count}
           variant={monthsCount === count ? 'default' : 'ghost'}
           size="sm"
           onClick={() => setMonthsCount(count)}
-          className="text-sm font-medium px-3 min-h-10 rounded-md"
+          className="min-h-10 rounded-md px-3 text-sm font-medium"
         >
           {count}M
         </Button>
@@ -105,12 +112,24 @@ export default function AnalyticsPage() {
   )
 
   const error = transactionsQuery.error || categoriesError || cardsError
-  if (error) return <LoadError error={error} retry={() => Promise.all([transactionsQuery.refetch(), refetchCategories(), refetchCards()])} />
+  if (error)
+    return (
+      <LoadError
+        error={error}
+        retry={() =>
+          Promise.all([
+            transactionsQuery.refetch(),
+            refetchCategories(),
+            refetchCards(),
+          ])
+        }
+      />
+    )
 
   if (isLoading) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
-        <Loader2 className="size-7 animate-spin text-primary" />
+        <Loader2 className="text-primary size-7 animate-spin" />
       </div>
     )
   }
@@ -131,38 +150,6 @@ export default function AnalyticsPage() {
         />
       ) : (
         <div className="space-y-6">
-          {/* KPI Summary Cards */}
-          <div className="grid grid-cols-1 gap-4 xl:grid-cols-4">
-            {/* Total Receitas */}
-            <Card className="border-border bg-card rounded-md p-6 flex flex-col justify-between min-h-32 gap-4">
-              <span className="text-xs font-normal text-muted-foreground">Total Receitas (Período)</span>
-              <span className="break-all text-xl font-semibold text-foreground tracking-tight leading-none">
-                {formatMoney(periodTotals.income)}
-              </span>
-            </Card>
-            {/* Total Despesas */}
-            <Card className="border-border bg-card rounded-md p-6 flex flex-col justify-between min-h-32 gap-4">
-              <span className="text-xs font-normal text-muted-foreground">Total Despesas (Período)</span>
-              <span className="break-all text-xl font-semibold text-foreground tracking-tight leading-none">
-                {formatMoney(periodTotals.expense)}
-              </span>
-            </Card>
-            {/* Total Investimentos */}
-            <Card className="border-border bg-card rounded-md p-6 flex flex-col justify-between min-h-32 gap-4">
-              <span className="text-xs font-normal text-muted-foreground">Investido (Período)</span>
-              <span className="break-all text-xl font-semibold text-foreground tracking-tight leading-none">
-                {formatMoney(periodTotals.investment)}
-              </span>
-            </Card>
-            {/* Saldo Líquido */}
-            <Card className="border-border bg-card rounded-md p-6 flex flex-col justify-between min-h-32 gap-4">
-              <span className="text-xs font-normal text-muted-foreground">Saldo Líquido (Período)</span>
-              <span className="break-all text-xl font-semibold tracking-tight leading-none text-foreground">
-                {formatMoney(periodTotals.balance)}
-              </span>
-            </Card>
-          </div>
-
           <div className="grid grid-cols-1 gap-6">
             {/* Fluxo de Caixa — ocupa toda a largura */}
             <div className="min-w-0">
@@ -171,7 +158,12 @@ export default function AnalyticsPage() {
 
             {/* Evolução do Saldo */}
             <div>
-              <BalanceTrendAreaChart data={monthlyHistory} />
+              <details>
+                <summary className="cursor-pointer py-3 text-sm font-medium">
+                  Ver evolução do saldo acumulado
+                </summary>
+                <BalanceTrendAreaChart data={monthlyHistory} />
+              </details>
             </div>
 
             {/* Gastos por Categoria */}

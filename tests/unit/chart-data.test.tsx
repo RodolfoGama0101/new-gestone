@@ -31,7 +31,7 @@ it('expõe todas as 20 categorias, valores e percentuais sem hover', () => {
     within(list).getAllByText(formatMoney(101).replaceAll('\u00a0', ' ')),
   ).toHaveLength(20)
   expect(
-    screen.getByText('Total: ' + formatMoney(2020).replaceAll('\u00a0', ' ')),
+    screen.getByText(formatMoney(2020).replaceAll('\u00a0', ' ')),
   ).toBeVisible()
 })
 

@@ -53,10 +53,16 @@ function SeriesItem({
   }
   return (
     <Card>
-      <CardHeader className="border-border border-b pb-6">
+      <CardHeader className="border-border border-b">
         <CardTitle className="break-words">{item.description}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
+        <p className="text-2xl font-medium tracking-tight tabular-nums">
+          {formatMoney(item.amount)}{' '}
+          <span className="text-muted-foreground text-xs font-normal">
+            {item.kind === 'recurring' ? '/ mês' : 'no total'}
+          </span>
+        </p>
         <p className="text-sm">
           {item.kind === 'recurring' ? 'Mensal' : `${item.count} parcelas`} ·{' '}
           {formatMoney(item.amount)}{' '}
@@ -97,67 +103,77 @@ function SeriesItem({
           </details>
         )}
         {item.kind === 'recurring' && !item.cancelledFrom && (
-          <form
-            className="border-border flex min-w-0 flex-wrap items-end gap-3 border-t pt-6"
-            onSubmit={(e) => {
-              e.preventDefault()
-              void run(() =>
-                perform({
-                  kind: 'edit',
-                  id: item.id,
-                  amount: parseBudgetAmount(amount),
-                  description,
-                }),
-              )
-            }}
-          >
-            <label className="grid w-full min-w-0 gap-2 text-sm sm:w-auto">
-              Descrição futura
-              <Input
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                required
-                minLength={3}
-                maxLength={200}
-              />
-            </label>
-            <label className="grid w-full min-w-0 gap-2 text-sm sm:w-auto">
-              Valor mensal em R$
-              <Input
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                inputMode="decimal"
-                required
-              />
-            </label>
-            <Button type="submit" disabled={busy}>
-              Salvar futuras
-            </Button>
-          </form>
+          <details>
+            <summary className="border-border inline-flex cursor-pointer rounded-md border px-3 py-2 text-sm font-medium">
+              Editar próximos lançamentos
+            </summary>
+            <form
+              className="border-border flex min-w-0 flex-wrap items-end gap-3 border-t pt-6"
+              onSubmit={(e) => {
+                e.preventDefault()
+                void run(() =>
+                  perform({
+                    kind: 'edit',
+                    id: item.id,
+                    amount: parseBudgetAmount(amount),
+                    description,
+                  }),
+                )
+              }}
+            >
+              <label className="grid w-full min-w-0 gap-2 text-sm sm:w-auto">
+                Descrição futura
+                <Input
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  required
+                  minLength={3}
+                  maxLength={200}
+                />
+              </label>
+              <label className="grid w-full min-w-0 gap-2 text-sm sm:w-auto">
+                Valor mensal em R$
+                <Input
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  inputMode="decimal"
+                  required
+                />
+              </label>
+              <Button type="submit" disabled={busy}>
+                Salvar futuras
+              </Button>
+            </form>
+          </details>
         )}
         <p className="text-muted-foreground text-sm">
           O histórico e as ocorrências já geradas são editados individualmente
           no extrato. Cancelar remove somente ocorrências com data igual ou
           posterior ao corte escolhido.
         </p>
-        <div className="border-border flex min-w-0 flex-wrap items-end gap-3 border-t pt-6">
-          <label className="grid w-full min-w-0 gap-2 text-sm sm:w-auto">
-            Cancelar a partir de
-            <Input
-              type="date"
-              min={format(new Date(), 'yyyy-MM-dd')}
-              value={from}
-              onChange={(e) => setFrom(e.target.value)}
-            />
-          </label>
-          <Button
-            variant="outline"
-            disabled={busy}
-            onClick={() => setConfirm(true)}
-          >
-            Cancelar futuras
-          </Button>
-        </div>
+        <details>
+          <summary className="border-border inline-flex cursor-pointer rounded-md border px-3 py-2 text-sm font-medium">
+            Encerrar série
+          </summary>
+          <div className="border-border flex min-w-0 flex-wrap items-end gap-3 border-t pt-6">
+            <label className="grid w-full min-w-0 gap-2 text-sm sm:w-auto">
+              Cancelar a partir de
+              <Input
+                type="date"
+                min={format(new Date(), 'yyyy-MM-dd')}
+                value={from}
+                onChange={(e) => setFrom(e.target.value)}
+              />
+            </label>
+            <Button
+              variant="outline"
+              disabled={busy}
+              onClick={() => setConfirm(true)}
+            >
+              Cancelar futuras
+            </Button>
+          </div>
+        </details>
         <ConfirmDialog
           isOpen={confirm}
           onClose={() => {
@@ -193,16 +209,21 @@ export default function SeriesPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Séries"
+        title="Séries de lançamentos"
         description="Lançamentos recorrentes e compras parceladas. Crie uma série pelo formulário de lançamento."
       />
-      <p className="text-muted-foreground text-sm">
-        Recorrências mensais vencidas são geradas ao abrir o app. Não há
-        execução em segundo plano com o app fechado. Cada execução processa até
-        120 ocorrências por série; use o botão novamente para atrasos maiores.
-        Categorias ou cartões indisponíveis exigem corrigir o cadastro ou
-        cancelar a série.
-      </p>
+      <details className="text-muted-foreground text-sm">
+        <summary className="cursor-pointer py-2">
+          Sobre a geração de recorrências
+        </summary>
+        <p>
+          Recorrências mensais vencidas são geradas ao abrir o app. Não há
+          execução em segundo plano com o app fechado. Cada execução processa
+          até 120 ocorrências por série; use o botão novamente para atrasos
+          maiores. Categorias ou cartões indisponíveis exigem corrigir o
+          cadastro ou cancelar a série.
+        </p>
+      </details>
       <Button
         disabled={series.busy}
         onClick={async () => {
@@ -226,14 +247,30 @@ export default function SeriesPage() {
       ) : !series.data?.length ? (
         <p>Nenhuma série cadastrada.</p>
       ) : (
-        series.data.map((item) => (
-          <SeriesItem
-            key={item.id}
-            item={item}
-            busy={series.busy}
-            perform={series.perform}
-          />
-        ))
+        <div className="space-y-6">
+          {(['recurring', 'installment'] as const).map((kind) => (
+            <section key={kind} className="space-y-4">
+              <h2 className="text-base font-medium">
+                {kind === 'recurring' ? 'Recorrências' : 'Parcelamentos'}
+              </h2>
+              {series.data
+                .filter((item) => item.kind === kind)
+                .map((item) => (
+                  <SeriesItem
+                    key={item.id}
+                    item={item}
+                    busy={series.busy}
+                    perform={series.perform}
+                  />
+                ))}
+              {!series.data.some((item) => item.kind === kind) && (
+                <p className="text-muted-foreground text-sm">
+                  Nenhuma série deste tipo cadastrada.
+                </p>
+              )}
+            </section>
+          ))}
+        </div>
       )}
     </div>
   )

@@ -119,3 +119,77 @@ em aparelhos físicos. Não houve deploy de produção.
 
 Os 18 desenhos representam páginas e estados de fluxos existentes; fatura,
 lançamento e importação não precisam se tornar novas rotas.
+
+## Correção de fidelidade após revisão do usuário
+
+A revisão anterior validou funcionamento e reflow, mas não garantiu a composição
+aprovada. A ROD-127 foi reaberta para corrigir essa diferença. A referência desta
+etapa é o protótipo `gestone-telas-geist.html` apresentado no chat (18 desenhos),
+além de `DESIGN.md`; os números ilustrativos são substituídos pelos dados da conta.
+
+- Painel: título, resumos, saldo com curva de 180 px antes das reservas e tabela de
+  lançamentos recentes; ícones neutros e categorias em etiquetas discretas.
+- Extrato e listas por tipo: colunas de data, descrição, categoria, valor e ações;
+  reflow no celular, preservando filtros, paginação, importação e edição.
+- Navegação: sidebar de 200 px, contexto financeiro, cabeçalho e rodapé do desenho.
+- Categorias: abas por tipo e tabela de largura completa.
+- Relatórios: fluxo de caixa seguido por barras horizontais de gastos por
+  categoria. A evolução acumulada continua disponível em uma seção expansível.
+- Cartões: apresentação neutra, sem chip ou gradiente decorativo, com todos os
+  metadados reais e operações existentes preservados.
+- Séries: grupos de recorrências/parcelamentos e ações que revelam os formulários.
+- Orçamentos: seleção mensal no cabeçalho e campos da meta/economia lado a lado.
+- Conta: Google antes do formulário, medidas de controles compartilhadas,
+  abas de configurações e e-mail visível no perfil; offline em painel central.
+- Os painéis compartilham borda, cabeçalho e espaçamento sem o espaço duplicado
+  entre cabeçalho e conteúdo. A logo original permanece intacta.
+
+O gráfico mensal usa SVG dimensionado e mostra também um único ponto ou série
+zerada, com rótulos `dd/MM` recebidos pelo serviço. Nenhum cálculo financeiro,
+serviço, regra ou dado persistido foi alterado. Explicações de projeção continuam
+acessíveis em “Sobre a projeção”.
+
+A matriz visual passa a cobrir todas as rotas (15 páginas), claro/escuro e
+320/1280 px, além da matriz financeira existente que inclui reflow de 200%.
+Os testes de regressão verificam os valores acessíveis, ações e séries de saldo
+com um único ponto. Capturas e resultados desta revisão são registrados ao
+concluir a validação.
+
+A conferência adicional alinhou a separação entre cartões e fatura detalhada:
+“Ver fatura” abre uma visualização de largura total, com total, valor de quitação
+registrado, situação do saldo e compras em tabela. “Voltar aos cartões” preserva
+a seleção. Próximas faturas usam o mesmo hook/serviço de consulta existente;
+nenhuma data, valor ou bandeira fictícia foi adicionada ao produto. Registros de
+quitação divergentes do total pedem revisão, sem inferir pagamentos parciais.
+
+Extrato e listas por tipo incluem abas de navegação e resumos com escopo
+explícito de página. Não são apresentados como total do mês ou de todo o
+histórico: filtros e paginação existentes continuam definindo o conjunto
+exibido. Valores de receitas, despesas e investimentos permanecem em centavos.
+
+As tabelas respondem também à largura do próprio componente, evitando descrições
+quebradas letra por letra em painéis estreitos. A matriz verifica a altura da
+descrição da compra, além do overflow horizontal. Inclui abertura de fatura
+futura e retorno à visualização do cartão.
+
+## Validação da correção de fidelidade — 23/10/2026
+
+- Lint e `npm run typecheck` aprovados; 35 suítes e 175 testes unitários aprovados.
+- Build de produção aprovado na cópia isolada, sem `.env.local`, com configuração
+  fictícia de `scripts/run-e2e.mjs` e emuladores `demo-gestone-e2e` em 19099/18081.
+- Os 32 cenários únicos de E2E/PWA foram aprovados entre a execução da suíte e
+  repetições dirigidas. A última suíte completa teve 30 aprovações; os dois testes
+  restantes precisaram seguir a nova ação “Ver fatura” e foram repetidos com
+  sucesso. A preparação dos testes também passou a aguardar as categorias antes
+  de criar compras, eliminando a corrida observada ao executar quitação isolada.
+- Matriz final: 84 capturas em `dogfood-output/rod127-fidelity-final/`, incluindo
+  cartões, fatura de largura total, formulários e abas de configurações. Revisão
+  visual em claro/escuro, 320/1280 px; matriz financeira com reflow de 200% aprovada.
+- Serviços, hooks, regras, índices, dependências e logo original sem alterações.
+  As portas alternativas e configurações de execução existem somente na cópia.
+- Logs desta revisão: `rod127-redesign-unit.log`, `rod127-redesign-e2e.log`,
+  `rod127-final-directed.log`, `rod127-payment-verified.log`, `rod127-delivery-lint.log`
+  e `rod127-delivery-types.log`, no diretório ignorado `dogfood-output/`.
+
+As falhas intermediárias e suas repetições estão registradas nesses logs;
+nenhum resultado desta revisão depende de contas ou dados de produção.

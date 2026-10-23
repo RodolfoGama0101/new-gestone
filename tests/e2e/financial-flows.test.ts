@@ -27,7 +27,9 @@ async function register(page: Page) {
     .getByRole('button', { name: 'Criar conta grátis', exact: true })
     .click()
   await expect(page).toHaveURL('http://localhost:3102/', { timeout: 90000 })
-  return { email, uid: (await auth.getUserByEmail(email)).uid }
+  const uid = (await auth.getUserByEmail(email)).uid
+  await expect.poll(async () => (await db.collection(`users/${uid}/categories`).get()).size).toBeGreaterThan(0)
+  return { email, uid }
 }
 
 test('inicialização e migração concorrentes preservam IDs e não duplicam categorias', async ({ page }) => {
@@ -140,7 +142,7 @@ test('cadastro, CRUD, busca, CSV, login e exclusão segura de conta', async ({
       ).status(),
     ).toBe(401)
     await login.goto('/settings')
-    await login.getByRole('button', { name: 'Zona de Risco' }).click()
+    await login.getByRole('button', { name: 'Excluir conta' }).click()
     await login.locator('#confirmDeleteText').fill('EXCLUIR CONTA')
     await login
       .getByRole('button', { name: 'Excluir Conta Permanentemente' })
@@ -217,9 +219,10 @@ test('fatura com 105 compras e saldo consistente no dashboard', async ({
   await batch.commit()
   await page.reload()
   await expect(
-    page.getByText('Disponível após reservas:').locator('..'),
+    page.getByText('Saldo disponível após reserva').locator('..'),
   ).toContainText('895,00')
   await page.goto('/credit-cards')
+  await page.getByRole('button', { name: 'Ver fatura', exact: true }).click()
   await expect(page.getByText(/Total:.*105,00/)).toBeVisible()
   for (let i = 0; i < 5; i++)
     await page.getByRole('button', { name: 'Mais compras' }).click()
@@ -238,13 +241,16 @@ test('fatura com 105 compras e saldo consistente no dashboard', async ({
   await expect(page.getByText(/Total:.*104,00/)).toBeVisible()
   expect((await db.collection(`users/${uid}/transactions`).where('type', '==', 'expense').get()).size).toBe(104)
   await page.goto('/')
-  await expect(page.getByText('Disponível após reservas:').locator('..')).toContainText('896,00')
+  await expect(page.getByText('Saldo disponível após reserva').locator('..')).toContainText('896,00')
   await page.goto('/credit-cards')
+  await page.getByRole('button', { name: 'Ver fatura', exact: true }).click()
+  await page.getByRole('button', { name: 'Voltar aos cartões', exact: true }).click()
   await page.getByRole('button', { name: 'Arquivar', exact: true }).click()
   const archival = page.getByRole('dialog', { name: 'Arquivar cartão de crédito?' })
   await archival.getByRole('button', { name: 'Arquivar', exact: true }).click()
   await expect(archival).not.toBeVisible()
   await expect(page.getByText('Arquivado · histórico disponível')).toBeVisible()
+  await page.getByRole('button', { name: 'Ver fatura', exact: true }).click()
   await expect(page.getByText(/Total:.*104,00/)).toBeVisible()
   const preservedCard = (await db.doc(`users/${uid}/creditCards/card`).get()).data()!
   expect(preservedCard.archived).toBe(true)
@@ -437,7 +443,7 @@ test('paginação com datas iguais mantém todos os lançamentos ao navegar do d
   await batch.commit()
   await page.reload()
   await expect(page.getByText(/^Empate \d{2}$/)).toHaveCount(5)
-  await page.getByRole('link', { name: 'Ver todos', exact: true }).click()
+  await page.getByRole('link', { name: 'Ver extrato', exact: true }).click()
   const rows = page.getByText(/^Empate \d{2}$/)
   const pages: string[][] = []
   for (const count of [10, 10, 3]) {
@@ -606,16 +612,15 @@ test('dashboard, formulário e navegação móvel funcionam por teclado', async 
   const dialog = page.getByRole('dialog')
   await dialog.getByRole('button', { name: 'Confirmar Lançamento', exact: true }).focus()
   await page.keyboard.press('Enter')
-  await expect(dialog.getByLabel('Valor', { exact: true })).toBeFocused()
+  await expect(dialog.getByLabel('Descrição', { exact: true })).toBeFocused()
   await expect(dialog.getByLabel('Valor', { exact: true })).toHaveAttribute('aria-describedby', 'amount-error')
   for (let index = 0; index < 16; index++) {
     await page.keyboard.press('Tab')
     await expect.poll(() => page.evaluate(() => !!document.activeElement?.closest('[role="dialog"]'))).toBe(true)
   }
-  await dialog.getByRole('button', { name: 'Receita', exact: true }).focus()
-  await page.keyboard.press('Enter')
-  await expect(dialog.getByRole('button', { name: 'Receita', exact: true })).toHaveAttribute('aria-pressed', 'true')
-  await expect(dialog.getByRole('button', { name: 'Despesa', exact: true })).toHaveAttribute('aria-pressed', 'false')
+  await dialog.getByLabel('Tipo de lançamento', { exact: true }).focus()
+  await page.keyboard.press('ArrowDown')
+  await expect(dialog.getByLabel('Tipo de lançamento', { exact: true })).toHaveValue('income')
   await page.keyboard.press('Escape')
   await expect(trigger).toBeFocused()
   await page.setViewportSize({ width: 390, height: 844 })
@@ -688,10 +693,11 @@ test('importação valida, confirma e repete sem duplicar; orçamento persiste p
   await dialog.getByRole('button', { name: 'Fechar', exact: true }).click()
   await page.goto('/budgets')
   await page.getByLabel('Mês de competência').fill('2026-10')
-  await expect(page.getByText('Economia realizada: R$ 900,00')).toBeVisible()
+  await expect(page.getByLabel('Economia atual', { exact: true })).toHaveValue(/R\$\s900,00/)
   await page.getByLabel('Meta em R$').fill('950,00')
   await page.getByRole('button', { name: 'Salvar meta' }).click()
   await expect(page.getByText(/Faltam R\$\s50,00/)).toBeVisible()
+  await page.getByRole('button', { name: 'Adicionar limite', exact: true }).click()
   await page.getByLabel('Categoria', { exact: true }).selectOption(expenseCategory.id)
   await page.getByLabel('Limite em R$').fill('50,00')
   await page.getByRole('button', { name: 'Salvar limite' }).click()
@@ -731,11 +737,13 @@ test('recorrência mensal cria uma série, retoma sem duplicar e preserva histó
   await second.getByRole('button', { name: 'Gerar pendentes' }).click()
   expect((await db.collection(`users/${uid}/transactions`).get()).size).toBe(1)
   await second.close()
+  await page.getByText('Editar próximos lançamentos', { exact: true }).click()
   await page.getByLabel('Descrição futura').fill('Mensalidade futura editada')
   await page.getByLabel('Valor mensal em R$').fill('30,00')
   await page.getByRole('button', { name: 'Salvar futuras' }).click()
   await expect.poll(async () => (await series.ref.get()).data()?.amount).toBe(3000)
   expect((await db.collection(`users/${uid}/transactions`).get()).docs[0].data().amount).toBe(2500)
+  await page.getByText('Encerrar série', { exact: true }).click()
   await page.getByRole('button', { name: 'Cancelar futuras' }).click()
   await page.getByRole('dialog').getByRole('button', { name: 'Confirmar cancelamento' }).click()
   await expect.poll(async () => !!(await series.ref.get()).data()?.cancelledFrom).toBe(true)
@@ -766,6 +774,7 @@ test('parcelamento distribui o total exato nas faturas e cancela futuras sem rec
   await page.goto('/series')
   await page.getByText('Impacto nas faturas: 3 parcelas', { exact: true }).click()
   await expect(page.getByText(/Parcela 1\/3/)).toBeVisible()
+  await page.getByText('Encerrar série', { exact: true }).click()
   await page.getByRole('button', { name: 'Cancelar futuras' }).click()
   await page.getByRole('dialog').getByRole('button', { name: 'Confirmar cancelamento' }).click()
   await expect.poll(async () => (await db.collection(`users/${uid}/transactions`).get()).size).toBe(1)
@@ -792,6 +801,7 @@ test('quitação integral e estorno não criam despesa nem mudam indicadores', a
   await cardDialog.getByRole('button', { name: 'Salvar Alterações' }).click()
   await expect(cardDialog).not.toBeVisible()
   expect((await db.doc(`users/${uid}/creditCards/paid-card`).get()).data()?.dueDay).toBe(20)
+  await page.getByRole('button', { name: 'Ver fatura', exact: true }).click()
   await page.getByRole('button', { name: 'Fatura anterior' }).click()
   await expect(page.getByText('Status: Fechada', { exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Registrar pagamento integral' }).click()
@@ -800,6 +810,7 @@ test('quitação integral e estorno não criam despesa nem mudam indicadores', a
   const payment = db.doc(`users/${uid}/creditCards/paid-card/payments/${month}`)
   expect((await payment.get()).data()?.amount).toBe(10000)
   await page.reload()
+  await page.getByRole('button', { name: 'Ver fatura', exact: true }).click()
   await page.getByRole('button', { name: 'Fatura anterior' }).click()
   await expect(page.getByText('Status: Quitada', { exact: true })).toBeVisible()
   expect((await db.collection(`users/${uid}/transactions`).get()).docs.map(d => d.data())).toEqual(before)

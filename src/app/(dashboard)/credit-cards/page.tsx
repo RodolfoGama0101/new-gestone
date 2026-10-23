@@ -6,25 +6,47 @@ import * as React from 'react'
 import { useCreditCards } from '@/hooks/use-credit-cards'
 import { PageHeader } from '@/components/shared/page-header'
 import { Button } from '@/components/ui/button'
-import { Plus, CreditCard as CardIcon, Loader2, Pencil, Trash2 } from 'lucide-react'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Card, CardContent } from '@/components/ui/card'
+import {
+  Plus,
+  CreditCard as CardIcon,
+  Loader2,
+  Pencil,
+  Trash2,
+} from 'lucide-react'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { ConfirmDialog } from '@/components/shared/confirm-dialog'
 import { EmptyState } from '@/components/shared/empty-state'
 import { CreditCardForm } from '@/components/credit-cards/credit-card-form'
 import { CreditCardVisual } from '@/components/credit-cards/credit-card-visual'
+import { UpcomingInvoices } from '@/components/credit-cards/upcoming-invoices'
 import { CreditCardBillSummary } from '@/components/credit-cards/credit-card-bill-summary'
 import { CreditCard } from '@/types/credit-card'
 
 export default function CreditCardsPage() {
-  const { creditCards, isLoading, error, refetch, archiveCreditCard } = useCreditCards()
+  const { creditCards, isLoading, error, refetch, archiveCreditCard } =
+    useCreditCards()
 
+  const [invoiceMonth, setInvoiceMonth] = React.useState<Date | null>(null)
+  const openInvoice = (month: Date) => setInvoiceMonth(month)
   const [isAddOpen, setIsAddOpen] = React.useState(false)
-  const [selectedCardId, setSelectedCardId] = React.useState<string | null>(null)
+  const [selectedCardId, setSelectedCardId] = React.useState<string | null>(
+    null,
+  )
   const [editingCard, setEditingCard] = React.useState<CreditCard | null>(null)
   const [archivingId, setArchivingId] = React.useState<string | null>(null)
   const [isArchiving, setIsArchiving] = React.useState(false)
 
-  const selectedCard = creditCards.find((card) => card.id === selectedCardId) ?? creditCards[0] ?? null
+  const selectedCard =
+    creditCards.find((card) => card.id === selectedCardId) ??
+    creditCards[0] ??
+    null
 
   const handleArchiveConfirm = async () => {
     if (!archivingId) return
@@ -44,7 +66,7 @@ export default function CreditCardsPage() {
   if (isLoading) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
-        <Loader2 className="size-8 animate-spin text-primary" />
+        <Loader2 className="text-primary size-8 animate-spin" />
       </div>
     )
   }
@@ -53,13 +75,26 @@ export default function CreditCardsPage() {
     <div className="space-y-8">
       {/* Cabeçalho */}
       <PageHeader
-        title="Meus Cartões"
-        description="Gerencie seus cartões de crédito e veja os lançamentos futuros."
+        title={invoiceMonth ? 'Fatura do cartão' : 'Meus Cartões'}
+        description={
+          invoiceMonth && selectedCard
+            ? selectedCard.name
+            : 'Gerencie seus cartões e acompanhe as próximas faturas.'
+        }
         action={
-          <Button onClick={() => setIsAddOpen(true)} className="gap-2 font-medium text-sm min-h-10 px-3">
-            <Plus className="size-4" />
-            Adicionar Cartão
-          </Button>
+          invoiceMonth ? (
+            <Button variant="outline" onClick={() => setInvoiceMonth(null)}>
+              Voltar aos cartões
+            </Button>
+          ) : (
+            <Button
+              onClick={() => setIsAddOpen(true)}
+              className="min-h-10 gap-2 px-3 text-sm font-medium"
+            >
+              <Plus className="size-4" />
+              Adicionar Cartão
+            </Button>
+          )
         }
       />
 
@@ -69,14 +104,20 @@ export default function CreditCardsPage() {
           description="Você ainda não adicionou nenhum cartão de crédito. Adicione um para gerenciar suas faturas e despesas futuras."
           icon={CardIcon}
         />
+      ) : invoiceMonth && selectedCard ? (
+        <CreditCardBillSummary
+          key={selectedCard.id + invoiceMonth.toISOString()}
+          card={selectedCard}
+          initialMonth={invoiceMonth}
+        />
       ) : (
-        <div className="grid gap-6 xl:grid-cols-3">
+        <div className="grid gap-6 xl:grid-cols-[1.4fr_1fr]">
           {/* Coluna da esquerda: Lista de cartões */}
-          <div className="xl:col-span-1 min-w-0 space-y-4">
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-1">
+          <div className="min-w-0 space-y-4">
+            <h3 className="text-muted-foreground px-1 text-sm font-medium">
               Cartões cadastrados ({creditCards.length})
             </h3>
-            <div className="space-y-4 max-h-[70vh] overflow-y-auto scrollbar-thin pr-3 pl-1 py-1">
+            <div className="max-h-[70vh] scrollbar-thin space-y-4 overflow-y-auto py-1 pr-3 pl-1">
               {creditCards.map((card) => {
                 const isSelected = selectedCard?.id === card.id
                 return (
@@ -86,10 +127,10 @@ export default function CreditCardsPage() {
                     onClick={() => setSelectedCardId(card.id)}
                     aria-pressed={isSelected}
                     aria-label={`Selecionar cartão ${card.name}`}
-                    className={`relative cursor-pointer transition-all duration-200 rounded-xl p-1 border-2 ${
+                    className={`relative w-full min-w-0 cursor-pointer rounded-xl border-2 p-1 text-left transition-all duration-200 ${
                       isSelected
                         ? 'border-primary'
-                        : 'border-transparent hover:border-border'
+                        : 'hover:border-border border-transparent'
                     }`}
                   >
                     <CreditCardVisual
@@ -100,50 +141,67 @@ export default function CreditCardsPage() {
                       closingDay={card.closingDay}
                       color={card.color}
                     />
-                    {card.archived && <span className="block mt-2 text-xs text-muted-foreground">Arquivado · histórico disponível</span>}
+                    {card.archived && (
+                      <span className="text-muted-foreground mt-2 block text-xs">
+                        Arquivado · histórico disponível
+                      </span>
+                    )}
                   </button>
                 )
               })}
             </div>
+            {selectedCard && (
+              <Card>
+                <CardContent className="space-y-4">
+                  <div className="border-border flex flex-wrap justify-between gap-3 border-b pb-4 text-sm">
+                    <span className="text-muted-foreground">Fechamento</span>
+                    <span>Dia {selectedCard.closingDay}</span>
+                  </div>
+                  <div className="flex flex-wrap justify-between gap-3 text-sm">
+                    <span className="text-muted-foreground">Vencimento</span>
+                    <span>
+                      {selectedCard.dueDay
+                        ? 'Dia ' + selectedCard.dueDay
+                        : 'Não definido'}
+                    </span>
+                  </div>
+                  {!selectedCard.archived && (
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        variant="outline"
+                        onClick={() => setEditingCard(selectedCard)}
+                      >
+                        <Pencil className="size-4" />
+                        Editar
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => setArchivingId(selectedCard.id)}
+                      >
+                        <Trash2 className="size-4" />
+                        Arquivar
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           {/* Coluna da direita: Detalhes e Fatura do cartão selecionado */}
-          <div className="xl:col-span-2 min-w-0 space-y-4">
+          <div className="min-w-0 space-y-4">
             {selectedCard ? (
-              <div className="space-y-4 animate-in fade-in duration-200">
-                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/40 pb-3 px-1">
-                  <div>
-                    <h2 className="break-words text-xl font-medium text-foreground">{selectedCard.name}</h2>
-                    <p className="text-xs text-muted-foreground">
-                      {selectedCard.bankName} • Titular: {selectedCard.holderName}
-                    </p>
-                  </div>
-                  {!selectedCard.archived && <div className="flex flex-wrap items-center gap-1.5">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="gap-1.5 min-h-11 text-sm cursor-pointer"
-                      onClick={() => setEditingCard(selectedCard)}
-                    >
-                      <Pencil className="size-3.5" />
-                      Editar
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="gap-1.5 min-h-11 text-sm text-destructive hover:bg-destructive/10 hover:text-destructive border-border/60 hover:border-destructive/20 cursor-pointer"
-                      onClick={() => setArchivingId(selectedCard.id)}
-                    >
-                      <Trash2 className="size-3.5" />
-                      Arquivar
-                    </Button>
-                  </div>}
-                </div>
-
-                <CreditCardBillSummary card={selectedCard} />
+              <div className="animate-in fade-in space-y-4 duration-200">
+                <CreditCardBillSummary
+                  key={selectedCard.id}
+                  card={selectedCard}
+                  compact
+                  onViewInvoice={openInvoice}
+                />
+                <UpcomingInvoices card={selectedCard} onOpen={openInvoice} />
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center h-48 border border-dashed border-border rounded-xl text-muted-foreground bg-muted/5 text-sm">
+              <div className="border-border text-muted-foreground bg-muted/5 flex h-48 flex-col items-center justify-center rounded-xl border border-dashed text-sm">
                 Selecione um cartão para ver os detalhes da fatura.
               </div>
             )}
@@ -157,7 +215,8 @@ export default function CreditCardsPage() {
           <DialogHeader>
             <DialogTitle>Novo Cartão de Crédito</DialogTitle>
             <DialogDescription>
-              Cadastre um cartão para organizar suas despesas futuras e ciclos de fatura.
+              Cadastre um cartão para organizar suas despesas futuras e ciclos
+              de fatura.
             </DialogDescription>
           </DialogHeader>
           <CreditCardForm onSuccess={() => setIsAddOpen(false)} />
@@ -165,7 +224,10 @@ export default function CreditCardsPage() {
       </Dialog>
 
       {/* Modal - Editar Cartão */}
-      <Dialog open={editingCard !== null} onOpenChange={(open) => !open && setEditingCard(null)}>
+      <Dialog
+        open={editingCard !== null}
+        onOpenChange={(open) => !open && setEditingCard(null)}
+      >
         <DialogContent className="sm:max-w-[450px] md:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>Editar Cartão de Crédito</DialogTitle>

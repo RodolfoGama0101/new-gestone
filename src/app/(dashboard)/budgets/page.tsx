@@ -22,6 +22,7 @@ export default function BudgetsPage() {
   const [message, setMessage] = useState('')
   const [categoryId, setCategoryId] = useState('')
   const [limit, setLimit] = useState('')
+  const [isLimitFormOpen, setIsLimitFormOpen] = useState(false)
   const [goal, setGoal] = useState('')
   const act = async (operation: () => Promise<unknown>) => {
     setMessage('')
@@ -47,108 +48,149 @@ export default function BudgetsPage() {
     <div className="space-y-8">
       <PageHeader
         title="Orçamentos e metas"
-        description="Limites de consumo e meta de economia por mês, em reais."
+        description="Defina sua meta de economia e os limites de gastos do mês."
+        action={
+          <label className="block max-w-xs space-y-1 text-sm">
+            Mês de competência
+            <Input
+              type="month"
+              value={month}
+              disabled={budget.saving}
+              onChange={(e) => {
+                if (e.target.value) {
+                  setMonth(e.target.value)
+                  setMessage('')
+                  setGoal('')
+                  setLimit('')
+                }
+              }}
+            />
+          </label>
+        }
       />
-      <label className="block max-w-xs space-y-1 text-sm">
-        Mês de competência
-        <Input
-          type="month"
-          value={month}
-          disabled={budget.saving}
-          onChange={(e) => {
-            if (e.target.value) {
-              setMonth(e.target.value)
-              setMessage('')
-              setGoal('')
-              setLimit('')
-            }
-          }}
-        />
-      </label>
-      <p className="text-muted-foreground text-sm">
-        Compras no cartão seguem a competência da fatura, como no painel.
-        Limites não são transportados para o mês seguinte. Investimentos contam
-        como economia, sem dedução adicional de reservas futuras.
-      </p>
+
+      <details className="text-muted-foreground text-sm">
+        <summary className="cursor-pointer">
+          Sobre as metas e a competência
+        </summary>
+        <p>
+          Compras no cartão seguem a competência da fatura, como no painel.
+          Limites não são transportados para o mês seguinte. Investimentos
+          contam como economia, sem dedução adicional de reservas futuras.
+        </p>
+      </details>
       {budget.isLoading ? (
         <p role="status">Carregando orçamento…</p>
       ) : (
         <>
           <Card>
-            <CardHeader className="border-border border-b pb-6">
+            <CardHeader className="border-border border-b">
               <CardTitle>Meta de economia</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <p>
-                Economia realizada: {formatCurrency(budget.data?.savings || 0)}
-              </p>
-              {budget.data?.goal ? (
-                <p>
-                  Meta: {formatCurrency(budget.data.goal)} ·{' '}
-                  {budget.data.savings >= budget.data.goal
-                    ? 'Meta atingida'
-                    : `Faltam ${formatCurrency(budget.data.goal - budget.data.savings)}`}
-                </p>
-              ) : (
-                <p>Nenhuma meta definida para este mês.</p>
-              )}
-              {budget.data?.goal && (
-                <progress
-                  className="[&::-webkit-progress-bar]:bg-muted [&::-webkit-progress-value]:bg-primary [&::-moz-progress-bar]:bg-primary h-2 w-full appearance-none overflow-hidden rounded-full"
-                  max={budget.data.goal}
-                  value={Math.max(
-                    0,
-                    Math.min(budget.data.savings, budget.data.goal),
-                  )}
-                  aria-label="Progresso da meta de economia"
-                  aria-valuetext={
-                    formatCurrency(budget.data.savings) +
-                    ' de ' +
-                    formatCurrency(budget.data.goal)
-                  }
-                />
-              )}
-              <p className="text-muted-foreground text-sm">
-                Economia = receitas menos despesas de consumo; inclui o valor
-                investido e o saldo mantido.
-              </p>
+            <CardContent>
               <form
-                className="border-border flex min-w-0 flex-wrap items-end gap-3 border-t pt-6"
-                onSubmit={(e) => {
-                  e.preventDefault()
+                className="space-y-5"
+                onSubmit={(event) => {
+                  event.preventDefault()
                   void act(() => budget.save({ goal: parseBudgetAmount(goal) }))
                 }}
               >
-                <label className="grid w-full min-w-0 gap-2 text-sm sm:w-auto">
-                  Meta em R$
-                  <Input
-                    inputMode="decimal"
-                    value={goal}
-                    onChange={(e) => setGoal(e.target.value)}
-                    placeholder="500,00"
-                    required
-                  />
-                </label>
-                <Button type="submit" disabled={budget.saving}>
-                  Salvar meta
-                </Button>
-                {budget.data?.goal && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    disabled={budget.saving}
-                    onClick={() =>
-                      act(() => budget.save({ remove: undefined }))
-                    }
-                  >
-                    Remover meta
-                  </Button>
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <label className="grid min-w-0 gap-2 text-[13px]">
+                    Meta em R$
+                    <Input
+                      inputMode="decimal"
+                      value={goal}
+                      onChange={(event) => setGoal(event.target.value)}
+                      placeholder={
+                        budget.data?.goal
+                          ? formatCsvAmount(budget.data.goal)
+                          : '500,00'
+                      }
+                      required
+                    />
+                  </label>
+                  <label className="grid min-w-0 gap-2 text-[13px]">
+                    Economia atual
+                    <Input
+                      readOnly
+                      value={formatCurrency(budget.data?.savings || 0)}
+                    />
+                  </label>
+                </div>
+                {budget.data?.goal ? (
+                  <>
+                    <progress
+                      className="[&::-webkit-progress-bar]:bg-accent h-1.5 w-full appearance-none overflow-hidden rounded-full [&::-moz-progress-bar]:bg-current [&::-webkit-progress-value]:bg-current"
+                      style={{
+                        color:
+                          budget.data.savings >= budget.data.goal
+                            ? 'var(--income)'
+                            : 'var(--primary)',
+                      }}
+                      max={budget.data.goal}
+                      value={Math.max(
+                        0,
+                        Math.min(budget.data.savings, budget.data.goal),
+                      )}
+                      aria-label="Progresso da meta de economia"
+                      aria-valuetext={
+                        formatCurrency(budget.data.savings) +
+                        ' de ' +
+                        formatCurrency(budget.data.goal)
+                      }
+                    />
+                    <p className="flex flex-wrap justify-between gap-3 text-[13px]">
+                      <span
+                        className={
+                          budget.data.savings >= budget.data.goal
+                            ? 'text-income'
+                            : 'text-muted-foreground'
+                        }
+                      >
+                        {budget.data.savings >= budget.data.goal
+                          ? 'Meta atingida'
+                          : 'Meta em andamento'}
+                      </span>
+                      <span>
+                        {budget.data.savings >= budget.data.goal
+                          ? formatCurrency(
+                              budget.data.savings - budget.data.goal,
+                            ) + ' acima da meta'
+                          : 'Faltam ' +
+                            formatCurrency(
+                              budget.data.goal - budget.data.savings,
+                            )}
+                      </span>
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-muted-foreground text-sm">
+                    Nenhuma meta definida para este mês.
+                  </p>
                 )}
+                <div className="flex flex-wrap gap-2">
+                  <Button type="submit" disabled={budget.saving}>
+                    Salvar meta
+                  </Button>
+                  {budget.data?.goal && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={budget.saving}
+                      onClick={() =>
+                        act(() => budget.save({ remove: undefined }))
+                      }
+                    >
+                      Remover meta
+                    </Button>
+                  )}
+                </div>
               </form>
             </CardContent>
           </Card>
           <Card>
-            <CardHeader className="border-border border-b pb-6">
+            <CardHeader className="border-border border-b">
               <CardTitle>Limites por categoria</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -177,7 +219,15 @@ export default function BudgetsPage() {
                         : `Restante: ${formatCurrency(item.amount - spent)}`}
                     </p>
                     <progress
-                      className="[&::-webkit-progress-bar]:bg-muted [&::-webkit-progress-value]:bg-primary [&::-moz-progress-bar]:bg-primary h-2 w-full appearance-none overflow-hidden rounded-full"
+                      className="[&::-webkit-progress-bar]:bg-muted h-1.5 w-full appearance-none overflow-hidden rounded-full [&::-moz-progress-bar]:bg-current [&::-webkit-progress-value]:bg-current"
+                      style={{
+                        color:
+                          spent >= item.amount
+                            ? 'var(--expense)'
+                            : spent / item.amount >= 0.8
+                              ? 'var(--warning)'
+                              : 'var(--primary)',
+                      }}
                       max={item.amount}
                       value={Math.min(spent, item.amount)}
                       aria-label={'Consumo de ' + (category?.name || item.name)}
@@ -192,6 +242,7 @@ export default function BudgetsPage() {
                         variant="outline"
                         disabled={budget.saving}
                         onClick={() => {
+                          setIsLimitFormOpen(true)
                           setCategoryId(item.categoryId)
                           setLimit(
                             formatCsvAmount(item.amount).replaceAll('.', ''),
@@ -213,63 +264,75 @@ export default function BudgetsPage() {
                   </div>
                 )
               })}
-              <form
-                className="border-border flex min-w-0 flex-wrap items-end gap-3 border-t pt-6"
-                onSubmit={(e) => {
-                  e.preventDefault()
-                  void act(async () => {
-                    const category = categories.find((c) => c.id === categoryId)
-                    if (!category || category.archived)
-                      throw new Error(
-                        'Selecione uma categoria ativa de despesa.',
-                      )
-                    await budget.save({
-                      limit: {
-                        categoryId,
-                        name: category.name,
-                        amount: parseBudgetAmount(limit),
-                      },
-                    })
-                  })
-                }}
+              <Button
+                variant="outline"
+                onClick={() => setIsLimitFormOpen((value) => !value)}
+                aria-expanded={isLimitFormOpen}
               >
-                <label className="grid w-full min-w-0 gap-2 text-sm sm:w-auto">
-                  Categoria
-                  <select
-                    aria-label="Categoria"
-                    className="bg-background block h-11 w-full rounded-md border px-2"
-                    required
-                    value={categoryId}
-                    onChange={(e) => setCategoryId(e.target.value)}
-                  >
-                    <option value="">Selecione</option>
-                    {categories
-                      .filter(
-                        (c) =>
-                          !c.archived &&
-                          (c.type === 'expense' || c.type === 'both'),
+                Adicionar limite
+              </Button>
+              {isLimitFormOpen && (
+                <form
+                  className="border-border flex min-w-0 flex-wrap items-end gap-3 border-t pt-6"
+                  onSubmit={(e) => {
+                    e.preventDefault()
+                    void act(async () => {
+                      const category = categories.find(
+                        (c) => c.id === categoryId,
                       )
-                      .map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.name}
-                        </option>
-                      ))}
-                  </select>
-                </label>
-                <label className="grid w-full min-w-0 gap-2 text-sm sm:w-auto">
-                  Limite em R$
-                  <Input
-                    required
-                    inputMode="decimal"
-                    value={limit}
-                    onChange={(e) => setLimit(e.target.value)}
-                    placeholder="300,00"
-                  />
-                </label>
-                <Button type="submit" disabled={budget.saving}>
-                  Salvar limite
-                </Button>
-              </form>
+                      if (!category || category.archived)
+                        throw new Error(
+                          'Selecione uma categoria ativa de despesa.',
+                        )
+                      await budget.save({
+                        limit: {
+                          categoryId,
+                          name: category.name,
+                          amount: parseBudgetAmount(limit),
+                        },
+                      })
+                    })
+                  }}
+                >
+                  <label className="grid w-full min-w-0 gap-2 text-[13px] sm:w-auto">
+                    Categoria
+                    <select
+                      aria-label="Categoria"
+                      className="bg-background block h-11 w-full rounded-md border px-2"
+                      required
+                      value={categoryId}
+                      onChange={(e) => setCategoryId(e.target.value)}
+                    >
+                      <option value="">Selecione</option>
+                      {categories
+                        .filter(
+                          (c) =>
+                            !c.archived &&
+                            (c.type === 'expense' || c.type === 'both'),
+                        )
+                        .map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.name}
+                          </option>
+                        ))}
+                    </select>
+                  </label>
+                  <label className="grid w-full min-w-0 gap-2 text-[13px] sm:w-auto">
+                    Limite em R$
+                    <Input
+                      required
+                      inputMode="decimal"
+                      value={limit}
+                      onChange={(e) => setLimit(e.target.value)}
+                      placeholder="300,00"
+                    />
+                  </label>
+                  <Button type="submit" disabled={budget.saving}>
+                    Salvar limite
+                  </Button>
+                </form>
+              )}
+
               <p className="text-muted-foreground text-sm">
                 Categorias arquivadas mantêm o histórico e permitem remover
                 limites. Para editar, use uma categoria ativa.

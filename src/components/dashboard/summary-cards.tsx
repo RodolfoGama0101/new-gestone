@@ -44,14 +44,14 @@ export function SummaryCards({
 
   if (isLoading) {
     return (
-      <div className="grid gap-4 xl:grid-cols-3">
+      <div className="grid gap-4 min-[1100px]:grid-cols-3">
         {[1, 2, 3].map((i) => (
           <Card key={i} className="min-h-36 justify-between p-6">
             <div className="flex items-center justify-between">
               <Skeleton className="h-3 w-14" />
               <Skeleton className="size-5 rounded-md" />
             </div>
-            <div className="flex items-baseline justify-between gap-2 mt-2">
+            <div className="mt-2 flex items-baseline justify-between gap-2">
               <Skeleton className="h-6 w-28" />
               <Skeleton className="h-4.5 w-10 rounded-full" />
             </div>
@@ -62,63 +62,66 @@ export function SummaryCards({
   }
 
   return (
-    <div className="grid gap-4 xl:grid-cols-3">
+    <div className="grid gap-4 min-[1100px]:grid-cols-3">
       {/* Income Card */}
-      <Card className="gap-4">
-        <CardHeader className="flex min-w-0 flex-row flex-wrap items-center justify-between gap-3">
-          <CardTitle className="min-w-0 text-sm font-normal text-muted-foreground [overflow-wrap:anywhere]">
+      <Card className="gap-0 py-5">
+        <CardHeader className="flex min-w-0 flex-row-reverse flex-wrap items-center justify-end gap-2 border-0 py-0">
+          <CardTitle className="text-muted-foreground min-w-0 text-sm font-normal [overflow-wrap:anywhere]">
             Receitas
           </CardTitle>
-          <div className="flex size-8 items-center justify-center rounded-md border border-border bg-muted">
-            <ArrowUpCircle className="size-4 text-muted-foreground" />
+          <div className="flex items-center justify-center">
+            <ArrowUpCircle className="text-muted-foreground size-4" />
           </div>
         </CardHeader>
-        <CardContent className="space-y-2">
-          <span className="break-all text-2xl font-medium tracking-tight tabular-nums text-foreground">
+        <CardContent className="space-y-2 pt-3 pb-0">
+          <span className="text-foreground text-2xl font-medium tracking-tight break-all tabular-nums">
             {formatBRL(income)}
           </span>
-          <p className="mt-1 text-xs text-muted-foreground">
-            {incomeCount} {incomeCount === 1 ? 'recebimento' : 'recebimentos'} · {formatChange(incomeChange)}
+          <p className="text-muted-foreground mt-1 text-xs">
+            {incomeCount} {incomeCount === 1 ? 'recebimento' : 'recebimentos'} ·{' '}
+            {formatChange(incomeChange)}
           </p>
         </CardContent>
       </Card>
- 
+
       {/* Expense Card */}
-      <Card className="gap-4">
-        <CardHeader className="flex min-w-0 flex-row flex-wrap items-center justify-between gap-3">
-          <CardTitle className="min-w-0 text-sm font-normal text-muted-foreground [overflow-wrap:anywhere]">
+      <Card className="gap-0 py-5">
+        <CardHeader className="flex min-w-0 flex-row-reverse flex-wrap items-center justify-end gap-2 border-0 py-0">
+          <CardTitle className="text-muted-foreground min-w-0 text-sm font-normal [overflow-wrap:anywhere]">
             Despesas
           </CardTitle>
-          <div className="flex size-8 items-center justify-center rounded-md border border-border bg-muted">
-            <ArrowDownCircle className="size-4 text-muted-foreground" />
+          <div className="flex items-center justify-center">
+            <ArrowDownCircle className="text-muted-foreground size-4" />
           </div>
         </CardHeader>
-        <CardContent className="space-y-2">
-          <span className="break-all text-2xl font-medium tracking-tight tabular-nums text-foreground">
+        <CardContent className="space-y-2 pt-3 pb-0">
+          <span className="text-foreground text-2xl font-medium tracking-tight break-all tabular-nums">
             {formatBRL(expense)}
           </span>
-          <p className="mt-1 text-xs text-muted-foreground">
-            {expenseCount} {expenseCount === 1 ? 'pagamento' : 'pagamentos'} · {formatChange(expenseChange)}
+          <p className="text-muted-foreground mt-1 text-xs">
+            {expenseCount} {expenseCount === 1 ? 'pagamento' : 'pagamentos'} ·{' '}
+            {formatChange(expenseChange)}
           </p>
         </CardContent>
       </Card>
- 
+
       {/* Investment Card */}
-      <Card className="gap-4">
-        <CardHeader className="flex min-w-0 flex-row flex-wrap items-center justify-between gap-3">
-          <CardTitle className="min-w-0 text-sm font-normal text-muted-foreground [overflow-wrap:anywhere]">
+      <Card className="gap-0 py-5">
+        <CardHeader className="flex min-w-0 flex-row-reverse flex-wrap items-center justify-end gap-2 border-0 py-0">
+          <CardTitle className="text-muted-foreground min-w-0 text-sm font-normal [overflow-wrap:anywhere]">
             Investimentos
           </CardTitle>
-          <div className="flex size-8 items-center justify-center rounded-md border border-border bg-muted">
-            <Coins className="size-4 text-muted-foreground" />
+          <div className="flex items-center justify-center">
+            <Coins className="text-muted-foreground size-4" />
           </div>
         </CardHeader>
-        <CardContent className="space-y-2">
-          <span className="break-all text-2xl font-medium tracking-tight tabular-nums text-foreground">
+        <CardContent className="space-y-2 pt-3 pb-0">
+          <span className="text-foreground text-2xl font-medium tracking-tight break-all tabular-nums">
             {formatBRL(investment)}
           </span>
-          <p className="mt-1 text-xs text-muted-foreground">
-            {investmentCount} {investmentCount === 1 ? 'aporte' : 'aportes'} · {formatChange(investmentChange)}
+          <p className="text-muted-foreground mt-1 text-xs">
+            {investmentCount} {investmentCount === 1 ? 'aporte' : 'aportes'} ·{' '}
+            {formatChange(investmentChange)}
           </p>
         </CardContent>
       </Card>

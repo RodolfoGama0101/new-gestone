@@ -90,7 +90,7 @@ export default function ForgotPasswordPage() {
             </p>
           </div>
           <Button
-            className="h-11 w-full cursor-pointer font-semibold"
+            className="h-10 w-full cursor-pointer font-semibold"
             onClick={() => router.push('/login')}
           >
             Voltar ao login
@@ -117,7 +117,7 @@ export default function ForgotPasswordPage() {
             <div className="space-y-1.5">
               <Label
                 htmlFor="email"
-                className="text-foreground text-sm font-semibold"
+                className="text-foreground text-[13px] font-medium"
               >
                 E-mail
               </Label>
@@ -128,7 +128,7 @@ export default function ForgotPasswordPage() {
                 type="email"
                 placeholder="exemplo@dominio.com"
                 disabled={isLoading}
-                className={`h-11 ${errors.email ? 'border-destructive focus-visible:ring-destructive' : ''}`}
+                className={`h-10 ${errors.email ? 'border-destructive focus-visible:ring-destructive' : ''}`}
                 {...register('email')}
               />
               {errors.email && (
@@ -144,7 +144,7 @@ export default function ForgotPasswordPage() {
 
             <Button
               type="submit"
-              className="h-11 w-full cursor-pointer text-sm font-semibold"
+              className="h-10 w-full cursor-pointer text-[13px] font-medium"
               disabled={isLoading}
             >
               {isLoading ? (

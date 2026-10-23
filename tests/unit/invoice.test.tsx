@@ -7,12 +7,11 @@ import type { CreditCard } from '@/types/credit-card'
 jest.mock('@/hooks/use-card-invoice', () => ({ useCardInvoice: jest.fn() }))
 jest.mock('@/hooks/use-invoice-payment', () => ({ useInvoicePayment: () => ({ data: null, isPending: false, error: null, saving: false }) }))
 jest.mock('@/hooks/use-categories', () => ({ useCategories: () => ({ categories: [] }) }))
-jest.mock('@/components/transactions/transaction-row', () => ({ TransactionRow: ({ transaction }: { transaction: { description: string } }) => <p>{transaction.description}</p> }))
 const card = { id: 'card', closingDay: 20 } as CreditCard
 const mockInvoice = jest.mocked(useCardInvoice)
 beforeEach(() => {
   jest.useFakeTimers().setSystemTime(new Date(2026, 8, 10))
-  mockInvoice.mockReturnValue({ data: Array.from({ length: 105 }, (_, i) => ({ id: String(i), amount: 100, description: `Compra ${i}` })), isPending: false, isError: false } as never)
+  mockInvoice.mockReturnValue({ data: Array.from({ length: 105 }, (_, i) => ({ id: String(i), type: 'expense', date: new Date(2026, 8, 10), categoryId: 'food', amount: 100, description: `Compra ${i}` })), isPending: false, isError: false } as never)
 })
 afterEach(() => jest.useRealTimers())
 test('total completo permanece correto ao navegar mais de 100 compras', () => {

@@ -5,19 +5,31 @@ import { LoadError } from '@/components/shared/load-error'
 import * as React from 'react'
 import { toast } from 'sonner'
 import { useCategories } from '@/hooks/use-categories'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { ConfirmDialog } from '@/components/shared/confirm-dialog'
 import { EmptyState } from '@/components/shared/empty-state'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Category } from '@/types/category'
-import { 
-  Tag, 
-  Trash2, 
-  Pencil, 
+import {
+  Tag,
+  Trash2,
+  Pencil,
   Loader2,
   Briefcase,
   Laptop,
@@ -36,7 +48,7 @@ import {
   DollarSign,
   PiggyBank,
   Check,
-  Plus
+  Plus,
 } from 'lucide-react'
 import * as Icons from 'lucide-react'
 import { PageHeader } from '@/components/shared/page-header'
@@ -76,8 +88,20 @@ const PRESET_COLORS = [
 ]
 
 // Renderizador dinâmico de ícones Lucide
-function DynamicIcon({ name, className }: { name: string; className?: string }) {
-  const IconComponent = (Icons as unknown as Record<string, React.ComponentType<{ className?: string }>>)[name] || Icons.HelpCircle
+function DynamicIcon({
+  name,
+  className,
+}: {
+  name: string
+  className?: string
+}) {
+  const IconComponent =
+    (
+      Icons as unknown as Record<
+        string,
+        React.ComponentType<{ className?: string }>
+      >
+    )[name] || Icons.HelpCircle
   return <IconComponent className={className} />
 }
 
@@ -93,10 +117,15 @@ export default function CategoriesPage() {
   } = useCategories()
 
   // Estados do Formulário
+  const [categoryTab, setCategoryTab] = React.useState<
+    'expense' | 'income' | 'investment'
+  >('expense')
   const [isAddOpen, setIsAddOpen] = React.useState(false)
   const [editingId, setEditingId] = React.useState<string | null>(null)
   const [name, setName] = React.useState('')
-  const [type, setType] = React.useState<'income' | 'expense' | 'investment'>('expense')
+  const [type, setType] = React.useState<'income' | 'expense' | 'investment'>(
+    'expense',
+  )
   const [selectedIcon, setSelectedIcon] = React.useState('Utensils')
   const [selectedColor, setSelectedColor] = React.useState('#dc2626')
   const [isSubmitting, setIsSubmitting] = React.useState(false)
@@ -118,7 +147,11 @@ export default function CategoriesPage() {
   const handleEditClick = (cat: Category) => {
     setEditingId(cat.id)
     setName(cat.name)
-    if (cat.type === 'income' || cat.type === 'expense' || cat.type === 'investment') {
+    if (
+      cat.type === 'income' ||
+      cat.type === 'expense' ||
+      cat.type === 'investment'
+    ) {
       setType(cat.type)
     } else {
       setType('expense')
@@ -177,16 +210,22 @@ export default function CategoriesPage() {
   }
 
   // Filtrar categorias
-  const incomes = categories.filter((c) => !c.archived).filter((c) => c.type === 'income' || c.type === 'both')
-  const expenses = categories.filter((c) => !c.archived).filter((c) => c.type === 'expense' || c.type === 'both')
-  const investments = categories.filter((c) => !c.archived).filter((c) => c.type === 'investment' || c.type === 'both')
+  const incomes = categories
+    .filter((c) => !c.archived)
+    .filter((c) => c.type === 'income' || c.type === 'both')
+  const expenses = categories
+    .filter((c) => !c.archived)
+    .filter((c) => c.type === 'expense' || c.type === 'both')
+  const investments = categories
+    .filter((c) => !c.archived)
+    .filter((c) => c.type === 'investment' || c.type === 'both')
 
   if (error) return <LoadError error={error} retry={refetch} />
 
   if (isLoading) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
-        <Loader2 className="size-8 animate-spin text-primary" />
+        <Loader2 className="text-primary size-8 animate-spin" />
       </div>
     )
   }
@@ -198,7 +237,10 @@ export default function CategoriesPage() {
         title="Categorias"
         description="Crie e gerencie as categorias para classificar suas despesas e receitas."
         action={
-          <Button onClick={() => setIsAddOpen(true)} className="gap-2 font-medium text-sm min-h-10 px-3">
+          <Button
+            onClick={() => setIsAddOpen(true)}
+            className="min-h-10 gap-2 px-3 text-sm font-medium"
+          >
             <Plus className="size-4" />
             Nova Categoria
           </Button>
@@ -212,237 +254,122 @@ export default function CategoriesPage() {
           icon={Tag}
         />
       ) : (
-        <div className="grid gap-6 xl:grid-cols-3">
-          {/* Receitas */}
-          <Card className="min-w-0 flex flex-col">
-            <CardHeader className="border-b border-border pb-6">
-              <div className="space-y-1.5">
-                <div className="flex items-center gap-2">
-                  <CardTitle className="text-base font-medium text-foreground">Receitas</CardTitle>
-                  <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border shrink-0">
-                    {incomes.length}
-                  </span>
-                </div>
-                <CardDescription className="text-xs">Categorias aplicadas a entradas financeiras</CardDescription>
-              </div>
+        <div className="space-y-6">
+          <div
+            className="border-border flex gap-6 overflow-auto border-b"
+            role="group"
+            aria-label="Tipos de categoria"
+          >
+            {(
+              [
+                ['expense', 'Despesas'],
+                ['income', 'Receitas'],
+                ['investment', 'Investimentos'],
+              ] as const
+            ).map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                aria-pressed={categoryTab === value}
+                onClick={() => setCategoryTab(value)}
+                className={`focus-visible:outline-ring shrink-0 border-b-2 pb-3.5 text-sm ${categoryTab === value ? 'border-foreground font-medium' : 'text-muted-foreground border-transparent'}`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                Categorias de{' '}
+                {categoryTab === 'expense'
+                  ? 'despesas'
+                  : categoryTab === 'income'
+                    ? 'receitas'
+                    : 'investimentos'}
+              </CardTitle>
             </CardHeader>
-            <CardContent className="px-6 py-4">
-              {incomes.length === 0 ? (
+            <CardContent className="p-0">
+              <table className="financial-table w-full text-left text-[13px]">
+                <thead>
+                  <tr>
+                    <th scope="col">Categoria</th>
+                    <th scope="col">Tipo</th>
+                    <th scope="col" className="text-right">
+                      Ações
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(categoryTab === 'expense'
+                    ? expenses
+                    : categoryTab === 'income'
+                      ? incomes
+                      : investments
+                  ).map((cat) => (
+                    <tr key={cat.id}>
+                      <td data-label="Categoria">
+                        <div className="flex items-center gap-2.5">
+                          <span className="border-border bg-muted text-muted-foreground flex size-8 shrink-0 items-center justify-center rounded-md border">
+                            <DynamicIcon name={cat.icon} className="size-4" />
+                          </span>
+                          <span className="[overflow-wrap:anywhere]">
+                            {cat.name}
+                            {cat.isDefault && (
+                              <small className="text-muted-foreground block text-xs">
+                                Padrão do sistema
+                              </small>
+                            )}
+                          </span>
+                        </div>
+                      </td>
+                      <td data-label="Tipo">
+                        <span className="bg-accent text-muted-foreground rounded-full px-2.5 py-1 text-xs">
+                          {categoryTab === 'expense'
+                            ? 'Despesa'
+                            : categoryTab === 'income'
+                              ? 'Receita'
+                              : 'Investimento'}
+                        </span>
+                      </td>
+                      <td data-label="Ações">
+                        <div className="flex justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            onClick={() => handleEditClick(cat)}
+                            aria-label={'Editar categoria ' + cat.name}
+                          >
+                            <Pencil className="size-4" />
+                            Editar
+                          </Button>
+                          {!cat.isDefault && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setDeletingId(cat.id)}
+                              aria-label={'Excluir categoria ' + cat.name}
+                            >
+                              <Trash2 className="size-4" />
+                            </Button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {(categoryTab === 'expense'
+                ? expenses
+                : categoryTab === 'income'
+                  ? incomes
+                  : investments
+              ).length === 0 && (
                 <EmptyState
-                  title="Sem categorias de receita"
-                  description="Adicione categorias para classificar suas entradas."
+                  title="Sem categorias neste tipo"
+                  description="Adicione uma categoria para classificar seus lançamentos."
                   icon={Tag}
                   compact
                 />
-              ) : (
-                <div className="divide-y divide-border/40">
-                  {incomes.map((cat) => (
-                    <div
-                      key={cat.id}
-                      className="flex min-w-0 flex-wrap items-center justify-between gap-3 py-4 px-0 group"
-                    >
-                      <div className="flex items-center gap-3.5 min-w-0 flex-1">
-                        <div 
-                          className="size-9 rounded-lg flex items-center justify-center shrink-0 border "
-                          style={{ 
-                            backgroundColor: `${cat.color}15`, 
-                            borderColor: `${cat.color}30`,
-                            color: cat.color 
-                          }}
-                        >
-                          <DynamicIcon name={cat.icon} className="size-4.5" />
-                        </div>
-                        <div className="flex flex-col min-w-0">
-                          <span className="text-sm font-medium text-foreground [overflow-wrap:anywhere]">{cat.name}</span>
-                          {cat.isDefault && (
-                            <span className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
-                              <span className="size-1 rounded-full bg-muted-foreground/50" />
-                              Padrão do Sistema
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1 shrink-0">
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="size-11 text-muted-foreground hover:text-foreground cursor-pointer rounded-lg hover:bg-muted"
-                          aria-label={'Editar categoria ' + cat.name}
-                          onClick={() => handleEditClick(cat)}
-                        >
-                          <Pencil className="size-3.5" />
-                        </Button>
-                        {!cat.isDefault && (
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="size-11 text-muted-foreground hover:text-destructive cursor-pointer rounded-lg hover:bg-muted"
-                            aria-label={'Excluir categoria ' + cat.name}
-                            onClick={() => setDeletingId(cat.id)}
-                          >
-                            <Trash2 className="size-3.5" />
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Despesas */}
-          <Card className="min-w-0 flex flex-col">
-            <CardHeader className="border-b border-border pb-6">
-              <div className="space-y-1.5">
-                <div className="flex items-center gap-2">
-                  <CardTitle className="text-base font-medium text-foreground">Despesas</CardTitle>
-                  <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border shrink-0">
-                    {expenses.length}
-                  </span>
-                </div>
-                <CardDescription className="text-xs">Categorias aplicadas a saídas financeiras</CardDescription>
-              </div>
-            </CardHeader>
-            <CardContent className="px-6 py-4">
-              {expenses.length === 0 ? (
-                <EmptyState
-                  title="Sem categorias de despesa"
-                  description="Adicione categorias para classificar suas saídas."
-                  icon={Tag}
-                  compact
-                />
-              ) : (
-                <div className="divide-y divide-border/40">
-                  {expenses.map((cat) => (
-                    <div
-                      key={cat.id}
-                      className="flex min-w-0 flex-wrap items-center justify-between gap-3 py-4 px-0 group"
-                    >
-                      <div className="flex items-center gap-3.5 min-w-0 flex-1">
-                        <div 
-                          className="size-9 rounded-lg flex items-center justify-center shrink-0 border "
-                          style={{ 
-                            backgroundColor: `${cat.color}15`, 
-                            borderColor: `${cat.color}30`,
-                            color: cat.color 
-                          }}
-                        >
-                          <DynamicIcon name={cat.icon} className="size-4.5" />
-                        </div>
-                        <div className="flex flex-col min-w-0">
-                          <span className="text-sm font-medium text-foreground [overflow-wrap:anywhere]">{cat.name}</span>
-                          {cat.isDefault && (
-                            <span className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
-                              <span className="size-1 rounded-full bg-muted-foreground/50" />
-                              Padrão do Sistema
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1 shrink-0">
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="size-11 text-muted-foreground hover:text-foreground cursor-pointer rounded-lg hover:bg-muted"
-                          aria-label={'Editar categoria ' + cat.name}
-                          onClick={() => handleEditClick(cat)}
-                        >
-                          <Pencil className="size-3.5" />
-                        </Button>
-                        {!cat.isDefault && (
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="size-11 text-muted-foreground hover:text-destructive cursor-pointer rounded-lg hover:bg-muted"
-                            aria-label={'Excluir categoria ' + cat.name}
-                            onClick={() => setDeletingId(cat.id)}
-                          >
-                            <Trash2 className="size-3.5" />
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Investimentos */}
-          <Card className="min-w-0 flex flex-col">
-            <CardHeader className="border-b border-border pb-6">
-              <div className="space-y-1.5">
-                <div className="flex items-center gap-2">
-                  <CardTitle className="text-base font-medium text-foreground">Investimentos</CardTitle>
-                  <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border shrink-0">
-                    {investments.length}
-                  </span>
-                </div>
-                <CardDescription className="text-xs">Categorias aplicadas a aportes e investimentos</CardDescription>
-              </div>
-            </CardHeader>
-            <CardContent className="px-6 py-4">
-              {investments.length === 0 ? (
-                <EmptyState
-                  title="Sem categorias de investimento"
-                  description="Adicione categorias para classificar seus aportes."
-                  icon={Tag}
-                  compact
-                />
-              ) : (
-                <div className="divide-y divide-border/40">
-                  {investments.map((cat) => (
-                    <div
-                      key={cat.id}
-                      className="flex min-w-0 flex-wrap items-center justify-between gap-3 py-4 px-0 group"
-                    >
-                      <div className="flex items-center gap-3.5 min-w-0 flex-1">
-                        <div 
-                          className="size-9 rounded-lg flex items-center justify-center shrink-0 border "
-                          style={{ 
-                            backgroundColor: `${cat.color}15`, 
-                            borderColor: `${cat.color}30`,
-                            color: cat.color 
-                          }}
-                        >
-                          <DynamicIcon name={cat.icon} className="size-4.5" />
-                        </div>
-                        <div className="flex flex-col min-w-0">
-                          <span className="text-sm font-medium text-foreground [overflow-wrap:anywhere]">{cat.name}</span>
-                          {cat.isDefault && (
-                            <span className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
-                              <span className="size-1 rounded-full bg-muted-foreground/50" />
-                              Padrão do Sistema
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1 shrink-0">
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="size-11 text-muted-foreground hover:text-foreground cursor-pointer rounded-lg hover:bg-muted"
-                          aria-label={'Editar categoria ' + cat.name}
-                          onClick={() => handleEditClick(cat)}
-                        >
-                          <Pencil className="size-3.5" />
-                        </Button>
-                        {!cat.isDefault && (
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="size-11 text-muted-foreground hover:text-destructive cursor-pointer rounded-lg hover:bg-muted"
-                            aria-label={'Excluir categoria ' + cat.name}
-                            onClick={() => setDeletingId(cat.id)}
-                          >
-                            <Trash2 className="size-3.5" />
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
               )}
             </CardContent>
           </Card>
@@ -450,12 +377,19 @@ export default function CategoriesPage() {
       )}
 
       {/* Modal - Criar Categoria */}
-      <Dialog open={isAddOpen} onOpenChange={(open) => { setIsAddOpen(open); if (!open) resetForm(); }}>
+      <Dialog
+        open={isAddOpen}
+        onOpenChange={(open) => {
+          setIsAddOpen(open)
+          if (!open) resetForm()
+        }}
+      >
         <DialogContent className="sm:max-w-[420px]">
           <DialogHeader>
             <DialogTitle>Nova Categoria</DialogTitle>
             <DialogDescription>
-              Adicione uma categoria personalizada para classificar suas despesas e receitas.
+              Adicione uma categoria personalizada para classificar suas
+              despesas e receitas.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4 pt-2">
@@ -477,12 +411,14 @@ export default function CategoriesPage() {
                 <Label htmlFor="type">Tipo</Label>
                 <Select
                   value={type}
-                  onValueChange={(val) => setType(val as 'income' | 'expense' | 'investment')}
+                  onValueChange={(val) =>
+                    setType(val as 'income' | 'expense' | 'investment')
+                  }
                   disabled={isSubmitting}
                   items={[
                     { value: 'expense', label: 'Despesa' },
                     { value: 'income', label: 'Receita' },
-                    { value: 'investment', label: 'Investimento' }
+                    { value: 'investment', label: 'Investimento' },
                   ]}
                 >
                   <SelectTrigger id="type" className="w-full">
@@ -499,7 +435,7 @@ export default function CategoriesPage() {
               {/* Seletor de Cores */}
               <div className="space-y-2">
                 <Label>Cor de Destaque</Label>
-                <div className="grid grid-cols-[repeat(auto-fit,minmax(44px,1fr))] gap-3 justify-items-center">
+                <div className="grid grid-cols-[repeat(auto-fit,minmax(44px,1fr))] justify-items-center gap-3">
                   {PRESET_COLORS.map((color) => (
                     <button
                       key={color}
@@ -507,7 +443,7 @@ export default function CategoriesPage() {
                       aria-label={'Selecionar cor ' + color}
                       aria-pressed={selectedColor === color}
                       onClick={() => setSelectedColor(color)}
-                      className="size-11 rounded-full border border-border flex items-center justify-center cursor-pointer transition-transform hover:scale-105 active:scale-95 animate-transition"
+                      className="border-border animate-transition flex size-11 cursor-pointer items-center justify-center rounded-full border transition-transform hover:scale-105 active:scale-95"
                       style={{ backgroundColor: color }}
                     >
                       {selectedColor === color && (
@@ -521,7 +457,7 @@ export default function CategoriesPage() {
               {/* Seletor de Ícones */}
               <div className="space-y-2">
                 <Label>Ícone</Label>
-                <div className="grid grid-cols-[repeat(auto-fit,minmax(44px,1fr))] gap-2 border border-border rounded-xl p-3 max-h-[150px] overflow-y-auto scrollbar-thin">
+                <div className="border-border grid max-h-[150px] scrollbar-thin grid-cols-[repeat(auto-fit,minmax(44px,1fr))] gap-2 overflow-y-auto rounded-xl border p-3">
                   {AVAILABLE_ICONS.map((item) => {
                     const isSelected = selectedIcon === item.name
                     return (
@@ -531,10 +467,10 @@ export default function CategoriesPage() {
                         aria-label={'Selecionar ícone ' + item.name}
                         aria-pressed={isSelected}
                         onClick={() => setSelectedIcon(item.name)}
-                        className={`p-2.5 rounded-lg border flex items-center justify-center cursor-pointer transition-all hover:bg-accent ${
-                          isSelected 
-                            ? 'bg-primary/10 border-primary text-primary' 
-                            : 'border-transparent text-muted-foreground'
+                        className={`hover:bg-accent flex cursor-pointer items-center justify-center rounded-lg border p-2.5 transition-all ${
+                          isSelected
+                            ? 'bg-primary/10 border-primary text-primary'
+                            : 'text-muted-foreground border-transparent'
                         }`}
                       >
                         <item.icon className="size-5" />
@@ -545,11 +481,22 @@ export default function CategoriesPage() {
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-4 border-t border-border mt-6">
-              <Button type="button" variant="outline" onClick={() => { setIsAddOpen(false); resetForm(); }}>
+            <div className="border-border mt-6 flex justify-end gap-2 border-t pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setIsAddOpen(false)
+                  resetForm()
+                }}
+              >
                 Cancelar
               </Button>
-              <Button type="submit" disabled={isSubmitting} className="font-semibold">
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="font-semibold"
+              >
                 {isSubmitting ? (
                   <Loader2 className="size-4 animate-spin" />
                 ) : (
@@ -562,7 +509,12 @@ export default function CategoriesPage() {
       </Dialog>
 
       {/* Modal - Editar Categoria */}
-      <Dialog open={editingId !== null} onOpenChange={(open) => { if (!open) resetForm(); }}>
+      <Dialog
+        open={editingId !== null}
+        onOpenChange={(open) => {
+          if (!open) resetForm()
+        }}
+      >
         <DialogContent className="sm:max-w-[420px]">
           <DialogHeader>
             <DialogTitle>Editar Categoria</DialogTitle>
@@ -589,12 +541,14 @@ export default function CategoriesPage() {
                 <Label htmlFor="edit-type">Tipo</Label>
                 <Select
                   value={type}
-                  onValueChange={(val) => setType(val as 'income' | 'expense' | 'investment')}
+                  onValueChange={(val) =>
+                    setType(val as 'income' | 'expense' | 'investment')
+                  }
                   disabled={isSubmitting}
                   items={[
                     { value: 'expense', label: 'Despesa' },
                     { value: 'income', label: 'Receita' },
-                    { value: 'investment', label: 'Investimento' }
+                    { value: 'investment', label: 'Investimento' },
                   ]}
                 >
                   <SelectTrigger id="edit-type" className="w-full">
@@ -611,7 +565,7 @@ export default function CategoriesPage() {
               {/* Seletor de Cores */}
               <div className="space-y-2">
                 <Label>Cor de Destaque</Label>
-                <div className="grid grid-cols-[repeat(auto-fit,minmax(44px,1fr))] gap-3 justify-items-center">
+                <div className="grid grid-cols-[repeat(auto-fit,minmax(44px,1fr))] justify-items-center gap-3">
                   {PRESET_COLORS.map((color) => (
                     <button
                       key={color}
@@ -619,7 +573,7 @@ export default function CategoriesPage() {
                       aria-label={'Selecionar cor ' + color}
                       aria-pressed={selectedColor === color}
                       onClick={() => setSelectedColor(color)}
-                      className="size-11 rounded-full border border-border flex items-center justify-center cursor-pointer transition-transform hover:scale-105 active:scale-95 animate-transition"
+                      className="border-border animate-transition flex size-11 cursor-pointer items-center justify-center rounded-full border transition-transform hover:scale-105 active:scale-95"
                       style={{ backgroundColor: color }}
                     >
                       {selectedColor === color && (
@@ -633,7 +587,7 @@ export default function CategoriesPage() {
               {/* Seletor de Ícones */}
               <div className="space-y-2">
                 <Label>Ícone</Label>
-                <div className="grid grid-cols-[repeat(auto-fit,minmax(44px,1fr))] gap-2 border border-border rounded-xl p-3 max-h-[150px] overflow-y-auto scrollbar-thin">
+                <div className="border-border grid max-h-[150px] scrollbar-thin grid-cols-[repeat(auto-fit,minmax(44px,1fr))] gap-2 overflow-y-auto rounded-xl border p-3">
                   {AVAILABLE_ICONS.map((item) => {
                     const isSelected = selectedIcon === item.name
                     return (
@@ -643,10 +597,10 @@ export default function CategoriesPage() {
                         aria-label={'Selecionar ícone ' + item.name}
                         aria-pressed={isSelected}
                         onClick={() => setSelectedIcon(item.name)}
-                        className={`p-2.5 rounded-lg border flex items-center justify-center cursor-pointer transition-all hover:bg-accent ${
-                          isSelected 
-                            ? 'bg-primary/10 border-primary text-primary' 
-                            : 'border-transparent text-muted-foreground'
+                        className={`hover:bg-accent flex cursor-pointer items-center justify-center rounded-lg border p-2.5 transition-all ${
+                          isSelected
+                            ? 'bg-primary/10 border-primary text-primary'
+                            : 'text-muted-foreground border-transparent'
                         }`}
                       >
                         <item.icon className="size-5" />
@@ -657,11 +611,15 @@ export default function CategoriesPage() {
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-4 border-t border-border mt-6">
+            <div className="border-border mt-6 flex justify-end gap-2 border-t pt-4">
               <Button type="button" variant="outline" onClick={resetForm}>
                 Cancelar
               </Button>
-              <Button type="submit" disabled={isSubmitting} className="font-semibold">
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="font-semibold"
+              >
                 {isSubmitting ? (
                   <Loader2 className="size-4 animate-spin" />
                 ) : (

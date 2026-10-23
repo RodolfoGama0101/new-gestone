@@ -7,10 +7,10 @@ export default function LoginPage() {
     <AuthFrame>
       <div className="mb-8 space-y-2 text-center">
         <h1 className="text-foreground text-2xl font-semibold tracking-tight">
-          Bem-vindo de volta
+          Entre na sua conta
         </h1>
         <p className="text-muted-foreground text-sm">
-          Entre na sua conta para continuar
+          Acesse seu controle financeiro pessoal.
         </p>
       </div>
 

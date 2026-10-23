@@ -8,8 +8,8 @@ export function AuthFrame({ children }: { children: ReactNode }) {
       <div className="absolute top-6 right-6">
         <ThemeToggle />
       </div>
-      <div className="w-full max-w-sm">
-        <div className="mb-8 flex justify-center">
+      <div className="w-full max-w-[380px]">
+        <div className="mb-6 flex justify-center">
           <Logo variant="full" size="lg" href="" />
         </div>
         {children}

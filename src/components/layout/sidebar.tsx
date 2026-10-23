@@ -41,14 +41,26 @@ export function Sidebar() {
   const pathname = usePathname()
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-20 hidden w-56 flex-col md:flex border-r border-sidebar-border bg-sidebar">
+    <aside className="border-sidebar-border bg-sidebar fixed inset-y-0 left-0 z-20 hidden w-[200px] flex-col border-r md:flex">
       {/* Brand Header */}
-      <div className="flex h-16 items-center px-4 border-b border-sidebar-border shrink-0">
+      <div className="border-sidebar-border flex h-16 shrink-0 items-center border-b px-6">
         <Logo variant="full" size="sm" />
       </div>
 
+      <div className="mx-4 my-6 flex items-center gap-2.5 text-[13px]">
+        <span className="border-border bg-muted flex size-[30px] shrink-0 items-center justify-center rounded-full border text-xs">
+          G
+        </span>
+        <div>
+          Finanças pessoais
+          <p className="text-muted-foreground text-xs">Seu espaço financeiro</p>
+        </div>
+      </div>
       {/* Navigation */}
-      <nav aria-label="Navegação principal" className="flex-1 overflow-y-auto scrollbar-thin px-3 py-6 space-y-1">
+      <nav
+        aria-label="Navegação principal"
+        className="flex-1 scrollbar-thin space-y-1 overflow-y-auto px-3 pb-6"
+      >
         {navItems.map((item) => {
           const isActive = pathname === item.href
           return (
@@ -57,10 +69,10 @@ export function Sidebar() {
               href={item.href}
               aria-current={isActive ? 'page' : undefined}
               className={cn(
-                'group flex items-center min-h-10 gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors duration-100 relative cursor-pointer',
+                'group relative flex min-h-10 cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm font-normal transition-colors duration-100',
                 isActive
-                  ? 'bg-sidebar-accent text-sidebar-foreground font-semibold'
-                  : 'text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground'
+                  ? 'bg-sidebar-accent text-sidebar-foreground font-medium'
+                  : 'text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground',
               )}
             >
               <item.icon
@@ -68,7 +80,7 @@ export function Sidebar() {
                   'size-4 shrink-0 transition-transform duration-100',
                   isActive
                     ? 'text-sidebar-foreground'
-                    : 'text-muted-foreground group-hover:text-sidebar-foreground'
+                    : 'text-muted-foreground group-hover:text-sidebar-foreground',
                 )}
               />
               <span className="truncate">{item.label}</span>
@@ -77,7 +89,7 @@ export function Sidebar() {
         })}
 
         {/* Separator */}
-        <div className="my-2 border-t border-sidebar-border/60" />
+        <div className="border-sidebar-border/60 my-2 border-t" />
 
         {secondaryNavItems.map((item) => {
           const isActive = pathname === item.href
@@ -87,10 +99,10 @@ export function Sidebar() {
               href={item.href}
               aria-current={isActive ? 'page' : undefined}
               className={cn(
-                'group flex items-center min-h-10 gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors duration-100 relative cursor-pointer',
+                'group relative flex min-h-10 cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-100',
                 isActive
                   ? 'bg-sidebar-accent text-sidebar-foreground font-semibold'
-                  : 'text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground'
+                  : 'text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground',
               )}
             >
               <item.icon
@@ -98,7 +110,7 @@ export function Sidebar() {
                   'size-4 shrink-0 transition-transform duration-100',
                   isActive
                     ? 'text-sidebar-foreground'
-                    : 'text-muted-foreground group-hover:text-sidebar-foreground'
+                    : 'text-muted-foreground group-hover:text-sidebar-foreground',
                 )}
               />
               <span className="truncate">{item.label}</span>
@@ -108,8 +120,8 @@ export function Sidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="shrink-0 border-t border-sidebar-border px-4 h-16 flex items-center justify-between gap-2">
-        <span className="text-xs text-muted-foreground select-none">
+      <div className="border-sidebar-border flex h-16 shrink-0 items-center justify-between gap-2 border-t px-4">
+        <span className="text-muted-foreground text-xs select-none">
           Aparência
         </span>
         <ThemeToggle />

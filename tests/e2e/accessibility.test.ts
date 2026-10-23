@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test'
 
 const routes = [
-  { path: '/login', title: 'Bem-vindo de volta', submit: 'Entrar na conta' },
-  { path: '/register', title: 'Criar conta grátis', submit: 'Criar conta grátis' },
+  { path: '/login', title: 'Entre na sua conta', submit: 'Entrar na conta' },
+  { path: '/register', title: 'Crie sua conta', submit: 'Criar conta grátis' },
   { path: '/forgot-password', title: 'Recuperar senha', submit: 'Enviar link de recuperação' },
 ]
 for (const theme of ['light', 'dark']) {

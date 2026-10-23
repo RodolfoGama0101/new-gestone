@@ -33,8 +33,8 @@ export function CashFlowBarChart({ data }: CashFlowBarChartProps) {
   }
 
   return (
-    <Card className="min-w-0 h-full">
-      <CardHeader className="border-b border-border pb-6">
+    <Card className="h-full min-w-0">
+      <CardHeader className="border-border border-b pb-6">
         <CardTitle className="text-base font-medium">Fluxo de Caixa</CardTitle>
         <CardDescription className="text-muted-foreground text-xs">
           Comparativo mensal de receitas vs despesas
@@ -48,11 +48,11 @@ export function CashFlowBarChart({ data }: CashFlowBarChartProps) {
         ) : (
           <>
             <p className="mb-2 flex flex-wrap gap-x-4 gap-y-2 text-sm">
-              <span>Receitas</span>
-              <span>Despesas</span>
-              <span>Investimentos</span>
+              <span className="text-income">Receitas</span>
+              <span className="text-expense">Despesas</span>
+              <span className="text-muted-foreground">Investimentos</span>
             </p>
-            <div className="h-[280px]" aria-hidden="true">
+            <div className="h-[200px]" aria-hidden="true">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={data}
@@ -100,7 +100,7 @@ export function CashFlowBarChart({ data }: CashFlowBarChartProps) {
                   <Bar
                     dataKey="investment"
                     name="investment"
-                    fill="var(--chart-4)"
+                    fill="var(--muted-foreground)"
                     radius={[3, 3, 0, 0]}
                     maxBarSize={20}
                   />
