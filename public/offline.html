@@ -3,8 +3,27 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Sem conexão — GestOne</title>
-  <style>body{font:1rem system-ui;margin:15vh auto;padding:24px;max-width:32rem;background:#fafafa;color:#171717}button{font:inherit;padding:12px;border:1px solid #777;border-radius:6px;cursor:pointer}button:focus-visible{outline:3px solid #2563eb;outline-offset:3px}</style>
-  <h1>Sem conexão com a internet</h1>
-  <p>Seus dados financeiros precisam de uma conexão para carregar. Verifique a rede e tente novamente.</p>
-  <button onclick="location.reload()">Tentar novamente</button>
+  <script>
+    try {
+      const theme = localStorage.getItem('theme')
+      if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme
+    } catch {}
+  </script>
+  <style>
+    :root{color-scheme:light;--surface:#fff;--text:#171717;--muted:#4d4d4d;--focus:#006bff}
+    :root[data-theme=dark]{color-scheme:dark;--surface:#000;--text:#ededed;--muted:#a1a1a1;--focus:#71aaff}
+    @media(prefers-color-scheme:dark){:root:not([data-theme=light]){color-scheme:dark;--surface:#000;--text:#ededed;--muted:#a1a1a1;--focus:#71aaff}}
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100dvh;display:grid;place-items:center;background:var(--surface);color:var(--text);font:400 14px/1.5 system-ui,sans-serif}
+    main{width:100%;max-width:432px;padding:48px 24px;text-align:center;overflow-wrap:anywhere}
+    h1{margin:0;font-size:24px;line-height:32px;font-weight:600;letter-spacing:-.96px}
+    p{margin:16px 0 32px;color:var(--muted)}
+    button{min-height:40px;max-width:100%;padding:8px 14px;border:1px solid var(--text);border-radius:6px;background:var(--text);color:var(--surface);font:500 14px/20px system-ui,sans-serif;cursor:pointer}
+    button:focus-visible{outline:2px solid var(--focus);outline-offset:3px}
+  </style>
+  <main>
+    <h1>Sem conexão com a internet</h1>
+    <p>Seus dados financeiros precisam de uma conexão para carregar. Verifique a rede e tente novamente.</p>
+    <button type="button" onclick="location.reload()">Tentar novamente</button>
+  </main>
 </html>

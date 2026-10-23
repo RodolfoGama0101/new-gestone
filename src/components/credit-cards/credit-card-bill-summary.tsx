@@ -65,7 +65,7 @@ export function CreditCardBillSummary({ card, onEditTransaction }: { card: Credi
   }
 
   return <Card className="min-w-0 [&_button]:max-w-full [&_button]:whitespace-normal [&_button]:h-auto [&_button]:min-h-11 [&_button]:py-2">
-    <CardHeader>
+    <CardHeader className="border-b border-border pb-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <Button variant="outline" onClick={() => changeMonth(-1)} aria-label="Fatura anterior">Anterior</Button>
         <CardTitle className="min-w-0 break-words">Fatura de {format(month, 'MMMM yyyy', { locale: ptBR })}</CardTitle>
@@ -74,7 +74,7 @@ export function CreditCardBillSummary({ card, onEditTransaction }: { card: Credi
       <CardDescription>Fechamento dia {card.closingDay}. Total de todas as compras do ciclo.</CardDescription>
     </CardHeader>
     <CardContent>
-      <div className="mb-4 space-y-2 text-sm">
+      <div className="mb-6 space-y-4 rounded-md border border-border bg-muted p-4 text-sm">
         <p>Ciclo: {format(cycle.start, 'dd/MM/yyyy')} a {format(cycle.closing, 'dd/MM/yyyy')} · Fechamento: {format(cycle.closing, 'dd/MM/yyyy')}</p>
         <p>Vencimento: {cycle.due ? format(cycle.due, 'dd/MM/yyyy') : 'não definido — configure no cartão'}</p>
         <p>Status: {payment.isPending ? 'Carregando quitação…' : payment.error ? 'Quitação indisponível' : payment.data ? payment.data.amount === total ? 'Quitada' : 'Alterada após quitação — revise e estorne o registro' : today <= cycle.closesAt ? 'Aberta' : 'Fechada'}</p>
@@ -85,7 +85,7 @@ export function CreditCardBillSummary({ card, onEditTransaction }: { card: Credi
       {invoice.isPending ? <Loader2 className="size-6 animate-spin" aria-label="Carregando fatura" />
         : invoice.isError ? <div role="alert">Não foi possível carregar a fatura. <Button onClick={() => void invoice.refetch()}>Tentar novamente</Button></div>
           : <>
-            <p className="mb-3 break-words font-semibold">Total: {formatMoney(total)} · {transactions.length} compras</p>
+            <p className="mb-6 break-all text-2xl font-medium tracking-tight tabular-nums">Total: {formatMoney(total)} · {transactions.length} compras</p>
             {transactions.length === 0 ? <EmptyState title="Sem compras registradas" description="Nenhuma compra pertence a este ciclo." icon={Receipt} compact />
               : transactions.slice((currentPage - 1) * 20, currentPage * 20).map((tx) => <TransactionRow key={tx.id} transaction={tx} category={categories.find((category) => category.id === tx.categoryId)} onEdit={onEditTransaction ?? (() => {})} onDelete={() => setDeletingTransaction(tx)} />)}
             <div className="mt-3 flex flex-wrap items-center justify-between gap-2">

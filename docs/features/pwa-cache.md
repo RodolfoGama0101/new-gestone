@@ -4,6 +4,11 @@ O worker guarda somente recursos públicos precacheados e arquivos em `/_next/st
 
 Uma navegação sem rede mostra `public/offline.html`, página estática independente de sessão e React. Dados financeiros não são oferecidos offline. APIs falham sem rede e não recebem o HTML de fallback. Ao voltar à rede, o usuário pode tentar novamente.
 
+O fallback usa superfícies neutras e foco visível. Sua aparência acompanha o
+tema local (`light` ou `dark` na chave `theme`) ou a preferência do sistema,
+sem consultar a conta nem depender de recursos remotos. Ele não introduz uma
+nova marca; as telas React continuam reutilizando o componente `Logo` original.
+
 Uma nova versão assume controle com `skipWaiting`/`clientsClaim`. Na ativação, o worker personalizado remove caches antigos que não pertencem ao prefixo público atual. Assim, caches legados de páginas e APIs deixam de sobreviver à atualização. Esse trabalho é limitado ao origin da aplicação.
 
 Logout e troca de UID cancelam consultas e limpam o QueryClient antes de disponibilizar a próxima conta. A saída local funciona mesmo se a exclusão do cookie falhar. Um cookie HttpOnly só pode ser removido pelo servidor: se a saída ocorrer offline, a interface informa a necessidade de reconectar. O estado Firebase local é encerrado e a área financeira exige usuário ativo no cliente.

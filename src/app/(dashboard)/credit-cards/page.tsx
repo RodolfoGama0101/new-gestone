@@ -50,13 +50,13 @@ export default function CreditCardsPage() {
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-300">
+    <div className="space-y-8">
       {/* Cabeçalho */}
       <PageHeader
         title="Meus Cartões"
         description="Gerencie seus cartões de crédito e veja os lançamentos futuros."
         action={
-          <Button onClick={() => setIsAddOpen(true)} className="gap-1.5 font-semibold text-xs h-9 pr-4 pl-3 cursor-pointer">
+          <Button onClick={() => setIsAddOpen(true)} className="gap-2 font-medium text-sm min-h-10 px-3">
             <Plus className="size-4" />
             Adicionar Cartão
           </Button>
@@ -88,8 +88,8 @@ export default function CreditCardsPage() {
                     aria-label={`Selecionar cartão ${card.name}`}
                     className={`relative cursor-pointer transition-all duration-200 rounded-xl p-1 border-2 ${
                       isSelected
-                        ? 'border-primary shadow-md scale-[1.01]'
-                        : 'border-transparent hover:scale-[1.005] opacity-80 hover:opacity-100'
+                        ? 'border-primary'
+                        : 'border-transparent hover:border-border'
                     }`}
                   >
                     <CreditCardVisual
@@ -113,7 +113,7 @@ export default function CreditCardsPage() {
               <div className="space-y-4 animate-in fade-in duration-200">
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/40 pb-3 px-1">
                   <div>
-                    <h2 className="break-words text-lg font-bold text-foreground">{selectedCard.name}</h2>
+                    <h2 className="break-words text-xl font-medium text-foreground">{selectedCard.name}</h2>
                     <p className="text-xs text-muted-foreground">
                       {selectedCard.bankName} • Titular: {selectedCard.holderName}
                     </p>

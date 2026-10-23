@@ -16,7 +16,7 @@ import { PageHeader } from '@/components/shared/page-header'
 import { LoadError } from '@/components/shared/load-error'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ConfirmDialog } from '@/components/shared/confirm-dialog'
 
 function SeriesItem({
@@ -53,8 +53,10 @@ function SeriesItem({
   }
   return (
     <Card>
-      <CardContent className="space-y-3 pt-5">
-        <h2 className="font-semibold break-words">{item.description}</h2>
+      <CardHeader className="border-border border-b pb-6">
+        <CardTitle className="break-words">{item.description}</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
         <p className="text-sm">
           {item.kind === 'recurring' ? 'Mensal' : `${item.count} parcelas`} ·{' '}
           {formatMoney(item.amount)}{' '}
@@ -70,7 +72,7 @@ function SeriesItem({
               : 'Sem data final (limite de 1.200 meses)'}
         </p>
         {item.kind === 'installment' && (
-          <details className="text-sm">
+          <details className="border-border bg-muted rounded-md border p-4 text-sm">
             <summary className="cursor-pointer">
               Impacto nas faturas: {item.count} parcelas
             </summary>
@@ -96,7 +98,7 @@ function SeriesItem({
         )}
         {item.kind === 'recurring' && !item.cancelledFrom && (
           <form
-            className="flex flex-wrap items-end gap-2"
+            className="border-border flex min-w-0 flex-wrap items-end gap-3 border-t pt-6"
             onSubmit={(e) => {
               e.preventDefault()
               void run(() =>
@@ -109,7 +111,7 @@ function SeriesItem({
               )
             }}
           >
-            <label className="text-sm">
+            <label className="grid w-full min-w-0 gap-2 text-sm sm:w-auto">
               Descrição futura
               <Input
                 value={description}
@@ -119,7 +121,7 @@ function SeriesItem({
                 maxLength={200}
               />
             </label>
-            <label className="text-sm">
+            <label className="grid w-full min-w-0 gap-2 text-sm sm:w-auto">
               Valor mensal em R$
               <Input
                 value={amount}
@@ -138,8 +140,8 @@ function SeriesItem({
           no extrato. Cancelar remove somente ocorrências com data igual ou
           posterior ao corte escolhido.
         </p>
-        <div className="flex flex-wrap items-end gap-2">
-          <label className="text-sm">
+        <div className="border-border flex min-w-0 flex-wrap items-end gap-3 border-t pt-6">
+          <label className="grid w-full min-w-0 gap-2 text-sm sm:w-auto">
             Cancelar a partir de
             <Input
               type="date"
@@ -189,7 +191,7 @@ export default function SeriesPage() {
   if (series.error)
     return <LoadError error={series.error} retry={series.refetch} />
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
         title="Séries"
         description="Lançamentos recorrentes e compras parceladas. Crie uma série pelo formulário de lançamento."

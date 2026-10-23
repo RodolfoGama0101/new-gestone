@@ -192,13 +192,13 @@ export default function CategoriesPage() {
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-300">
+    <div className="space-y-8">
       {/* Header */}
       <PageHeader
         title="Categorias"
         description="Crie e gerencie as categorias para classificar suas despesas e receitas."
         action={
-          <Button onClick={() => setIsAddOpen(true)} className="gap-1.5 font-semibold text-xs h-9 pr-4 pl-3 cursor-pointer">
+          <Button onClick={() => setIsAddOpen(true)} className="gap-2 font-medium text-sm min-h-10 px-3">
             <Plus className="size-4" />
             Nova Categoria
           </Button>
@@ -212,14 +212,14 @@ export default function CategoriesPage() {
           icon={Tag}
         />
       ) : (
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="grid gap-6 xl:grid-cols-3">
           {/* Receitas */}
-          <Card className="border-border bg-card hover:shadow-[var(--shadow-elevated)] transition-shadow duration-300 flex flex-col">
-            <CardHeader className="pb-3 pt-5 px-6 border-b border-border/50">
+          <Card className="min-w-0 flex flex-col">
+            <CardHeader className="border-b border-border pb-6">
               <div className="space-y-1.5">
                 <div className="flex items-center gap-2">
-                  <CardTitle className="text-base font-bold text-income">Receitas</CardTitle>
-                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-income/10 text-income border border-income/20 shrink-0">
+                  <CardTitle className="text-base font-medium text-foreground">Receitas</CardTitle>
+                  <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border shrink-0">
                     {incomes.length}
                   </span>
                 </div>
@@ -239,11 +239,11 @@ export default function CategoriesPage() {
                   {incomes.map((cat) => (
                     <div
                       key={cat.id}
-                      className="flex items-center justify-between py-3 hover:bg-muted/10 px-2 rounded-lg transition-colors group"
+                      className="flex min-w-0 flex-wrap items-center justify-between gap-3 py-4 px-0 group"
                     >
                       <div className="flex items-center gap-3.5 min-w-0 flex-1">
                         <div 
-                          className="size-9 rounded-lg flex items-center justify-center shrink-0 border transition-all duration-200 group-hover:scale-105"
+                          className="size-9 rounded-lg flex items-center justify-center shrink-0 border "
                           style={{ 
                             backgroundColor: `${cat.color}15`, 
                             borderColor: `${cat.color}30`,
@@ -253,9 +253,9 @@ export default function CategoriesPage() {
                           <DynamicIcon name={cat.icon} className="size-4.5" />
                         </div>
                         <div className="flex flex-col min-w-0">
-                          <span className="text-sm font-semibold text-foreground truncate">{cat.name}</span>
+                          <span className="text-sm font-medium text-foreground [overflow-wrap:anywhere]">{cat.name}</span>
                           {cat.isDefault && (
-                            <span className="text-[10px] text-muted-foreground mt-0.5 flex items-center gap-1">
+                            <span className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
                               <span className="size-1 rounded-full bg-muted-foreground/50" />
                               Padrão do Sistema
                             </span>
@@ -266,7 +266,7 @@ export default function CategoriesPage() {
                         <Button 
                           variant="ghost" 
                           size="icon" 
-                          className="size-8 text-muted-foreground hover:text-foreground cursor-pointer rounded-lg hover:bg-muted"
+                          className="size-11 text-muted-foreground hover:text-foreground cursor-pointer rounded-lg hover:bg-muted"
                           aria-label={'Editar categoria ' + cat.name}
                           onClick={() => handleEditClick(cat)}
                         >
@@ -276,7 +276,7 @@ export default function CategoriesPage() {
                           <Button 
                             variant="ghost" 
                             size="icon" 
-                            className="size-8 text-muted-foreground hover:text-destructive cursor-pointer rounded-lg hover:bg-muted"
+                            className="size-11 text-muted-foreground hover:text-destructive cursor-pointer rounded-lg hover:bg-muted"
                             aria-label={'Excluir categoria ' + cat.name}
                             onClick={() => setDeletingId(cat.id)}
                           >
@@ -292,12 +292,12 @@ export default function CategoriesPage() {
           </Card>
 
           {/* Despesas */}
-          <Card className="border-border bg-card hover:shadow-[var(--shadow-elevated)] transition-shadow duration-300 flex flex-col">
-            <CardHeader className="pb-3 pt-5 px-6 border-b border-border/50">
+          <Card className="min-w-0 flex flex-col">
+            <CardHeader className="border-b border-border pb-6">
               <div className="space-y-1.5">
                 <div className="flex items-center gap-2">
-                  <CardTitle className="text-base font-bold text-expense">Despesas</CardTitle>
-                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-expense/10 text-expense border border-expense/20 shrink-0">
+                  <CardTitle className="text-base font-medium text-foreground">Despesas</CardTitle>
+                  <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border shrink-0">
                     {expenses.length}
                   </span>
                 </div>
@@ -317,11 +317,11 @@ export default function CategoriesPage() {
                   {expenses.map((cat) => (
                     <div
                       key={cat.id}
-                      className="flex items-center justify-between py-3 hover:bg-muted/10 px-2 rounded-lg transition-colors group"
+                      className="flex min-w-0 flex-wrap items-center justify-between gap-3 py-4 px-0 group"
                     >
                       <div className="flex items-center gap-3.5 min-w-0 flex-1">
                         <div 
-                          className="size-9 rounded-lg flex items-center justify-center shrink-0 border transition-all duration-200 group-hover:scale-105"
+                          className="size-9 rounded-lg flex items-center justify-center shrink-0 border "
                           style={{ 
                             backgroundColor: `${cat.color}15`, 
                             borderColor: `${cat.color}30`,
@@ -331,9 +331,9 @@ export default function CategoriesPage() {
                           <DynamicIcon name={cat.icon} className="size-4.5" />
                         </div>
                         <div className="flex flex-col min-w-0">
-                          <span className="text-sm font-semibold text-foreground truncate">{cat.name}</span>
+                          <span className="text-sm font-medium text-foreground [overflow-wrap:anywhere]">{cat.name}</span>
                           {cat.isDefault && (
-                            <span className="text-[10px] text-muted-foreground mt-0.5 flex items-center gap-1">
+                            <span className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
                               <span className="size-1 rounded-full bg-muted-foreground/50" />
                               Padrão do Sistema
                             </span>
@@ -344,7 +344,7 @@ export default function CategoriesPage() {
                         <Button 
                           variant="ghost" 
                           size="icon" 
-                          className="size-8 text-muted-foreground hover:text-foreground cursor-pointer rounded-lg hover:bg-muted"
+                          className="size-11 text-muted-foreground hover:text-foreground cursor-pointer rounded-lg hover:bg-muted"
                           aria-label={'Editar categoria ' + cat.name}
                           onClick={() => handleEditClick(cat)}
                         >
@@ -354,7 +354,7 @@ export default function CategoriesPage() {
                           <Button 
                             variant="ghost" 
                             size="icon" 
-                            className="size-8 text-muted-foreground hover:text-destructive cursor-pointer rounded-lg hover:bg-muted"
+                            className="size-11 text-muted-foreground hover:text-destructive cursor-pointer rounded-lg hover:bg-muted"
                             aria-label={'Excluir categoria ' + cat.name}
                             onClick={() => setDeletingId(cat.id)}
                           >
@@ -370,12 +370,12 @@ export default function CategoriesPage() {
           </Card>
 
           {/* Investimentos */}
-          <Card className="border-border bg-card hover:shadow-[var(--shadow-elevated)] transition-shadow duration-300 flex flex-col">
-            <CardHeader className="pb-3 pt-5 px-6 border-b border-border/50">
+          <Card className="min-w-0 flex flex-col">
+            <CardHeader className="border-b border-border pb-6">
               <div className="space-y-1.5">
                 <div className="flex items-center gap-2">
-                  <CardTitle className="text-base font-bold text-violet-600 dark:text-violet-500">Investimentos</CardTitle>
-                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-500/20 shrink-0">
+                  <CardTitle className="text-base font-medium text-foreground">Investimentos</CardTitle>
+                  <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border shrink-0">
                     {investments.length}
                   </span>
                 </div>
@@ -395,11 +395,11 @@ export default function CategoriesPage() {
                   {investments.map((cat) => (
                     <div
                       key={cat.id}
-                      className="flex items-center justify-between py-3 hover:bg-muted/10 px-2 rounded-lg transition-colors group"
+                      className="flex min-w-0 flex-wrap items-center justify-between gap-3 py-4 px-0 group"
                     >
                       <div className="flex items-center gap-3.5 min-w-0 flex-1">
                         <div 
-                          className="size-9 rounded-lg flex items-center justify-center shrink-0 border transition-all duration-200 group-hover:scale-105"
+                          className="size-9 rounded-lg flex items-center justify-center shrink-0 border "
                           style={{ 
                             backgroundColor: `${cat.color}15`, 
                             borderColor: `${cat.color}30`,
@@ -409,9 +409,9 @@ export default function CategoriesPage() {
                           <DynamicIcon name={cat.icon} className="size-4.5" />
                         </div>
                         <div className="flex flex-col min-w-0">
-                          <span className="text-sm font-semibold text-foreground truncate">{cat.name}</span>
+                          <span className="text-sm font-medium text-foreground [overflow-wrap:anywhere]">{cat.name}</span>
                           {cat.isDefault && (
-                            <span className="text-[10px] text-muted-foreground mt-0.5 flex items-center gap-1">
+                            <span className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
                               <span className="size-1 rounded-full bg-muted-foreground/50" />
                               Padrão do Sistema
                             </span>
@@ -422,7 +422,7 @@ export default function CategoriesPage() {
                         <Button 
                           variant="ghost" 
                           size="icon" 
-                          className="size-8 text-muted-foreground hover:text-foreground cursor-pointer rounded-lg hover:bg-muted"
+                          className="size-11 text-muted-foreground hover:text-foreground cursor-pointer rounded-lg hover:bg-muted"
                           aria-label={'Editar categoria ' + cat.name}
                           onClick={() => handleEditClick(cat)}
                         >
@@ -432,7 +432,7 @@ export default function CategoriesPage() {
                           <Button 
                             variant="ghost" 
                             size="icon" 
-                            className="size-8 text-muted-foreground hover:text-destructive cursor-pointer rounded-lg hover:bg-muted"
+                            className="size-11 text-muted-foreground hover:text-destructive cursor-pointer rounded-lg hover:bg-muted"
                             aria-label={'Excluir categoria ' + cat.name}
                             onClick={() => setDeletingId(cat.id)}
                           >
@@ -499,7 +499,7 @@ export default function CategoriesPage() {
               {/* Seletor de Cores */}
               <div className="space-y-2">
                 <Label>Cor de Destaque</Label>
-                <div className="grid grid-cols-5 gap-y-3 justify-items-center">
+                <div className="grid grid-cols-[repeat(auto-fit,minmax(44px,1fr))] gap-3 justify-items-center">
                   {PRESET_COLORS.map((color) => (
                     <button
                       key={color}
@@ -507,7 +507,7 @@ export default function CategoriesPage() {
                       aria-label={'Selecionar cor ' + color}
                       aria-pressed={selectedColor === color}
                       onClick={() => setSelectedColor(color)}
-                      className="size-9 rounded-full border border-border flex items-center justify-center cursor-pointer transition-transform hover:scale-105 active:scale-95 animate-transition"
+                      className="size-11 rounded-full border border-border flex items-center justify-center cursor-pointer transition-transform hover:scale-105 active:scale-95 animate-transition"
                       style={{ backgroundColor: color }}
                     >
                       {selectedColor === color && (
@@ -521,7 +521,7 @@ export default function CategoriesPage() {
               {/* Seletor de Ícones */}
               <div className="space-y-2">
                 <Label>Ícone</Label>
-                <div className="grid grid-cols-4 gap-2 border border-border rounded-xl p-3 max-h-[150px] overflow-y-auto scrollbar-thin">
+                <div className="grid grid-cols-[repeat(auto-fit,minmax(44px,1fr))] gap-2 border border-border rounded-xl p-3 max-h-[150px] overflow-y-auto scrollbar-thin">
                   {AVAILABLE_ICONS.map((item) => {
                     const isSelected = selectedIcon === item.name
                     return (
@@ -611,7 +611,7 @@ export default function CategoriesPage() {
               {/* Seletor de Cores */}
               <div className="space-y-2">
                 <Label>Cor de Destaque</Label>
-                <div className="grid grid-cols-5 gap-y-3 justify-items-center">
+                <div className="grid grid-cols-[repeat(auto-fit,minmax(44px,1fr))] gap-3 justify-items-center">
                   {PRESET_COLORS.map((color) => (
                     <button
                       key={color}
@@ -619,7 +619,7 @@ export default function CategoriesPage() {
                       aria-label={'Selecionar cor ' + color}
                       aria-pressed={selectedColor === color}
                       onClick={() => setSelectedColor(color)}
-                      className="size-9 rounded-full border border-border flex items-center justify-center cursor-pointer transition-transform hover:scale-105 active:scale-95 animate-transition"
+                      className="size-11 rounded-full border border-border flex items-center justify-center cursor-pointer transition-transform hover:scale-105 active:scale-95 animate-transition"
                       style={{ backgroundColor: color }}
                     >
                       {selectedColor === color && (
@@ -633,7 +633,7 @@ export default function CategoriesPage() {
               {/* Seletor de Ícones */}
               <div className="space-y-2">
                 <Label>Ícone</Label>
-                <div className="grid grid-cols-4 gap-2 border border-border rounded-xl p-3 max-h-[150px] overflow-y-auto scrollbar-thin">
+                <div className="grid grid-cols-[repeat(auto-fit,minmax(44px,1fr))] gap-2 border border-border rounded-xl p-3 max-h-[150px] overflow-y-auto scrollbar-thin">
                   {AVAILABLE_ICONS.map((item) => {
                     const isSelected = selectedIcon === item.name
                     return (

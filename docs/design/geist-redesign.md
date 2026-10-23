@@ -37,9 +37,20 @@ proporções ou variantes. O ícone ilustrativo do protótipo não substitui a l
 - Formulário com seleção neutra de tipo e botões empilhados em telas estreitas;
   prévia CSV com tabela, cabeçalhos e arquivo visualmente delimitados.
 
-Os layouts específicos de cartões, faturas, séries, orçamentos, relatórios,
-categorias, configurações e offline continuam pendentes. A tarefa permanece em
-andamento até validar todo o escopo.
+- Cartões e faturas com ações, totais e metadados organizados em superfícies
+  neutras; as cores escolhidas pelo usuário e a camada de contraste dos cartões
+  são preservadas.
+- Séries e orçamentos com cabeçalhos, formulários responsivos e indicadores
+  de progresso acessíveis. Barras saturam visualmente no limite, enquanto o
+  texto preserva o valor real, inclusive excessos e economia negativa.
+- Relatórios com resumos neutros, gráficos em largura completa e alternativas
+  textuais preservadas; categorias e configurações usam controles legíveis.
+- Estado offline React reutiliza a logo original. O HTML estático de fallback
+  mantém sua estrutura sem uma nova marca e acompanha o tema local/sistema.
+
+As 18 propostas foram adaptadas às rotas e aos fluxos existentes. Não foram
+introduzidos dados fictícios nas telas do produto nem alterações nos serviços,
+regras financeiras, autenticação ou contratos do Firestore.
 
 ## Verificação local
 
@@ -66,11 +77,36 @@ projeto permanece `demo-gestone-e2e`. Os arquivos do produto mantêm as portas
 originais. Os resultados dessa execução devem ser distinguidos do comando
 E2E padrão.
 
+Após a validação, a aplicação temporária foi arquivada fora do repositório,
+para não interferir na descoberta de testes e no lint. As capturas foram
+preservadas no diretório `dogfood-output/rod127-final-captures/`.
+
 Nesta cópia, build de produção, lint, tipos, 171 testes unitários e 28 E2E
 passaram para a etapa de painel, listas, lançamento e CSV. O teste de reflow
 encontrou e permitiu corrigir o seletor de mês na largura equivalente a 160 px.
 As capturas da matriz estão em
-`dogfood-output/rod127-financial-review/dogfood-output/rod-118/`.
+`dogfood-output/rod127-final-captures/rod-118/`.
+
+## Verificação final
+
+- Lint com exclusão dos artefatos em `dogfood-output/` e cópias em `.worktrees/`.
+- `npm run typecheck` e 34 suítes/173 testes unitários aprovados.
+- Build de produção com configuração fictícia aprovado na cópia isolada.
+- 28 fluxos E2E existentes, a nova matriz visual e 2 testes PWA aprovados.
+- 145 testes de regras aprovados na mesma cópia, com a porta 18080 e projeto
+  `demo-gestone-rules`. Portas e guardas foram adaptadas somente na cópia;
+  `firestore.rules`, índices e testes de regras do produto permanecem intactos.
+- Capturas de sete superfícies nos dois temas e em 320/1280 px em
+  `dogfood-output/rod127-final-captures/rod127-surfaces/`; a matriz financeira
+  também cobre reflow equivalente a 200%.
+- A logo em `src/components/shared/logo.tsx` permanece sem alterações desde o
+  início do redesign.
+
+As execuções padrão de desenvolvimento foram impedidas por servidores/portas
+já ocupados e apresentaram falhas de inicialização durante a compilação sob
+demanda da cópia. A validação aprovada foi feita sobre o build de produção
+isolado. Isso não comprova integração com contas reais nem substitui revisão
+em aparelhos físicos. Não houve deploy de produção.
 
 ## Critérios de aceite
 

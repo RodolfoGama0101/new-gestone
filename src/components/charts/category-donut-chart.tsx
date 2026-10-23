@@ -28,16 +28,16 @@ export function CategoryDonutChart({ data }: CategoryDonutChartProps) {
   }, [data])
 
   return (
-    <Card className="border-border bg-card h-full rounded-md shadow-xs transition-all duration-200 hover:shadow-sm">
-      <CardHeader className="px-5 pt-4 pb-2">
-        <CardTitle className="text-sm font-semibold">
+    <Card className="min-w-0 h-full">
+      <CardHeader className="border-b border-border pb-6">
+        <CardTitle className="text-base font-medium">
           Gastos por Categoria
         </CardTitle>
-        <CardDescription className="text-muted-foreground text-[10px]">
+        <CardDescription className="text-muted-foreground text-xs">
           Distribuição proporcional das despesas no período
         </CardDescription>
       </CardHeader>
-      <CardContent className="min-w-0 px-5 pb-4">
+      <CardContent className="min-w-0">
         {data.length === 0 ? (
           <div className="text-muted-foreground flex h-full items-center justify-center text-xs font-medium">
             Sem dados de despesas no período selecionado.

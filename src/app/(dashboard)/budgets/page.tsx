@@ -11,7 +11,7 @@ import {
 } from '@/lib/utils/format-money'
 import { PageHeader } from '@/components/shared/page-header'
 import { LoadError } from '@/components/shared/load-error'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 
@@ -44,7 +44,7 @@ export default function BudgetsPage() {
       />
     )
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
         title="Orçamentos e metas"
         description="Limites de consumo e meta de economia por mês, em reais."
@@ -75,8 +75,10 @@ export default function BudgetsPage() {
       ) : (
         <>
           <Card>
-            <CardContent className="space-y-4 pt-5">
-              <h2 className="font-semibold">Meta de economia</h2>
+            <CardHeader className="border-border border-b pb-6">
+              <CardTitle>Meta de economia</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
               <p>
                 Economia realizada: {formatCurrency(budget.data?.savings || 0)}
               </p>
@@ -90,18 +92,34 @@ export default function BudgetsPage() {
               ) : (
                 <p>Nenhuma meta definida para este mês.</p>
               )}
+              {budget.data?.goal && (
+                <progress
+                  className="[&::-webkit-progress-bar]:bg-muted [&::-webkit-progress-value]:bg-primary [&::-moz-progress-bar]:bg-primary h-2 w-full appearance-none overflow-hidden rounded-full"
+                  max={budget.data.goal}
+                  value={Math.max(
+                    0,
+                    Math.min(budget.data.savings, budget.data.goal),
+                  )}
+                  aria-label="Progresso da meta de economia"
+                  aria-valuetext={
+                    formatCurrency(budget.data.savings) +
+                    ' de ' +
+                    formatCurrency(budget.data.goal)
+                  }
+                />
+              )}
               <p className="text-muted-foreground text-sm">
                 Economia = receitas menos despesas de consumo; inclui o valor
                 investido e o saldo mantido.
               </p>
               <form
-                className="flex flex-wrap items-end gap-2"
+                className="border-border flex min-w-0 flex-wrap items-end gap-3 border-t pt-6"
                 onSubmit={(e) => {
                   e.preventDefault()
                   void act(() => budget.save({ goal: parseBudgetAmount(goal) }))
                 }}
               >
-                <label className="text-sm">
+                <label className="grid w-full min-w-0 gap-2 text-sm sm:w-auto">
                   Meta em R$
                   <Input
                     inputMode="decimal"
@@ -130,8 +148,10 @@ export default function BudgetsPage() {
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="space-y-4 pt-5">
-              <h2 className="font-semibold">Limites por categoria</h2>
+            <CardHeader className="border-border border-b pb-6">
+              <CardTitle>Limites por categoria</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
               {!budget.data?.limits.length && (
                 <p>Nenhum limite definido para este mês.</p>
               )}
@@ -143,7 +163,7 @@ export default function BudgetsPage() {
                 return (
                   <div
                     key={item.categoryId}
-                    className="space-y-2 border-b pb-4"
+                    className="border-border min-w-0 space-y-4 border-b pb-6 [overflow-wrap:anywhere]"
                   >
                     <h3 className="font-medium">
                       {category?.name || item.name}
@@ -156,7 +176,18 @@ export default function BudgetsPage() {
                         ? `Excesso: ${formatCurrency(spent - item.amount)}`
                         : `Restante: ${formatCurrency(item.amount - spent)}`}
                     </p>
-                    <div className="flex gap-2">
+                    <progress
+                      className="[&::-webkit-progress-bar]:bg-muted [&::-webkit-progress-value]:bg-primary [&::-moz-progress-bar]:bg-primary h-2 w-full appearance-none overflow-hidden rounded-full"
+                      max={item.amount}
+                      value={Math.min(spent, item.amount)}
+                      aria-label={'Consumo de ' + (category?.name || item.name)}
+                      aria-valuetext={
+                        formatCurrency(spent) +
+                        ' de ' +
+                        formatCurrency(item.amount)
+                      }
+                    />
+                    <div className="flex flex-wrap gap-2">
                       <Button
                         variant="outline"
                         disabled={budget.saving}
@@ -183,7 +214,7 @@ export default function BudgetsPage() {
                 )
               })}
               <form
-                className="flex flex-wrap items-end gap-3"
+                className="border-border flex min-w-0 flex-wrap items-end gap-3 border-t pt-6"
                 onSubmit={(e) => {
                   e.preventDefault()
                   void act(async () => {
@@ -202,7 +233,7 @@ export default function BudgetsPage() {
                   })
                 }}
               >
-                <label className="min-w-0 text-sm">
+                <label className="grid w-full min-w-0 gap-2 text-sm sm:w-auto">
                   Categoria
                   <select
                     aria-label="Categoria"
@@ -225,7 +256,7 @@ export default function BudgetsPage() {
                       ))}
                   </select>
                 </label>
-                <label className="text-sm">
+                <label className="grid w-full min-w-0 gap-2 text-sm sm:w-auto">
                   Limite em R$
                   <Input
                     required

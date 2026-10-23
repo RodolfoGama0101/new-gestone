@@ -195,7 +195,7 @@ export default function SettingsPage() {
               aria-controls="settings-panel"
               onClick={() => setActiveTab(tab.id)}
               className={cn(
-                "flex items-center gap-1.5 px-4 py-2.5 border-b-2 text-xs font-semibold transition-all -mb-px shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer",
+                "flex items-center gap-1.5 px-4 py-2.5 border-b-2 text-sm font-semibold transition-all -mb-px shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer",
                 isActive
                   ? "border-primary text-foreground"
                   : "border-transparent text-muted-foreground hover:text-foreground"
@@ -209,17 +209,17 @@ export default function SettingsPage() {
       </div>
 
       {/* Tab Contents */}
-      <div id="settings-panel" role="region" aria-labelledby={'settings-' + activeTab} className="max-w-2xl">
+      <div id="settings-panel" role="region" aria-labelledby={'settings-' + activeTab} className="min-w-0 max-w-2xl [&_button]:max-w-full [&_button]:whitespace-normal [&_button]:h-auto [&_button]:min-h-10 [&_button]:py-2">
         {activeTab === 'profile' && (
-          <Card className="border-border bg-card shadow-xs rounded-md">
-            <CardHeader className="pb-1 pt-4 px-5">
-              <CardTitle className="text-sm font-semibold">Meu Perfil</CardTitle>
-              <CardDescription className="text-xs text-muted-foreground">Atualize seu nome público de exibição</CardDescription>
+          <Card className="border-border bg-card rounded-md">
+            <CardHeader className="border-b border-border pb-6">
+              <CardTitle className="text-base font-medium">Meu Perfil</CardTitle>
+              <CardDescription className="text-sm text-muted-foreground">Atualize seu nome público de exibição</CardDescription>
             </CardHeader>
-            <CardContent className="px-5 pb-5 pt-3">
+            <CardContent>
               <form onSubmit={handleSaveName} className="space-y-4">
                 <div className="space-y-1.5">
-                  <Label htmlFor="displayName" className="text-xs">Nome de Exibição</Label>
+                  <Label htmlFor="displayName" className="text-sm">Nome de Exibição</Label>
                   <Input
                     id="displayName"
                     value={name}
@@ -228,10 +228,10 @@ export default function SettingsPage() {
                     maxLength={50}
                     required
                     disabled={isSavingName}
-                    className="h-9 text-xs rounded-md"
+                    className="h-10 text-base md:text-sm rounded-md"
                   />
                 </div>
-                <Button type="submit" disabled={isSavingName} className="w-full text-xs font-semibold h-9 rounded-md cursor-pointer gap-2">
+                <Button type="submit" disabled={isSavingName} className="w-full text-sm font-medium h-10 rounded-md cursor-pointer gap-2">
                   {isSavingName ? (
                     <>
                       <Loader2 className="size-3.5 animate-spin" />
@@ -247,20 +247,20 @@ export default function SettingsPage() {
         )}
 
         {activeTab === 'preferences' && (
-          <Card className="border-border bg-card shadow-xs rounded-md">
-            <CardHeader className="pb-1 pt-4 px-5">
-              <CardTitle className="text-sm font-semibold">Preferências</CardTitle>
-              <CardDescription className="text-xs text-muted-foreground">Personalize o comportamento do aplicativo</CardDescription>
+          <Card className="border-border bg-card rounded-md">
+            <CardHeader className="border-b border-border pb-6">
+              <CardTitle className="text-base font-medium">Preferências</CardTitle>
+              <CardDescription className="text-sm text-muted-foreground">Personalize o comportamento do aplicativo</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4 px-5 pb-5 pt-3">
+            <CardContent className="space-y-6">
               {/* Seletor de Tema */}
               <div className="space-y-2">
-                <Label className="text-xs">Tema da Interface</Label>
-                <div role="group" aria-label="Tema da interface" className="grid grid-cols-3 gap-2">
+                <Label className="text-sm">Tema da Interface</Label>
+                <div role="group" aria-label="Tema da interface" className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                   <Button
                     aria-pressed={theme === 'light'}
                     variant={theme === 'light' ? 'default' : 'outline'}
-                    className="gap-1.5 text-xs h-9 cursor-pointer justify-center rounded-md"
+                    className="gap-1.5 text-sm min-h-10 cursor-pointer justify-center rounded-md"
                     disabled={isLoadingPreferences || isSavingPreferences || !!preferencesError}
                     onClick={() => { void changeTheme('light').catch(() => undefined) }}
                   >
@@ -270,7 +270,7 @@ export default function SettingsPage() {
                   <Button
                     aria-pressed={theme === 'dark'}
                     variant={theme === 'dark' ? 'default' : 'outline'}
-                    className="gap-1.5 text-xs h-9 cursor-pointer justify-center rounded-md"
+                    className="gap-1.5 text-sm min-h-10 cursor-pointer justify-center rounded-md"
                     disabled={isLoadingPreferences || isSavingPreferences || !!preferencesError}
                     onClick={() => { void changeTheme('dark').catch(() => undefined) }}
                   >
@@ -280,7 +280,7 @@ export default function SettingsPage() {
                   <Button
                     aria-pressed={theme === 'system'}
                     variant={theme === 'system' ? 'default' : 'outline'}
-                    className="gap-1.5 text-xs h-9 cursor-pointer justify-center rounded-md"
+                    className="gap-1.5 text-sm min-h-10 cursor-pointer justify-center rounded-md"
                     disabled={isLoadingPreferences || isSavingPreferences || !!preferencesError}
                     onClick={() => { void changeTheme('system').catch(() => undefined) }}
                   >
@@ -291,26 +291,26 @@ export default function SettingsPage() {
               </div>
 
               {preferencesError && <div role="alert">Não foi possível carregar seu tema. <Button variant="outline" onClick={refetchPreferences}>Tentar novamente</Button></div>}
-              <p role="status" className="text-xs text-muted-foreground">{isSavingPreferences ? 'Salvando tema…' : 'O tema é salvo na sua conta e recuperado em outros dispositivos.'}</p>
+              <p role="status" className="text-sm text-muted-foreground">{isSavingPreferences ? 'Salvando tema…' : 'O tema é salvo na sua conta e recuperado em outros dispositivos.'}</p>
               <div className="space-y-2">
-                <p className="text-xs font-medium">Moeda Base</p>
+                <p className="text-sm font-medium">Moeda Base</p>
                 <p className="text-sm">Real Brasileiro (BRL, R$)</p>
-                <p className="text-xs text-muted-foreground">Valores em reais, armazenados em centavos. O CSV usa vírgula decimal e não realiza conversão de moeda.</p>
+                <p className="text-sm text-muted-foreground">Valores em reais, armazenados em centavos. O CSV usa vírgula decimal e não realiza conversão de moeda.</p>
               </div>
             </CardContent>
           </Card>
         )}
 
         {activeTab === 'security' && (
-          <Card className="border-border bg-card shadow-xs rounded-md">
-            <CardHeader className="pb-1 pt-4 px-5">
-              <CardTitle className="text-sm font-semibold">Segurança</CardTitle>
-              <CardDescription className="text-xs text-muted-foreground">Altere a senha de acesso a sua conta</CardDescription>
+          <Card className="border-border bg-card rounded-md">
+            <CardHeader className="border-b border-border pb-6">
+              <CardTitle className="text-base font-medium">Segurança</CardTitle>
+              <CardDescription className="text-sm text-muted-foreground">Altere a senha de acesso a sua conta</CardDescription>
             </CardHeader>
-            <CardContent className="px-5 pb-5 pt-3">
+            <CardContent>
               <form aria-busy={isSavingPassword} onSubmit={handleSavePassword} className="space-y-4">
                 <div className="space-y-1.5">
-                  <Label htmlFor="new-password" className="text-xs">Nova Senha</Label>
+                  <Label htmlFor="new-password" className="text-sm">Nova Senha</Label>
                   <Input
                     id="new-password" autoComplete="new-password" aria-invalid={!!passwordError} aria-describedby={passwordError ? 'password-error' : undefined}
                     type="password"
@@ -319,12 +319,12 @@ export default function SettingsPage() {
                     onChange={(e) => setNewPassword(e.target.value)}
                     required
                     disabled={isSavingPassword}
-                    className="h-9 text-xs rounded-md"
+                    className="h-10 text-base md:text-sm rounded-md"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="confirm-password" className="text-xs">Confirmar Nova Senha</Label>
+                  <Label htmlFor="confirm-password" className="text-sm">Confirmar Nova Senha</Label>
                   <Input
                     id="confirm-password" autoComplete="new-password" aria-invalid={!!passwordError} aria-describedby={passwordError ? 'password-error' : undefined}
                     type="password"
@@ -333,12 +333,12 @@ export default function SettingsPage() {
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
                     disabled={isSavingPassword}
-                    className="h-9 text-xs rounded-md"
+                    className="h-10 text-base md:text-sm rounded-md"
                   />
                 </div>
 
                 {passwordError && <p id="password-error" role="alert" className="text-sm text-destructive">{passwordError}</p>}
-                <Button type="submit" disabled={isSavingPassword} className="w-full text-xs font-semibold h-9 rounded-md cursor-pointer gap-2">
+                <Button type="submit" disabled={isSavingPassword} className="w-full text-sm font-medium h-10 rounded-md cursor-pointer gap-2">
                   {isSavingPassword ? (
                     <>
                       <Loader2 className="size-3.5 animate-spin" />
@@ -354,18 +354,18 @@ export default function SettingsPage() {
         )}
 
         {activeTab === 'danger' && (
-          <Card className="border-red-200 dark:border-red-900/30 bg-red-50/10 dark:bg-red-950/5 shadow-xs rounded-md">
-            <CardHeader className="pb-1 pt-4 px-5">
-              <CardTitle className="text-sm font-semibold text-red-700 dark:text-red-500">Excluir Conta</CardTitle>
-              <CardDescription className="text-xs text-red-600/80 dark:text-red-400/80">Ações permanentes e irreversíveis</CardDescription>
+          <Card className="border-destructive/30 bg-card rounded-md">
+            <CardHeader className="border-b border-border pb-6">
+              <CardTitle className="text-base font-medium text-destructive">Excluir Conta</CardTitle>
+              <CardDescription className="text-sm text-muted-foreground">Ações permanentes e irreversíveis</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4 px-5 pb-5 pt-3">
-              <p className="text-[11px] text-muted-foreground leading-normal font-medium">
+            <CardContent className="space-y-6">
+              <p className="text-sm text-muted-foreground leading-normal font-medium">
                 Ao apagar sua conta, todos os lançamentos financeiros, relatórios, configurações e categorias salvas no Firestore serão removidos permanentemente. A ação não poderá ser desfeita.
               </p>
 
               <div className="space-y-1.5">
-                <Label htmlFor="confirmDeleteText" className="text-[10px] font-bold text-muted-foreground uppercase">
+                <Label htmlFor="confirmDeleteText" className="text-sm font-medium text-muted-foreground uppercase">
                   Escreva &quot;EXCLUIR CONTA&quot; para liberar
                 </Label>
                 <Input
@@ -373,7 +373,7 @@ export default function SettingsPage() {
                   placeholder="EXCLUIR CONTA"
                   value={deleteConfirmationText}
                   onChange={(e) => setDeleteConfirmationText(e.target.value)}
-                  className="border-red-200/50 dark:border-red-900/20 focus-visible:ring-red-500 h-9 text-xs rounded-md"
+                  className="border-red-200/50 dark:border-red-900/20 focus-visible:ring-red-500 h-10 text-base md:text-sm rounded-md"
                 />
               </div>
 
@@ -382,7 +382,7 @@ export default function SettingsPage() {
                 variant="destructive" 
                 onClick={() => setIsDeleteConfirmOpen(true)}
                 disabled={deleteConfirmationText !== 'EXCLUIR CONTA' || isDeletingAccount}
-                className="w-full text-xs font-semibold cursor-pointer rounded-md h-9 gap-2"
+                className="w-full text-sm font-semibold cursor-pointer rounded-md min-h-10 gap-2"
               >
                 {isDeletingAccount ? (
                   <>

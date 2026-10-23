@@ -4,6 +4,11 @@ O MVP oferece limites mensais por categoria de despesa e uma meta mensal de econ
 
 Limites exibem realizado e restante, ou excesso escrito em texto. O realizado soma apenas despesas da categoria pela mesma função de competência do dashboard. Compras de cartão consideram o fechamento registrado na compra, inclusive na virada do ano. Categorias arquivadas preservam limites e consumo histórico: não aceitam novos limites ou edição, mas permitem remover o limite. O nome salvo é fallback caso a categoria deixe de ser retornada.
 
+Os indicadores visuais usam esses mesmos centavos e expõem valores em reais
+para tecnologias assistivas. A barra se limita ao intervalo visual entre zero
+e a meta/limite, mas o texto mantém economia negativa, economia acima da meta
+e consumo excedente sem truncar os valores reais.
+
 Economia é receita menos despesa de consumo no mês. Inclui dinheiro investido e saldo mantido; investimentos não são subtraídos novamente nem somados como uma segunda receita. Reservas de futuras faturas não são outra despesa. A meta exibe o valor realizado, quanto falta ou que foi atingida. Os valores de entrada e cálculo usam centavos inteiros; totais acima do limite seguro geram erro.
 
 Persistência: `/users/{uid}/budgets/{yyyy-MM}` contém `amount` e `updatedAt` para a meta. `/limits/{categoryId}` contém `name`, `amount` e `updatedAt`. Excluir a meta não exclui limites; cada registro é independente. As regras exigem dono, mês válido, centavos positivos seguros e categoria ativa de despesa ou `both` do mesmo UID para gravar limites. Leitura e remoção continuam possíveis após arquivamento.

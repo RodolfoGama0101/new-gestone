@@ -33,14 +33,14 @@ export function CashFlowBarChart({ data }: CashFlowBarChartProps) {
   }
 
   return (
-    <Card className="border-border bg-card h-full rounded-md shadow-xs transition-all duration-200 hover:shadow-sm">
-      <CardHeader className="px-5 pt-4 pb-2">
-        <CardTitle className="text-sm font-semibold">Fluxo de Caixa</CardTitle>
+    <Card className="min-w-0 h-full">
+      <CardHeader className="border-b border-border pb-6">
+        <CardTitle className="text-base font-medium">Fluxo de Caixa</CardTitle>
         <CardDescription className="text-muted-foreground text-xs">
           Comparativo mensal de receitas vs despesas
         </CardDescription>
       </CardHeader>
-      <CardContent className="min-w-0 px-5 pb-4">
+      <CardContent className="min-w-0">
         {data.length === 0 ? (
           <div className="text-muted-foreground flex h-full items-center justify-center text-xs font-medium">
             Sem dados históricos no período selecionado.

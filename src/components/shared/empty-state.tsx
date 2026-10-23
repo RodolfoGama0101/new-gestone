@@ -19,7 +19,7 @@ export function EmptyState({
 }: EmptyStateProps) {
   return (
     <div className={cn(
-      "flex flex-col items-center justify-center rounded-md border border-dashed border-border bg-background-100 dark:bg-card/30 text-center animate-in fade-in zoom-in-98 duration-150",
+      "flex flex-col items-center justify-center rounded-md border border-border bg-background-100 dark:bg-card/30 text-center [overflow-wrap:anywhere]",
       compact ? "min-h-[140px] p-5" : "min-h-[280px] p-8"
     )}>
       <div className={cn(
@@ -29,7 +29,7 @@ export function EmptyState({
         <Icon className={compact ? "size-4.5" : "size-5"} />
       </div>
       <h3 className={cn("font-semibold text-foreground", compact ? "text-xs" : "text-sm")}>{title}</h3>
-      <p className={cn("text-muted-foreground text-xs leading-relaxed mt-1", compact ? "max-w-[200px]" : "max-w-xs")}>{description}</p>
+      <p className={cn("text-muted-foreground text-sm leading-relaxed mt-1", compact ? "max-w-[200px]" : "max-w-xs")}>{description}</p>
       {action && <div className={compact ? "mt-3" : "mt-4.5"}>{action}</div>}
     </div>
   )

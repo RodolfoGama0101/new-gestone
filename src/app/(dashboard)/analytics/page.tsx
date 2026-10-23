@@ -89,14 +89,14 @@ export default function AnalyticsPage() {
 
   // Seletor de Período
   const periodSelector = (
-    <div className="flex items-center gap-0.5 bg-background-100 dark:bg-card border border-border rounded-md p-0.5 shadow-sm">
+    <div className="flex items-center gap-0.5 bg-background-100 dark:bg-card border border-border rounded-md p-1">
       {[3, 6, 12].map((count) => (
         <Button
           key={count}
           variant={monthsCount === count ? 'default' : 'ghost'}
           size="sm"
           onClick={() => setMonthsCount(count)}
-          className="text-xs font-semibold px-2.5 h-7 cursor-pointer rounded-md"
+          className="text-sm font-medium px-3 min-h-10 rounded-md"
         >
           {count}M
         </Button>
@@ -116,7 +116,7 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <div className="space-y-6 [overflow-wrap:anywhere] animate-in fade-in duration-200">
+    <div className="space-y-8 [overflow-wrap:anywhere]">
       <PageHeader
         title="Relatórios"
         description="Analise seu fluxo de caixa e distribuição de despesas."
@@ -134,38 +134,38 @@ export default function AnalyticsPage() {
           {/* KPI Summary Cards */}
           <div className="grid grid-cols-1 gap-4 xl:grid-cols-4">
             {/* Total Receitas */}
-            <Card className="border-border bg-card shadow-xs rounded-md p-4 flex flex-col justify-between min-h-20 gap-2">
+            <Card className="border-border bg-card rounded-md p-6 flex flex-col justify-between min-h-32 gap-4">
               <span className="text-xs font-normal text-muted-foreground">Total Receitas (Período)</span>
-              <span className="break-all text-xl font-semibold text-green-700 dark:text-green-500 tracking-tight leading-none">
+              <span className="break-all text-xl font-semibold text-foreground tracking-tight leading-none">
                 {formatMoney(periodTotals.income)}
               </span>
             </Card>
             {/* Total Despesas */}
-            <Card className="border-border bg-card shadow-xs rounded-md p-4 flex flex-col justify-between min-h-20 gap-2">
+            <Card className="border-border bg-card rounded-md p-6 flex flex-col justify-between min-h-32 gap-4">
               <span className="text-xs font-normal text-muted-foreground">Total Despesas (Período)</span>
-              <span className="break-all text-xl font-semibold text-red-700 dark:text-red-500 tracking-tight leading-none">
+              <span className="break-all text-xl font-semibold text-foreground tracking-tight leading-none">
                 {formatMoney(periodTotals.expense)}
               </span>
             </Card>
             {/* Total Investimentos */}
-            <Card className="border-border bg-card shadow-xs rounded-md p-4 flex flex-col justify-between min-h-20 gap-2">
+            <Card className="border-border bg-card rounded-md p-6 flex flex-col justify-between min-h-32 gap-4">
               <span className="text-xs font-normal text-muted-foreground">Investido (Período)</span>
-              <span className="break-all text-xl font-semibold text-violet-700 dark:text-violet-500 tracking-tight leading-none">
+              <span className="break-all text-xl font-semibold text-foreground tracking-tight leading-none">
                 {formatMoney(periodTotals.investment)}
               </span>
             </Card>
             {/* Saldo Líquido */}
-            <Card className="border-border bg-card shadow-xs rounded-md p-4 flex flex-col justify-between min-h-20 gap-2">
+            <Card className="border-border bg-card rounded-md p-6 flex flex-col justify-between min-h-32 gap-4">
               <span className="text-xs font-normal text-muted-foreground">Saldo Líquido (Período)</span>
-              <span className={`break-all text-xl font-semibold tracking-tight leading-none ${periodTotals.balance >= 0 ? 'text-green-700 dark:text-green-500' : 'text-red-700 dark:text-red-500'}`}>
+              <span className="break-all text-xl font-semibold tracking-tight leading-none text-foreground">
                 {formatMoney(periodTotals.balance)}
               </span>
             </Card>
           </div>
 
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-6">
             {/* Fluxo de Caixa — ocupa toda a largura */}
-            <div className="min-w-0 md:col-span-2">
+            <div className="min-w-0">
               <CashFlowBarChart data={monthlyHistory} />
             </div>
 
