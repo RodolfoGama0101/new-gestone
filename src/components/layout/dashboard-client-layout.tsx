@@ -51,7 +51,7 @@ export function DashboardClientLayout({
         >
           {children}
         </main>
-        <footer className="border-border text-muted-foreground flex flex-wrap justify-between gap-4 border-t px-4 py-5 text-xs sm:px-8">
+        <footer className="border-border text-muted-foreground hidden h-16 shrink-0 items-center justify-between gap-4 border-t px-8 text-xs md:flex">
           <span>GestOne</span>
           <span>Valores em reais · BRL</span>
         </footer>

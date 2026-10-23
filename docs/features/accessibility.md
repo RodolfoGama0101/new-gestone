@@ -14,4 +14,6 @@ No painel, mês e novo lançamento ocupam linhas próprias abaixo de 640 px. O m
 
 A partir de 640 px, seletor de mês e botão de novo lançamento compartilham a mesma altura por alinhamento stretch, mantendo suas larguras conforme o conteúdo. A regressão está em `tests/e2e/mobile-navigation.test.ts`.
 
+O rodapé com marca e moeda aparece somente no desktop (a partir de 768 px), com 64 px de altura, igual à seção Aparência da barra lateral. No mobile, a navegação inferior permanece e o rodapé informativo é ocultado.
+
 Validação da correção em 23/10/2026: tipos, lint dos arquivos alterados e build passaram; a suíte com `npm test -- --runInBand --roots tests/unit` passou em 43 suítes/226 testes. O lint global encontrou erros em artefatos locais de `dogfood-output`; o Jest sem raiz explícita incluiu outros worktrees e apresentou colisões. O E2E não iniciou porque a porta 8081 estava ocupada. O novo teste de layout e a conferência visual permanecem pendentes.
