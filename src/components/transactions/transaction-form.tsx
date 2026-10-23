@@ -69,6 +69,8 @@ export function TransactionForm({
   const [schedule, setSchedule] = React.useState('single')
   const [installments, setInstallments] = React.useState('3')
   const [endDate, setEndDate] = React.useState('')
+  const [activeSection, setActiveSection] = React.useState('entry')
+  const sectionId = React.useId()
   const seriesRequest = React.useRef('')
 
   // Mutations diretas — o form não precisa buscar transações, apenas criar/atualizar
@@ -226,7 +228,16 @@ export function TransactionForm({
   }
 
   const handleFormSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    void handleSubmit(onSubmit, () => {
+    void handleSubmit(onSubmit, (validationErrors) => {
+      const hasEntryError = [
+        'type',
+        'description',
+        'amount',
+        'date',
+        'categoryId',
+        'creditCardId',
+      ].some((field) => field in validationErrors)
+      setActiveSection(hasEntryError ? 'entry' : 'details')
       // Controllers registram depois dos inputs; o foco segue a ordem visual.
       requestAnimationFrame(() => {
         formRef.current
@@ -249,370 +260,420 @@ export function TransactionForm({
       aria-busy={isLoading}
       onSubmit={handleFormSubmit}
       noValidate
-      className="space-y-5"
+      className="min-w-0 space-y-4"
     >
-      <div className="grid grid-cols-1 gap-x-4 gap-y-6 md:grid-cols-2">
-        {/* Seletor de Tipo (Receita / Despesa / Investimento) */}
-        <div className="space-y-1.5 md:col-span-2">
-          <Label htmlFor="transaction-type" className="text-[13px] font-medium">
-            Tipo de lançamento
-          </Label>
-          <select
-            id="transaction-type"
-            className="border-input bg-background focus-visible:outline-ring h-10 w-full rounded-md border px-3 text-sm"
-            value={watchType}
+      <nav
+        aria-label="Seções do lançamento"
+        className="bg-muted flex gap-1 rounded-lg p-1"
+      >
+        {[
+          { id: 'entry', label: 'Lançamento' },
+          ...(!isEditMode ? [{ id: 'repeat', label: 'Repetição' }] : []),
+          { id: 'details', label: 'Detalhes' },
+        ].map((section) => (
+          <Button
+            key={section.id}
+            id={`${sectionId}-${section.id}`}
+            type="button"
+            variant="ghost"
+            size="sm"
+            aria-pressed={activeSection === section.id}
+            aria-controls={`${sectionId}-${section.id}-panel`}
             disabled={isLoading}
-            onChange={(event) => {
-              const value = event.target.value as TransactionInput['type']
-              setValue('type', value)
-              setValue('categoryId', '')
-              if (value !== 'expense') setValue('creditCardId', 'none')
-            }}
+            className="aria-pressed:bg-background aria-pressed:text-foreground min-w-0 flex-1 px-2 text-xs aria-pressed:shadow-sm sm:text-sm"
+            onClick={() => setActiveSection(section.id)}
           >
-            <option value="expense">Despesa</option>
-            <option value="income">Receita</option>
-            <option value="investment">Investimento</option>
-          </select>
-        </div>
-
-        {/* Descrição */}
-        <div className="space-y-1.5 md:col-span-2">
-          <Label
-            htmlFor="description"
-            className="text-foreground text-sm font-semibold"
-          >
-            Descrição
-          </Label>
-          <Input
-            id="description"
-            {...fieldErrorProps('description', errors.description)}
-            placeholder="Ex: Aluguel, Supermercado"
-            disabled={isLoading}
-            {...register('description')}
-          />
-          {errors.description && (
-            <p
-              id="description-error"
-              role="alert"
-              className="text-destructive text-xs font-medium"
-            >
-              {errors.description.message}
-            </p>
-          )}
-        </div>
-
-        {/* Valor Monetário */}
-        <div className="space-y-1.5">
-          <Label
-            htmlFor="amount"
-            className="text-foreground text-sm font-semibold"
-          >
-            Valor
-          </Label>
-          <Controller
-            name="amount"
-            control={control}
-            render={({ field }) => (
-              <CurrencyInput
-                ref={field.ref}
-                onBlur={field.onBlur}
-                name={field.name}
-                id="amount"
-                {...fieldErrorProps('amount', errors.amount)}
-                value={
-                  typeof field.value === 'string'
-                    ? parseInt(field.value)
-                    : field.value
-                }
-                onChange={field.onChange}
-                disabled={isLoading}
-              />
-            )}
-          />
-          {errors.amount && (
-            <p
-              id="amount-error"
-              role="alert"
-              className="text-destructive text-xs font-medium"
-            >
-              {errors.amount.message}
-            </p>
-          )}
-        </div>
-
-        {/* Data */}
-        <div className="space-y-1.5">
-          <Label
-            htmlFor="date"
-            className="text-foreground text-sm font-semibold"
-          >
-            Data
-          </Label>
-          <Controller
-            name="date"
-            control={control}
-            render={({ field }) => (
-              <DatePicker
-                ref={field.ref}
-                onBlur={field.onBlur}
-                name={field.name}
-                id="date"
-                {...fieldErrorProps('date', errors.date)}
-                date={field.value}
-                setDate={field.onChange}
-                disabled={isLoading}
-              />
-            )}
-          />
-          {errors.date && (
-            <p
-              id="date-error"
-              role="alert"
-              className="text-destructive text-xs font-medium"
-            >
-              {errors.date.message}
-            </p>
-          )}
-        </div>
-
-        {/* Categoria */}
-        <div className="space-y-1.5">
-          <Label
-            htmlFor="categoryId"
-            className="text-foreground text-sm font-semibold"
-          >
-            Categoria
-          </Label>
-          <Controller
-            name="categoryId"
-            control={control}
-            render={({ field }) => (
-              <Select
-                value={field.value}
-                onValueChange={field.onChange}
-                disabled={isLoading || isCategoriesLoading}
-                items={categorySelectItems}
-              >
-                <SelectTrigger
-                  id="categoryId"
-                  {...fieldErrorProps('categoryId', errors.categoryId)}
-                  className="h-10 w-full rounded-lg"
-                >
-                  <SelectValue placeholder="Selecione uma categoria" />
-                </SelectTrigger>
-                <SelectContent>
-                  {filteredCategories.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          />
-          {errors.categoryId && (
-            <p
-              id="categoryId-error"
-              role="alert"
-              className="text-destructive text-xs font-medium"
-            >
-              {errors.categoryId.message}
-            </p>
-          )}
-        </div>
-
-        {/* Cartão de Crédito (Apenas para Despesa) */}
-        {watchType === 'expense' && (
-          <div className="space-y-1.5">
+            {section.label}
+          </Button>
+        ))}
+      </nav>
+      <section
+        id={`${sectionId}-entry-panel`}
+        aria-labelledby={`${sectionId}-entry`}
+        hidden={activeSection !== 'entry'}
+        className="sm:min-h-[320px]"
+      >
+        <div className="grid grid-cols-2 gap-4">
+          {/* Seletor de Tipo (Receita / Despesa / Investimento) */}
+          <div className="col-span-2 space-y-1.5">
             <Label
-              htmlFor="creditCardId"
+              htmlFor="transaction-type"
+              className="text-[13px] font-medium"
+            >
+              Tipo de lançamento
+            </Label>
+            <select
+              id="transaction-type"
+              className="border-input bg-background focus-visible:outline-ring h-10 w-full rounded-md border px-3 text-sm"
+              value={watchType}
+              disabled={isLoading}
+              onChange={(event) => {
+                const value = event.target.value as TransactionInput['type']
+                setValue('type', value)
+                setValue('categoryId', '')
+                if (value !== 'expense') setValue('creditCardId', 'none')
+              }}
+            >
+              <option value="expense">Despesa</option>
+              <option value="income">Receita</option>
+              <option value="investment">Investimento</option>
+            </select>
+          </div>
+
+          {/* Descrição */}
+          <div className="col-span-2 space-y-1.5">
+            <Label
+              htmlFor="description"
               className="text-foreground text-sm font-semibold"
             >
-              Forma de Pagamento (Cartão)
+              Descrição
+            </Label>
+            <Input
+              id="description"
+              {...fieldErrorProps('description', errors.description)}
+              placeholder="Ex: Aluguel, Supermercado"
+              disabled={isLoading}
+              {...register('description')}
+            />
+            {errors.description && (
+              <p
+                id="description-error"
+                role="alert"
+                className="text-destructive text-xs font-medium"
+              >
+                {errors.description.message}
+              </p>
+            )}
+          </div>
+
+          {/* Valor Monetário */}
+          <div className="space-y-1.5">
+            <Label
+              htmlFor="amount"
+              className="text-foreground text-sm font-semibold"
+            >
+              Valor
             </Label>
             <Controller
-              name="creditCardId"
+              name="amount"
+              control={control}
+              render={({ field }) => (
+                <CurrencyInput
+                  ref={field.ref}
+                  onBlur={field.onBlur}
+                  name={field.name}
+                  id="amount"
+                  {...fieldErrorProps('amount', errors.amount)}
+                  value={
+                    typeof field.value === 'string'
+                      ? parseInt(field.value)
+                      : field.value
+                  }
+                  onChange={field.onChange}
+                  disabled={isLoading}
+                />
+              )}
+            />
+            {errors.amount && (
+              <p
+                id="amount-error"
+                role="alert"
+                className="text-destructive text-xs font-medium"
+              >
+                {errors.amount.message}
+              </p>
+            )}
+          </div>
+
+          {/* Data */}
+          <div className="space-y-1.5">
+            <Label
+              htmlFor="date"
+              className="text-foreground text-sm font-semibold"
+            >
+              Data
+            </Label>
+            <Controller
+              name="date"
+              control={control}
+              render={({ field }) => (
+                <DatePicker
+                  ref={field.ref}
+                  onBlur={field.onBlur}
+                  name={field.name}
+                  id="date"
+                  {...fieldErrorProps('date', errors.date)}
+                  date={field.value}
+                  dateFormat="dd/MM/yyyy"
+                  className="gap-1 px-2 [&_svg]:mr-0 [&_svg]:hidden sm:[&_svg]:block"
+                  setDate={field.onChange}
+                  disabled={isLoading}
+                />
+              )}
+            />
+            {errors.date && (
+              <p
+                id="date-error"
+                role="alert"
+                className="text-destructive text-xs font-medium"
+              >
+                {errors.date.message}
+              </p>
+            )}
+          </div>
+
+          {/* Categoria */}
+          <div className="col-span-2 space-y-1.5 sm:col-span-1">
+            <Label
+              htmlFor="categoryId"
+              className="text-foreground text-sm font-semibold"
+            >
+              Categoria
+            </Label>
+            <Controller
+              name="categoryId"
               control={control}
               render={({ field }) => (
                 <Select
-                  value={field.value || 'none'}
+                  value={field.value}
                   onValueChange={field.onChange}
-                  disabled={isLoading}
-                  items={cardSelectItems}
+                  disabled={isLoading || isCategoriesLoading}
+                  items={categorySelectItems}
                 >
                   <SelectTrigger
-                    id="creditCardId"
-                    {...fieldErrorProps('creditCardId', errors.creditCardId)}
+                    id="categoryId"
+                    {...fieldErrorProps('categoryId', errors.categoryId)}
                     className="h-10 w-full rounded-lg"
                   >
-                    <SelectValue placeholder="Sem cartão (Débito)" />
+                    <SelectValue placeholder="Selecione uma categoria" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">
-                      Não usar cartão (Débito)
-                    </SelectItem>
-                    {selectableCards.map((card) => (
-                      <SelectItem key={card.id} value={card.id}>
-                        {card.name} ({card.bankName})
-                        {card.archived
-                          ? ' — arquivado'
-                          : !card.isActive
-                            ? ' — inativo'
-                            : ''}
+                    {filteredCategories.map((cat) => (
+                      <SelectItem key={cat.id} value={cat.id}>
+                        {cat.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               )}
             />
-            {errors.creditCardId && (
+            {errors.categoryId && (
               <p
-                id="creditCardId-error"
+                id="categoryId-error"
                 role="alert"
-                className="text-destructive text-sm"
+                className="text-destructive text-xs font-medium"
               >
-                {errors.creditCardId.message}
+                {errors.categoryId.message}
               </p>
             )}
           </div>
-        )}
 
-        {/* Tags (Opcional) */}
-        <div className="space-y-1.5 md:col-span-2">
-          <Label
-            htmlFor="tags"
-            className="text-foreground text-sm font-semibold"
-          >
-            Tags (separadas por vírgula)
-          </Label>
-          <Input
-            id="tags"
-            {...fieldErrorProps('tags', errors.tags)}
-            placeholder="Ex: essencial, compras, viagem"
-            disabled={isLoading}
-            onChange={(e) => {
-              const val = e.target.value
-              const tagsArray = val
-                .split(',')
-                .map((t) => t.trim())
-                .filter(Boolean)
-              setValue('tags', tagsArray)
-            }}
-            defaultValue={formatTags(editingTransaction?.tags)}
-          />
-          {errors.tags && (
-            <p
-              id="tags-error"
-              role="alert"
-              className="text-destructive text-sm"
-            >
-              {errors.tags.message ??
-                'Use até 20 tags, com no máximo 40 caracteres cada.'}
-            </p>
+          {/* Cartão de Crédito (Apenas para Despesa) */}
+          {watchType === 'expense' && (
+            <div className="col-span-2 space-y-1.5 sm:col-span-1">
+              <Label
+                htmlFor="creditCardId"
+                className="text-foreground text-sm font-semibold"
+              >
+                Forma de Pagamento (Cartão)
+              </Label>
+              <Controller
+                name="creditCardId"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    value={field.value || 'none'}
+                    onValueChange={field.onChange}
+                    disabled={isLoading}
+                    items={cardSelectItems}
+                  >
+                    <SelectTrigger
+                      id="creditCardId"
+                      {...fieldErrorProps('creditCardId', errors.creditCardId)}
+                      className="h-10 w-full rounded-lg"
+                    >
+                      <SelectValue placeholder="Sem cartão (Débito)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">
+                        Não usar cartão (Débito)
+                      </SelectItem>
+                      {selectableCards.map((card) => (
+                        <SelectItem key={card.id} value={card.id}>
+                          {card.name} ({card.bankName})
+                          {card.archived
+                            ? ' — arquivado'
+                            : !card.isActive
+                              ? ' — inativo'
+                              : ''}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {errors.creditCardId && (
+                <p
+                  id="creditCardId-error"
+                  role="alert"
+                  className="text-destructive text-sm"
+                >
+                  {errors.creditCardId.message}
+                </p>
+              )}
+            </div>
           )}
         </div>
+      </section>
 
-        {/* Notas adicionais */}
-        <div className="space-y-1.5 md:col-span-2">
-          <Label
-            htmlFor="notes"
-            className="text-foreground text-sm font-semibold"
-          >
-            Anotações / Notas
-          </Label>
-          <Textarea
-            id="notes"
-            {...fieldErrorProps('notes', errors.notes)}
-            rows={3}
-            placeholder="Alguma observação importante sobre esta transação..."
-            disabled={isLoading}
-            {...register('notes')}
-          />
-          {errors.notes && (
-            <p
-              id="notes-error"
-              role="alert"
-              className="text-destructive text-xs font-medium"
+      <section
+        id={`${sectionId}-details-panel`}
+        aria-labelledby={`${sectionId}-details`}
+        hidden={activeSection !== 'details'}
+        className="sm:min-h-[320px]"
+      >
+        <div className="space-y-4">
+          {/* Tags (Opcional) */}
+          <div className="space-y-1.5">
+            <Label
+              htmlFor="tags"
+              className="text-foreground text-sm font-semibold"
             >
-              {errors.notes.message}
-            </p>
-          )}
+              Tags (separadas por vírgula)
+            </Label>
+            <Input
+              id="tags"
+              {...fieldErrorProps('tags', errors.tags)}
+              placeholder="Ex: essencial, compras, viagem"
+              disabled={isLoading}
+              onChange={(e) => {
+                const val = e.target.value
+                const tagsArray = val
+                  .split(',')
+                  .map((t) => t.trim())
+                  .filter(Boolean)
+                setValue('tags', tagsArray)
+              }}
+              defaultValue={formatTags(editingTransaction?.tags)}
+            />
+            {errors.tags && (
+              <p
+                id="tags-error"
+                role="alert"
+                className="text-destructive text-sm"
+              >
+                {errors.tags.message ??
+                  'Use até 20 tags, com no máximo 40 caracteres cada.'}
+              </p>
+            )}
+          </div>
+
+          {/* Notas adicionais */}
+          <div className="space-y-1.5">
+            <Label
+              htmlFor="notes"
+              className="text-foreground text-sm font-semibold"
+            >
+              Anotações / Notas
+            </Label>
+            <Textarea
+              id="notes"
+              {...fieldErrorProps('notes', errors.notes)}
+              rows={3}
+              placeholder="Alguma observação importante sobre esta transação..."
+              disabled={isLoading}
+              {...register('notes')}
+            />
+            {errors.notes && (
+              <p
+                id="notes-error"
+                role="alert"
+                className="text-destructive text-xs font-medium"
+              >
+                {errors.notes.message}
+              </p>
+            )}
+          </div>
         </div>
-      </div>
+      </section>
 
       {!isEditMode && (
-        <fieldset
-          className="border-border bg-muted space-y-4 rounded-md border p-4"
-          disabled={isLoading}
+        <section
+          id={`${sectionId}-repeat-panel`}
+          aria-labelledby={`${sectionId}-repeat`}
+          hidden={activeSection !== 'repeat'}
+          className="sm:min-h-[320px]"
         >
-          <legend className="px-1 text-sm font-medium">
-            Frequência e parcelamento
-          </legend>
-          <div className="space-y-1.5">
-            <Label htmlFor="schedule">Modo do lançamento</Label>
-            <Select
-              value={schedule}
-              disabled={isLoading}
-              items={[
-                { value: 'single', label: 'Avulso' },
-                { value: 'recurring', label: 'Recorrente mensal' },
-                { value: 'installment', label: 'Compra parcelada no cartão' },
-              ]}
-              onValueChange={(value) => {
-                if (!value) return
-                setSchedule(value)
-                seriesRequest.current = ''
-              }}
-            >
-              <SelectTrigger id="schedule" className="min-h-11">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="single">Avulso</SelectItem>
-                <SelectItem value="recurring">Recorrente mensal</SelectItem>
-                <SelectItem value="installment">Compra parcelada no cartão</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          {schedule === 'recurring' && (
-            <>
-              <label className="block text-sm">
-                Repetir até (opcional)
-                <DatePicker
-                  aria-label="Repetir até (opcional)"
-                  date={parsePeriodDate(endDate)}
-                  setDate={(date) =>
-                    setEndDate(date ? format(date, 'yyyy-MM-dd') : '')
-                  }
-                  clearable
-                />
-              </label>
-              <p className="text-muted-foreground text-sm">
-                Valor por mês. Ocorrências vencidas são geradas ao abrir o app,
-                até 120 por execução. Gerencie futuras em Séries.
-              </p>
-            </>
-          )}
-          {schedule === 'installment' && (
-            <>
-              <label className="block text-sm">
-                Quantidade de parcelas
-                <Input
-                  type="number"
-                  min={2}
-                  max={120}
-                  value={installments}
-                  onChange={(e) => setInstallments(e.target.value)}
-                />
-              </label>
-              <p className="text-muted-foreground text-sm">
-                Informe o valor total da compra acima e selecione um cartão
-                ativo. O total será distribuído sem perda de centavos nas
-                próximas faturas. Parcelas podem ser editadas individualmente.
-              </p>
-            </>
-          )}
-        </fieldset>
+          <fieldset className="space-y-4" disabled={isLoading}>
+            <legend className="sr-only">Frequência e parcelamento</legend>
+            <div className="space-y-1.5">
+              <Label htmlFor="schedule">Modo do lançamento</Label>
+              <Select
+                value={schedule}
+                disabled={isLoading}
+                items={[
+                  { value: 'single', label: 'Avulso' },
+                  { value: 'recurring', label: 'Recorrente mensal' },
+                  { value: 'installment', label: 'Compra parcelada no cartão' },
+                ]}
+                onValueChange={(value) => {
+                  if (!value) return
+                  setSchedule(value)
+                  seriesRequest.current = ''
+                }}
+              >
+                <SelectTrigger id="schedule" className="min-h-11">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="single">Avulso</SelectItem>
+                  <SelectItem value="recurring">Recorrente mensal</SelectItem>
+                  <SelectItem value="installment">
+                    Compra parcelada no cartão
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {schedule === 'recurring' && (
+              <>
+                <label className="block text-sm">
+                  Repetir até (opcional)
+                  <DatePicker
+                    aria-label="Repetir até (opcional)"
+                    date={parsePeriodDate(endDate)}
+                    setDate={(date) =>
+                      setEndDate(date ? format(date, 'yyyy-MM-dd') : '')
+                    }
+                    clearable
+                  />
+                </label>
+                <p className="text-muted-foreground text-sm">
+                  Valor por mês. Ocorrências vencidas são geradas ao abrir o
+                  app, até 120 por execução. Gerencie futuras em Séries.
+                </p>
+              </>
+            )}
+            {schedule === 'installment' && (
+              <>
+                <label className="block text-sm">
+                  Quantidade de parcelas
+                  <Input
+                    type="number"
+                    min={2}
+                    max={120}
+                    value={installments}
+                    onChange={(e) => setInstallments(e.target.value)}
+                  />
+                </label>
+                <p className="text-muted-foreground text-sm">
+                  Informe o valor total da compra acima e selecione um cartão
+                  ativo. O total será distribuído sem perda de centavos nas
+                  próximas faturas. Parcelas podem ser editadas individualmente.
+                </p>
+              </>
+            )}
+          </fieldset>
+        </section>
       )}
       {editingTransaction?.seriesId && (
         <p className="text-muted-foreground text-sm">
@@ -623,7 +684,7 @@ export function TransactionForm({
       {/* Botões de Ação */}
       <Button
         type="submit"
-        className="mt-2 h-11 w-full cursor-pointer rounded-lg text-sm font-medium"
+        className="h-11 w-full cursor-pointer rounded-lg text-sm font-medium"
         disabled={isLoading}
       >
         {isLoading ? (
