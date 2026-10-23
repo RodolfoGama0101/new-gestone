@@ -1,13 +1,9 @@
 'use client'
 
-import * as React from 'react'
-
 interface TooltipPayloadItem {
   name?: string
   value?: number | string
   color?: string
-  dataKey?: string | number
-  payload?: Record<string, unknown>
 }
 
 interface GeistChartTooltipProps {
@@ -17,62 +13,54 @@ interface GeistChartTooltipProps {
   valueFormatter?: (value: number) => string
 }
 
+const SERIES_LABELS: Record<string, string> = {
+  income: 'Receitas',
+  expense: 'Despesas',
+  investment: 'Investimentos',
+  balance: 'Saldo acumulado',
+}
+
 export function GeistChartTooltip({
   active,
   payload,
   label,
   valueFormatter,
 }: GeistChartTooltipProps) {
-  if (!active || !payload || payload.length === 0) {
-    return null
-  }
-
-  const formatValue = (val: number | string | undefined) => {
-    if (val === undefined) return ''
-    const numVal = typeof val === 'number' ? val : Number(val)
-    if (isNaN(numVal)) return String(val)
-    return valueFormatter ? valueFormatter(numVal) : numVal.toLocaleString('pt-BR')
-  }
-
+  if (!active || !payload?.length) return null
   return (
-    <div className="rounded-md border border-border bg-popover p-2.5 shadow-sm text-xs select-none min-w-[120px] animate-in fade-in duration-75">
+    <div className="bg-popover text-popover-foreground max-w-[min(280px,calc(100vw-2rem))] rounded-lg border p-3 text-xs shadow-sm">
       {label && (
-        <div className="font-semibold text-foreground mb-1.5 capitalize">
-          {label}
-        </div>
+        <p className="mb-3 border-b pb-2 font-medium capitalize">{label}</p>
       )}
-      <div className="space-y-1">
+      <dl className="space-y-2">
         {payload.map((item, index) => {
-          const isIncome = item.name === 'income' || item.name?.toLowerCase().includes('receita')
-          const isExpense = item.name === 'expense' || item.name?.toLowerCase().includes('despesa')
-          
-          let displayColor = item.color || 'var(--primary)'
-          let displayName = item.name
-
-          if (isIncome) {
-            displayColor = 'var(--income)'
-            displayName = 'Receita'
-          } else if (isExpense) {
-            displayColor = 'var(--expense)'
-            displayName = 'Despesa'
-          }
-
+          const value = Number(item.value)
           return (
-            <div key={index} className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-1.5 text-muted-foreground">
-                <span 
-                  className="size-1.5 rounded-full shrink-0" 
-                  style={{ backgroundColor: displayColor }}
+            <div
+              key={index}
+              className="flex flex-wrap items-start justify-between gap-x-4 gap-y-1"
+            >
+              <dt className="text-muted-foreground flex min-w-0 items-start gap-2">
+                <span
+                  className="mt-1 size-2 shrink-0 rounded-sm"
+                  style={{ backgroundColor: item.color ?? 'var(--chart-1)' }}
+                  aria-hidden="true"
                 />
-                <span className="text-xs font-medium capitalize">{displayName}</span>
-              </div>
-              <span className="font-mono text-xs font-semibold text-foreground tabular-nums">
-                {formatValue(item.value)}
-              </span>
+                <span className="min-w-0 [overflow-wrap:anywhere]">
+                  {SERIES_LABELS[item.name ?? ''] ?? item.name}
+                </span>
+              </dt>
+              <dd className="font-medium [overflow-wrap:anywhere] tabular-nums">
+                {Number.isFinite(value)
+                  ? valueFormatter
+                    ? valueFormatter(value)
+                    : value.toLocaleString('pt-BR')
+                  : String(item.value ?? '')}
+              </dd>
             </div>
           )
         })}
-      </div>
+      </dl>
     </div>
   )
 }

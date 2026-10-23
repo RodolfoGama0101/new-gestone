@@ -12,6 +12,7 @@ import { AnalyticsHelper } from '@/lib/utils/analytics-helper'
 import { CategoryDonutChart } from '@/components/charts/category-donut-chart'
 import { CashFlowBarChart } from '@/components/charts/cash-flow-bar-chart'
 import { BalanceTrendAreaChart } from '@/components/charts/balance-trend-area-chart'
+import { ReportSummary } from '@/components/analytics/report-summary'
 import { PageHeader } from '@/components/shared/page-header'
 import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/shared/empty-state'
@@ -24,6 +25,7 @@ import { filterTransactionPeriod } from '@/lib/utils/transaction-date'
 import { AnalyticsDataService } from '@/services/analytics-data.service'
 import { useCurrentDate } from '@/hooks/use-current-date'
 import { format } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
 
 const EMPTY_ARRAY: Transaction[] = []
 
@@ -96,16 +98,21 @@ export default function AnalyticsPage() {
 
   // Seletor de Período
   const periodSelector = (
-    <div className="bg-background-100 dark:bg-card border-border flex items-center gap-0.5 rounded-md border p-1">
+    <div
+      role="group"
+      aria-label="Período do relatório"
+      className="bg-card border-border flex items-center gap-0.5 rounded-md border p-1"
+    >
       {[3, 6, 12].map((count) => (
         <Button
           key={count}
           variant={monthsCount === count ? 'default' : 'ghost'}
           size="sm"
           onClick={() => setMonthsCount(count)}
+          aria-pressed={monthsCount === count}
           className="min-h-10 rounded-md px-3 text-sm font-medium"
         >
-          {count}M
+          {count} meses
         </Button>
       ))}
     </div>
@@ -126,14 +133,6 @@ export default function AnalyticsPage() {
       />
     )
 
-  if (isLoading) {
-    return (
-      <div className="flex min-h-[400px] items-center justify-center">
-        <Loader2 className="text-primary size-7 animate-spin" />
-      </div>
-    )
-  }
-
   return (
     <div className="space-y-8 [overflow-wrap:anywhere]">
       <PageHeader
@@ -142,7 +141,25 @@ export default function AnalyticsPage() {
         action={periodSelector}
       />
 
-      {transactions.length === 0 ? (
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b pb-4 text-sm">
+        <span className="font-medium capitalize">
+          {format(startDate, 'MMM yyyy', { locale: ptBR })} —{' '}
+          {format(referenceDate, 'MMM yyyy', { locale: ptBR })}
+        </span>
+        <span className="text-muted-foreground text-xs">
+          Período por competência · inclui o mês atual
+        </span>
+      </div>
+
+      {isLoading ? (
+        <div
+          role="status"
+          className="text-muted-foreground flex min-h-[400px] items-center justify-center gap-3 text-sm"
+        >
+          <Loader2 className="size-5 animate-spin" aria-hidden="true" />
+          Carregando relatórios…
+        </div>
+      ) : transactions.length === 0 ? (
         <EmptyState
           title="Sem dados suficientes"
           description="Registre lançamentos de receitas ou despesas nas abas correspondentes para gerar relatórios visuais."
@@ -150,25 +167,23 @@ export default function AnalyticsPage() {
         />
       ) : (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 gap-6">
+          <ReportSummary data={monthlyHistory} />
+          <div className="grid min-w-0 grid-cols-1 gap-6">
             {/* Fluxo de Caixa — ocupa toda a largura */}
             <div className="min-w-0">
               <CashFlowBarChart data={monthlyHistory} />
             </div>
 
             {/* Evolução do Saldo */}
-            <div>
-              <details>
-                <summary className="cursor-pointer py-3 text-sm font-medium">
-                  Ver evolução do saldo acumulado
-                </summary>
+            <div className="grid min-w-0 items-start gap-6 xl:grid-cols-[1.15fr_1fr]">
+              <div className="min-w-0">
                 <BalanceTrendAreaChart data={monthlyHistory} />
-              </details>
-            </div>
+              </div>
 
-            {/* Gastos por Categoria */}
-            <div>
-              <CategoryDonutChart data={donutData} />
+              {/* Gastos por Categoria */}
+              <div className="min-w-0">
+                <CategoryDonutChart data={donutData} />
+              </div>
             </div>
           </div>
         </div>

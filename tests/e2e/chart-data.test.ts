@@ -72,7 +72,7 @@ test('gráficos expõem 20 categorias e séries sem hover em 320px nos dois tema
         exact: true,
       }),
     ).toBeVisible()
-  await page.getByText('Ver evolução do saldo acumulado', { exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Evolução de Saldo', exact: true })).toBeVisible()
   const summaries = page.getByText('Ver dados por período', { exact: true })
   for (const summary of await summaries.all()) {
     await summary.focus()
