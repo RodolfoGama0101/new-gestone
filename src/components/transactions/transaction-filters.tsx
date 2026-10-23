@@ -112,16 +112,16 @@ export function TransactionFilters() {
             <SelectValue placeholder="Tipo de lançamento" />
           </SelectTrigger>
           <SelectContent className="rounded-md">
-            <SelectItem value="all" className="rounded-md text-xs">
+            <SelectItem value="all" className="rounded-md">
               Todos os tipos
             </SelectItem>
-            <SelectItem value="income" className="rounded-md text-xs">
+            <SelectItem value="income" className="rounded-md">
               Receitas (Entradas)
             </SelectItem>
-            <SelectItem value="expense" className="rounded-md text-xs">
+            <SelectItem value="expense" className="rounded-md">
               Despesas (Saídas)
             </SelectItem>
-            <SelectItem value="investment" className="rounded-md text-xs">
+            <SelectItem value="investment" className="rounded-md">
               Investimentos
             </SelectItem>
           </SelectContent>
@@ -140,14 +140,14 @@ export function TransactionFilters() {
             <SelectValue placeholder="Categoria" />
           </SelectTrigger>
           <SelectContent className="rounded-md">
-            <SelectItem value="all" className="rounded-md text-xs">
+            <SelectItem value="all" className="rounded-md">
               Todas as categorias
             </SelectItem>
             {categories.map((cat) => (
               <SelectItem
                 key={cat.id}
                 value={cat.id}
-                className="rounded-md text-xs"
+                className="rounded-md"
               >
                 {cat.name}
               </SelectItem>
