@@ -14,6 +14,15 @@ import { LoadError } from '@/components/shared/load-error'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { MonthPicker } from '@/components/shared/month-picker'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
 export default function BudgetsPage() {
   const [month, setMonth] = useState(() => format(new Date(), 'yyyy-MM'))
@@ -50,22 +59,20 @@ export default function BudgetsPage() {
         title="Orçamentos e metas"
         description="Defina sua meta de economia e os limites de gastos do mês."
         action={
-          <label className="block max-w-xs space-y-1 text-sm">
-            Mês de competência
-            <Input
-              type="month"
+          <div className="w-full max-w-xs space-y-1 text-sm">
+            <Label htmlFor="budget-month">Mês de competência</Label>
+            <MonthPicker
+              id="budget-month"
               value={month}
               disabled={budget.saving}
-              onChange={(e) => {
-                if (e.target.value) {
-                  setMonth(e.target.value)
-                  setMessage('')
-                  setGoal('')
-                  setLimit('')
-                }
+              onChange={(value) => {
+                setMonth(value)
+                setMessage('')
+                setGoal('')
+                setLimit('')
               }}
             />
-          </label>
+          </div>
         }
       />
 
@@ -294,32 +301,47 @@ export default function BudgetsPage() {
                     })
                   }}
                 >
-                  <label className="grid w-full min-w-0 gap-2 text-[13px] sm:w-auto">
-                    Categoria
-                    <select
-                      aria-label="Categoria"
-                      className="bg-background block h-11 w-full rounded-md border px-2"
+                  <div className="grid w-full min-w-0 gap-2 text-[13px] sm:w-auto">
+                    <Label htmlFor="budget-category">Categoria</Label>
+                    <Select
                       required
+                      disabled={budget.saving}
                       value={categoryId}
-                      onChange={(e) => setCategoryId(e.target.value)}
-                    >
-                      <option value="">Selecione</option>
-                      {categories
+                      onValueChange={(value) => setCategoryId(value ?? '')}
+                      items={categories
                         .filter(
                           (c) =>
                             !c.archived &&
                             (c.type === 'expense' || c.type === 'both'),
                         )
-                        .map((c) => (
-                          <option key={c.id} value={c.id}>
-                            {c.name}
-                          </option>
-                        ))}
-                    </select>
-                  </label>
+                        .map((c) => ({ value: c.id, label: c.name }))}
+                    >
+                      <SelectTrigger
+                        id="budget-category"
+                        className="h-10 min-w-0 sm:min-w-44"
+                      >
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories
+                          .filter(
+                            (c) =>
+                              !c.archived &&
+                              (c.type === 'expense' || c.type === 'both'),
+                          )
+                          .map((c) => (
+                            <SelectItem key={c.id} value={c.id}>
+                              {c.name}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <label className="grid w-full min-w-0 gap-2 text-[13px] sm:w-auto">
                     Limite em R$
                     <Input
+                      className="h-10"
+                      disabled={budget.saving}
                       required
                       inputMode="decimal"
                       value={limit}
