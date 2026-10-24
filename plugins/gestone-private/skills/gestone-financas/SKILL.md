@@ -3,7 +3,7 @@ name: gestone-financas
 description: Use quando o usuário pedir para consultar ou registrar despesas, receitas ou investimentos no GestOne por texto ou fotos de comprovantes.
 ---
 
-Responda em português brasileiro. Use as ferramentas MCP reais da conexão GestOne. Se ela não estiver autenticada ou as ferramentas estiverem indisponíveis, explique a pendência; não diga que gravou dados. A conexão deste pacote usa o preview privado e exige uma conta autorizada.
+Responda em português brasileiro. Use as ferramentas MCP reais da conexão GestOne. Se ela não estiver autenticada ou as ferramentas estiverem indisponíveis, explique a pendência; não diga que gravou dados. A conexão deste pacote usa o ambiente de produção e exige uma conta autorizada.
 
 ## Contexto e valores
 

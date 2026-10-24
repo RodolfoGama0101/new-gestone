@@ -1,27 +1,28 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
-  "name": "gestone-private",
-  "version": "0.2.0",
-  "description": "Consulte e registre despesas, receitas e investimentos no GestOne por texto ou comprovantes, com revisão de lotes.",
   "author": {
-    "name": "GestOne"
+    "email": "rodolfo.gama2006@gmail.com",
+    "name": "Rodolfo Gama"
   },
+  "description": "Consulte e registre despesas, receitas e investimentos no GestOne por texto ou comprovantes, com revisão de lotes.",
   "extensions": {
     "com.openai": {
       "interface": {
-        "displayName": "GestOne",
-        "shortDescription": "Finanças por texto e recibos",
-        "longDescription": "Integração privada com o GestOne. Lançamentos avulsos por texto e lotes/comprovantes com prévia, confirmação e alertas de duplicidade. Requer OAuth e uma conta autorizada no ambiente de preview.",
-        "developerName": "GestOne",
-        "category": "Finance",
         "capabilities": [],
-        "logo": "./assets/icon.jpg",
+        "category": "Finance",
         "composerIcon": "./assets/icon.jpg",
         "defaultPrompt": [
           "Registre uma despesa no GestOne.",
           "Revise meus comprovantes antes de registrar no GestOne."
-        ]
+        ],
+        "developerName": "Rodolfo Gama",
+        "displayName": "GestOne",
+        "logo": "./assets/icon.jpg",
+        "longDescription": "Integração privada com o GestOne. Lançamentos avulsos por texto e lotes/comprovantes com prévia, confirmação e alertas de duplicidade. Requer OAuth e uma conta autorizada no ambiente de produção.",
+        "shortDescription": "Finanças por texto e recibos"
       }
     }
-  }
+  },
+  "name": "gestone-private",
+  "version": "0.2.1"
 }

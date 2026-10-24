@@ -2,7 +2,7 @@
 
 ## Estado
 
-Servidor MCP com OAuth, consulta paginada e gravação individual ou em lotes com prévia e confirmação. Ferramentas: `get_context`, `list_transactions`, `create_transaction`, `prepare_transactions` e `commit_transactions`. Em 24/10/2026, o usuário confirmou lançamentos feitos pelo ChatGPT; a conta de teste contém despesas e receita. Idempotência e revogação foram verificadas em uma conexão de teste separada, preservando a conexão do usuário. O pacote privado está em `plugins/gestone-private`; o plugin foi salvo como privado na conta do usuário. Ativação e validação do fluxo de fotos no ChatGPT são etapas separadas do teste do servidor. Não houve merge, publicação de regras ou deploy de produção.
+Servidor MCP com OAuth, consulta paginada e gravação individual ou em lotes com prévia e confirmação. Ferramentas: `get_context`, `list_transactions`, `create_transaction`, `prepare_transactions` e `commit_transactions`. Em 24/10/2026, o usuário confirmou lançamentos feitos pelo ChatGPT; a conta de teste contém despesas e receita. Idempotência e revogação foram verificadas em uma conexão de teste separada, preservando a conexão do usuário. O pacote privado está em `plugins/gestone-private`; o plugin foi salvo como privado na conta do usuário. Ativação e validação do fluxo de fotos no ChatGPT são etapas separadas do teste do servidor. A publicação em produção foi autorizada pelo usuário em 24/10/2026; consulte o registro de produção ao final. Não há publicação de regras ou índices nesta entrega.
 
 Não há API de IA, modelo local, Redis, cron ou armazenamento de imagens. A interpretação acontece no ChatGPT, dentro dos recursos e limites da conta.
 
@@ -133,3 +133,24 @@ Pacote validado e salvo na conta pessoal como PRIVATE, versão `0.2.0`: [GestOne
 Criar/salvar o plugin não comprova instalação ou autenticação no ChatGPT. Abrir o link, ativar o plugin, conectar com OAuth e testar um comprovante fictício. Conferir a prévia e as possíveis duplicatas antes de confirmar. Se continuar usando a conexão de teste já criada, usar Refresh para descobrir as novas ferramentas. A interpretação real da foto e o comportamento da skill no ChatGPT ainda precisam dessa validação; o commit atômico foi verificado nos emuladores.
 
 A repetição final do E2E inicialmente encontrou a porta 8081 ocupada por um Java remanescente dos testes deste próprio checkout. Após conferir caminho, projeto fictício e PID, somente esses emuladores foram encerrados e a execução final passou. Nenhum processo alheio foi encerrado. A inspeção do pacote identificou que o ícone existente era JPEG com extensão PNG; no pacote foi preservada a imagem, com extensão `.jpg` correta.
+
+## Publicação em produção — 24/10/2026
+
+Após o teste da nota pelo ChatGPT (interpretação da imagem, prévia e commit confirmados pelo usuário na conta de teste), o usuário autorizou explicitamente colocar o MCP em produção. O commit da nota foi realizado pelo endpoint MCP autenticado via HTTP nesta conversa, pois as ferramentas nativas do plugin ainda não estavam expostas aqui. Isso valida o servidor e a confirmação, sem alegar validação do carregamento nativo das ferramentas do pacote.
+
+Configuração de produção preparada na Vercel, com a conta principal indicada pelo usuário validada no Firebase Authentication e sem incluir a conta de teste na allowlist:
+
+| Campo | Produção |
+| --- | --- |
+| Origem | `https://new-gestone.vercel.app` |
+| Endpoint MCP | `https://new-gestone.vercel.app/api/mcp` |
+| Client ID | `gestone-chatgpt` |
+| Client Secret | Vazio: cliente público com PKCE S256 |
+| Callback permitido | `https://chatgpt.com/connector_platform_oauth_redirect` |
+| UID permitido | Somente a conta principal indicada pelo usuário, configurada no servidor |
+
+A credencial Firebase Admin e as variáveis públicas Firebase já existiam em Production; seus valores secretos não foram recuperados ou alterados. As quatro variáveis MCP foram adicionadas somente em Production. O domínio principal já permite acesso HTTP público, portanto nenhuma proteção global foi desabilitada. O preview de branch mantém sua configuração independente com a conta de teste.
+
+A publicação do código ocorre por fast-forward da `main` remota, apenas se ela continuar ancestral da branch revisada, para acionar a integração Git da Vercel. O checkout principal do usuário não é trocado nem resetado. Não há migração, atualização de dados financeiros, nova infraestrutura ou cobrança. A versão `0.2.1` do mesmo plugin privado troca endpoint e Client ID para produção; preserva identidade, audiência privada, instruções financeiras e prompts. A nova autorização OAuth deve ser concluída pelo próprio usuário com sua conta Google no GestOne; nenhum token da conta principal é fabricado pelo Admin SDK.
+
+Código de servidor idêntico ao validado na expansão: lint, tipos, 256 testes unitários, 150 de regras, build e dois fluxos E2E MCP aprovados. Esta etapa altera apenas pacote/configuração/documentação; a verificação é dos manifests, da sincronização dos arquivos de compatibilidade e do diff. A suíte E2E geral não foi repetida. Após o deploy, verificar descoberta OAuth e recusa de acesso anônimo/conta de teste no domínio principal. Nenhum lançamento de teste deve ser criado na conta principal automaticamente.

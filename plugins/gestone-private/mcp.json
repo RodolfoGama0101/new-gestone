@@ -3,18 +3,24 @@
   "mcpServers": {
     "gestone": {
       "type": "streamable-http",
-      "url": "https://new-gestone-git-codex-gestone-mcp-rodolfo-gamas-projects.vercel.app/api/mcp",
+      "url": "https://new-gestone.vercel.app/api/mcp",
       "extensions": {
         "com.openai": {
           "auth": {
             "type": "oauth",
             "client": {
               "mode": "provided",
-              "clientId": "gestone-chatgpt-preview",
+              "clientId": "gestone-chatgpt",
               "tokenEndpointAuthMethod": "none"
             },
-            "baseScopes": ["transactions:read", "transactions:write"],
-            "defaultScopes": ["transactions:read", "transactions:write"]
+            "baseScopes": [
+              "transactions:read",
+              "transactions:write"
+            ],
+            "defaultScopes": [
+              "transactions:read",
+              "transactions:write"
+            ]
           }
         }
       }
