@@ -1,4 +1,4 @@
-import { Timestamp } from 'firebase-admin/firestore'
+import { Timestamp, type Transaction } from 'firebase-admin/firestore'
 import { adminDb } from '@/lib/firebase/admin'
 import { assertAllowedUid, hashSecret, McpError } from '@/lib/mcp/config'
 import {
@@ -58,15 +58,7 @@ export async function createMcpTransaction(
   const operation = adminDb.doc(`users/${uid}/mcpOperations/${requestId}`)
   const record = adminDb.doc(`users/${uid}/transactions/mcp-${requestId}`)
   return adminDb.runTransaction(async (tx) => {
-    const connection = (await tx.get(connectionRef(uid, connectionId))).data()
-    if (
-      !connection ||
-      connection.revoked ||
-      connection.expiresAt.toMillis() <= Date.now() ||
-      !connection.scopes.includes('transactions:write')
-    ) {
-      throw new McpError('insufficient_scope', 'Conexão sem permissão.', 403)
-    }
+    await assertMcpWriteConnection(tx, uid, connectionId)
     const previous = (await tx.get(operation)).data()
     if (previous) {
       if (previous.payloadHash !== payloadHash)
@@ -77,42 +69,7 @@ export async function createMcpTransaction(
         )
       return { ...previous.result, repeated: true }
     }
-    const category = (
-      await tx.get(adminDb.doc(`users/${uid}/categories/${data.categoryId}`))
-    ).data()
-    if (
-      !category ||
-      category.archived ||
-      ![data.type, 'both'].includes(category.type)
-    )
-      throw new McpError(
-        'invalid_category',
-        'Escolha uma categoria ativa compatível.',
-      )
-    let closingDay: number | null = null
-    if (data.creditCardId) {
-      if (data.type !== 'expense')
-        throw new McpError(
-          'invalid_card',
-          'Cartão só pode ser usado em despesas.',
-        )
-      const card = (
-        await tx.get(
-          adminDb.doc(`users/${uid}/creditCards/${data.creditCardId}`),
-        )
-      ).data()
-      if (
-        !card ||
-        card.archived ||
-        card.isActive !== true ||
-        !Number.isInteger(card.closingDay) ||
-        card.closingDay < 1 ||
-        card.closingDay > 31
-      ) {
-        throw new McpError('invalid_card', 'Este cartão não está disponível.')
-      }
-      closingDay = card.closingDay
-    }
+    const { cardClosingDay: closingDay } = await resolveMcpWrite(tx, uid, data)
     const quota = adminDb.doc(`users/${uid}/mcpUsage/writes-${civilDate()}`)
     const used = (await tx.get(quota)).data()?.count ?? 0
     if (used >= 500)
@@ -137,4 +94,62 @@ export async function createMcpTransaction(
     })
     return { ...result, repeated: false }
   })
+}
+
+export async function assertMcpWriteConnection(
+  tx: Transaction,
+  uid: string,
+  connectionId: string,
+) {
+  const connection = (await tx.get(connectionRef(uid, connectionId))).data()
+  if (
+    !connection ||
+    connection.revoked ||
+    connection.expiresAt.toMillis() <= Date.now() ||
+    !connection.scopes.includes('transactions:write')
+  ) {
+    throw new McpError('insufficient_scope', 'Conexão sem permissão.', 403)
+  }
+}
+
+export async function resolveMcpWrite(
+  tx: Transaction,
+  uid: string,
+  data: ReturnType<typeof normalizeMcpTransaction>,
+) {
+  const category = (
+    await tx.get(adminDb.doc(`users/${uid}/categories/${data.categoryId}`))
+  ).data()
+  if (
+    !category ||
+    category.archived ||
+    ![data.type, 'both'].includes(category.type)
+  )
+    throw new McpError(
+      'invalid_category',
+      'Escolha uma categoria ativa compatível.',
+    )
+  let closingDay: number | null = null
+  if (data.creditCardId) {
+    if (data.type !== 'expense')
+      throw new McpError(
+        'invalid_card',
+        'Cartão só pode ser usado em despesas.',
+      )
+    const card = (
+      await tx.get(adminDb.doc(`users/${uid}/creditCards/${data.creditCardId}`))
+    ).data()
+    if (
+      !card ||
+      card.archived ||
+      card.isActive !== true ||
+      !Number.isInteger(card.closingDay) ||
+      card.closingDay < 1 ||
+      card.closingDay > 31
+    ) {
+      throw new McpError('invalid_card', 'Este cartão não está disponível.')
+    }
+    closingDay = card.closingDay
+  }
+  return { ...data, cardClosingDay: closingDay }
 }

@@ -1,0 +1,23 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+  "mcpServers": {
+    "gestone": {
+      "type": "streamable-http",
+      "url": "https://new-gestone-git-codex-gestone-mcp-rodolfo-gamas-projects.vercel.app/api/mcp",
+      "extensions": {
+        "com.openai": {
+          "auth": {
+            "type": "oauth",
+            "client": {
+              "mode": "provided",
+              "clientId": "gestone-chatgpt-preview",
+              "tokenEndpointAuthMethod": "none"
+            },
+            "baseScopes": ["transactions:read", "transactions:write"],
+            "defaultScopes": ["transactions:read", "transactions:write"]
+          }
+        }
+      }
+    }
+  }
+}

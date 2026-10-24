@@ -214,7 +214,13 @@ test('MCP privado: OAuth, PKCE, concorrência, regras financeiras, quotas e revo
   const tools = await rpc(request, access, 'tools/list', {})
   expect(
     tools.result.tools.map((item: { name: string }) => item.name).sort(),
-  ).toEqual(['create_transaction', 'get_context'])
+  ).toEqual([
+    'commit_transactions',
+    'create_transaction',
+    'get_context',
+    'list_transactions',
+    'prepare_transactions',
+  ])
   const context = await tool(request, access, 'get_context')
   expect(context.data.timeZone).toBe('America/Sao_Paulo')
   expect(context.data.categories).toHaveLength(3)
@@ -403,7 +409,9 @@ test('MCP privado: OAuth, PKCE, concorrência, regras financeiras, quotas e revo
     .getByLabel('E-mail', { exact: true })
     .fill('mcp-owner@example.test')
   await page.getByLabel('Senha', { exact: true }).fill('TesteSeguro@123')
-  await page.getByRole('button', { name: 'Entrar na conta', exact: true }).click()
+  await page
+    .getByRole('button', { name: 'Entrar na conta', exact: true })
+    .click()
   await expect(page).toHaveURL(`${origin}/`, { timeout: 90000 })
   await page.route('https://example.test/oauth/callback**', (route) =>
     route.fulfill({ status: 200, body: 'Callback fictício recebido.' }),
@@ -446,4 +454,312 @@ test('MCP privado: OAuth, PKCE, concorrência, regras financeiras, quotas e revo
     .catch(() => undefined)
   await session(request, 'demo-mcp-other')
   expect((await request.get('/api/mcp/connections')).status()).toBe(403)
+})
+
+test('MCP: consulta e lotes de comprovantes exigem prévia, confirmação e commit atômico', async ({
+  request,
+}) => {
+  test.setTimeout(180000)
+  await db.recursiveDelete(db.doc(`users/${uid}`))
+  await auth.deleteUser(uid).catch(() => undefined)
+  await auth.createUser({
+    uid,
+    email: 'mcp-owner@example.test',
+    password: 'TesteSeguro@123',
+  })
+  await db
+    .doc(`users/${uid}/categories/food`)
+    .set({ name: 'Alimentação', type: 'expense', archived: false })
+  await db
+    .doc(`users/${uid}/categories/salary`)
+    .set({ name: 'Salário', type: 'income', archived: false })
+  await db
+    .doc(`users/${uid}/creditCards/card`)
+    .set({ name: 'Cartão', closingDay: 20, isActive: true })
+  await session(request)
+  const issued = await (
+    await token(request, {
+      grant_type: 'authorization_code',
+      code: await code(request),
+      redirect_uri: redirectUri,
+      code_verifier: verifier,
+    })
+  ).json()
+  const access = issued.access_token
+  const collection = db.collection(`users/${uid}/transactions`)
+  const item = {
+    type: 'expense',
+    amount: 4000,
+    description: 'Mercado',
+    categoryId: 'food',
+    date: '2026-10-24',
+  }
+  const prepare = (key: string, transactions: unknown[] = [item]) =>
+    tool(request, access, 'prepare_transactions', {
+      idempotencyKey: key,
+      source: 'receipts',
+      transactions,
+    })
+  const commit = (
+    preview: { previewId: string; previewHash: string },
+    extra = {},
+  ) =>
+    tool(request, access, 'commit_transactions', {
+      previewId: preview.previewId,
+      previewHash: preview.previewHash,
+      confirmed: true,
+      ...extra,
+    })
+  const first = (
+    await prepare('batch-receipts-test-1234', [
+      item,
+      {
+        ...item,
+        type: 'income',
+        categoryId: 'salary',
+        description: 'Receita',
+        amount: 5000,
+      },
+    ])
+  ).data
+  expect(first.source).toBe('receipts')
+  expect(first.totals).toEqual({
+    expense: '4000',
+    income: '5000',
+    investment: '0',
+  })
+  expect(first.requiresConfirmation).toBe(true)
+  expect((await collection.get()).size).toBe(0)
+  const repeated = await prepare('batch-receipts-test-1234', [
+    item,
+    {
+      ...item,
+      type: 'income',
+      categoryId: 'salary',
+      description: 'Receita',
+      amount: 5000,
+    },
+  ])
+  expect(repeated.data.previewHash).toBe(first.previewHash)
+  expect(repeated.data.repeated).toBe(true)
+  expect(
+    (await prepare('batch-receipts-test-1234', [{ ...item, amount: 4100 }]))
+      .data.error,
+  ).toBe('idempotency_conflict')
+  const noConfirmation = await rpc(request, access, 'tools/call', {
+    name: 'commit_transactions',
+    arguments: {
+      previewId: first.previewId,
+      previewHash: first.previewHash,
+      confirmed: false,
+    },
+  })
+  expect(Boolean(noConfirmation.error || noConfirmation.result?.isError)).toBe(
+    true,
+  )
+  expect(
+    (await commit(first, { previewHash: '0'.repeat(64) })).data.error,
+  ).toBe('preview_mismatch')
+  const committed = await Promise.all([commit(first), commit(first)])
+  expect(committed.every((r) => !r.isError)).toBe(true)
+  expect(committed[0].data.ids).toEqual(committed[1].data.ids)
+  expect((await collection.get()).size).toBe(2)
+  // O resultado idempotente sobrevive a edição posterior e expiração.
+  await collection.doc(committed[0].data.ids[0]).update({ amount: 4100 })
+  await db
+    .doc(`users/${uid}/mcpOperations/${first.previewId}`)
+    .update({ expiresAt: Timestamp.fromMillis(0) })
+  expect((await commit(first)).data.ids).toEqual(committed[0].data.ids)
+  await collection.doc(committed[0].data.ids[0]).update({ amount: 4000 })
+  const duplicate = (await prepare('batch-duplicates-test-1234', [item, item]))
+    .data
+  expect(duplicate.duplicates).toHaveLength(2)
+  expect(duplicate.duplicates[0].existingIds).toContain(
+    committed[0].data.ids[0],
+  )
+  expect(duplicate.duplicates[0].batchIndexes).toEqual([1])
+  expect((await commit(duplicate)).data.error).toBe(
+    'duplicates_require_confirmation',
+  )
+  expect((await collection.get()).size).toBe(2)
+  expect((await commit(duplicate, { allowDuplicates: true })).data.count).toBe(
+    2,
+  )
+
+  // Cursor por data + ID: quatro registros no mesmo instante não se repetem entre páginas.
+  await db
+    .doc('users/demo-mcp-other/transactions/private')
+    .set({
+      ...item,
+      date: Timestamp.fromDate(new Date('2026-10-24T15:00:00Z')),
+    })
+  const page1 = (
+    await tool(request, access, 'list_transactions', {
+      startDate: '2026-10-24',
+      endDate: '2026-10-24',
+      limit: 2,
+    })
+  ).data
+  expect(page1.transactions).toHaveLength(2)
+  const page2 = (
+    await tool(request, access, 'list_transactions', {
+      startDate: '2026-10-24',
+      endDate: '2026-10-24',
+      limit: 2,
+      cursor: page1.nextCursor,
+    })
+  ).data
+  expect(page2.transactions).toHaveLength(2)
+  expect(
+    new Set(
+      [...page1.transactions, ...page2.transactions].map(
+        (r: { id: string }) => r.id,
+      ),
+    ).size,
+  ).toBe(4)
+  expect(page2.nextCursor).toBeNull()
+  expect(
+    (
+      await tool(request, access, 'list_transactions', {
+        startDate: '2026-10-25',
+        cursor: page1.nextCursor,
+      })
+    ).data.error,
+  ).toBe('invalid_cursor')
+  expect(
+    (
+      await tool(request, access, 'list_transactions', {
+        startDate: '2026-10-25',
+      })
+    ).data.transactions,
+  ).toEqual([])
+
+  const changed = (
+    await prepare('batch-stale-duplicate-123', [
+      { ...item, description: 'Mudança concorrente' },
+    ])
+  ).data
+  await collection
+    .doc('concurrent')
+    .set({
+      ...item,
+      description: 'Mudança concorrente',
+      date: Timestamp.fromDate(new Date('2026-10-24T15:00:00Z')),
+    })
+  expect((await commit(changed)).data.error).toBe('preview_stale')
+  const archived = (
+    await prepare('batch-archive-reference-123', [
+      item,
+      { ...item, type: 'income', categoryId: 'salary' },
+    ])
+  ).data
+  await db.doc(`users/${uid}/categories/salary`).update({ archived: true })
+  const before = (await collection.get()).size
+  expect((await commit(archived, { allowDuplicates: true })).data.error).toBe(
+    'invalid_category',
+  )
+  expect((await collection.get()).size).toBe(before)
+  await db.doc(`users/${uid}/categories/salary`).update({ archived: false })
+  const card = (
+    await prepare('batch-card-reference-1234', [
+      { ...item, creditCardId: 'card' },
+    ])
+  ).data
+  await db.doc(`users/${uid}/creditCards/card`).update({ closingDay: 22 })
+  expect((await commit(card, { allowDuplicates: true })).data.error).toBe(
+    'preview_stale',
+  )
+  const expired = (await prepare('batch-expired-preview-123')).data
+  await db
+    .doc(`users/${uid}/mcpOperations/${expired.previewId}`)
+    .update({ expiresAt: Timestamp.fromMillis(0) })
+  expect((await commit(expired, { allowDuplicates: true })).data.error).toBe(
+    'preview_expired',
+  )
+  const day = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Sao_Paulo',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date())
+  const limited = (await prepare('batch-daily-limit-12345', [item, item])).data
+  await db
+    .doc(`users/${uid}/mcpUsage/writes-${day}`)
+    .set({ count: 499, expiresAt: Timestamp.fromMillis(Date.now() + 86400000) })
+  expect((await commit(limited, { allowDuplicates: true })).data.error).toBe(
+    'rate_limit',
+  )
+  expect((await collection.get()).size).toBe(before)
+  expect(
+    (
+      await prepare('batch-invalid-reference-123', [
+        { ...item, categoryId: 'other-user-category' },
+      ])
+    ).data.error,
+  ).toBe('invalid_category')
+
+  const q = query()
+  q.set('scope', 'transactions:read')
+  const readCode = new URL(
+    (
+      await (
+        await request.post('/api/mcp/oauth/authorize', {
+          data: { query: q.toString() },
+          headers: { Origin: origin },
+        })
+      ).json()
+    ).redirect,
+  ).searchParams.get('code')!
+  const readTokens = await (
+    await token(request, {
+      grant_type: 'authorization_code',
+      code: readCode,
+      redirect_uri: redirectUri,
+      code_verifier: verifier,
+    })
+  ).json()
+  expect(
+    (
+      await tool(request, readTokens.access_token, 'prepare_transactions', {
+        idempotencyKey: 'read-only-scope-12345',
+        transactions: [item],
+      })
+    ).data.error,
+  ).toBe('insufficient_scope')
+  expect(
+    (await tool(request, readTokens.access_token, 'list_transactions')).data
+      .transactions.length,
+  ).toBe(before)
+  const otherConnection = await (
+    await token(request, {
+      grant_type: 'authorization_code',
+      code: await code(request),
+      redirect_uri: redirectUri,
+      code_verifier: verifier,
+    })
+  ).json()
+  expect(
+    (
+      await tool(request, otherConnection.access_token, 'commit_transactions', {
+        previewId: limited.previewId,
+        previewHash: limited.previewHash,
+        confirmed: true,
+        allowDuplicates: true,
+      })
+    ).data.error,
+  ).toBe('invalid_preview')
+  const identity = (
+    await db.doc(`users/${uid}/mcpSecrets/${hash(access)}`).get()
+  ).data()!
+  await db
+    .doc(`users/${uid}/mcpConnections/${identity.connectionId}`)
+    .update({ revoked: true })
+  expect(
+    (
+      await request.post('/api/mcp', {
+        headers: { Authorization: `Bearer ${access}` },
+        data: {},
+      })
+    ).status(),
+  ).toBe(401)
 })

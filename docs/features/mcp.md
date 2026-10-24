@@ -1,8 +1,8 @@
-# MCP privado — etapa inicial
+# MCP privado — lançamentos e comprovantes
 
 ## Estado
 
-Servidor MCP, OAuth e um lançamento simples para validar a conexão no ChatGPT. **O plano completo ainda não está concluído.** Ferramentas disponíveis: `get_context` e `create_transaction`. Consulta paginada, prévia/confirmação de lotes, fotos e instalação do plugin privado dependem da validação real inicial prevista no plano. Não houve publicação de regras nem configuração de produção; a conexão real e a instalação do plugin não foram executadas.
+Servidor MCP com OAuth, consulta paginada e gravação individual ou em lotes com prévia e confirmação. Ferramentas: `get_context`, `list_transactions`, `create_transaction`, `prepare_transactions` e `commit_transactions`. Em 24/10/2026, o usuário confirmou lançamentos feitos pelo ChatGPT; a conta de teste contém despesas e receita. Idempotência e revogação foram verificadas em uma conexão de teste separada, preservando a conexão do usuário. O pacote privado está em `plugins/gestone-private`; salvar/ativar o plugin e validar o fluxo de fotos no ChatGPT são etapas separadas do teste do servidor. Não houve merge, publicação de regras ou deploy de produção.
 
 Não há API de IA, modelo local, Redis, cron ou armazenamento de imagens. A interpretação acontece no ChatGPT, dentro dos recursos e limites da conta.
 
@@ -44,6 +44,24 @@ A criação valida categoria ativa compatível e cartão ativo no próprio UID, 
 
 Após timeout, repita **a mesma chave e entrada**. A repetição retorna o mesmo ID, inclusive após edição/exclusão manual posterior. Entrada diferente com a mesma chave gera `idempotency_conflict`. Pedidos legítimos iguais precisam de chaves diferentes. Não há deduplicação semântica nesta etapa.
 
+### Consulta e lotes
+
+`list_transactions`: `startDate`/`endDate` civis opcionais e inclusivos, `limit` de 1 a 50 (padrão 20), `cursor` opcional. Ordena por data decrescente e ID, retorna `transactions` e `nextCursor`. O cursor é vinculado à conta e ao intervalo; não representa um snapshot imutável se o histórico for editado durante a consulta. Os índices automáticos de data/ID são suficientes; não houve alteração de índices.
+
+`prepare_transactions`: recebe `idempotencyKey`, `source` (`text` ou `receipts`) e 1–20 `transactions` com o mesmo contrato individual. Valida todas as referências e congela a data padrão. Retorna itens, totais por tipo como strings decimais de centavos (sem overflow na soma), `previewId`, `previewHash`, expiração em 30 minutos e possíveis duplicatas. Não cria lançamentos. Mesma chave/entrada retorna a mesma prévia; entrada diferente conflita. Há limite de 20 novas prévias por hora.
+
+Duplicatas são igualdade de dia civil, tipo, valor e descrição sem distinção de acentos, caixa ou espaços repetidos. A categoria/cartão diferente não suprime o aviso. São verificadas dentro do lote e no histórico, com no máximo 500 documentos dos dias envolvidos. Acima disso, a preparação/commit falha com `duplicate_check_limit`, sem alegar revisão completa. Cada aviso retorna até cinco IDs existentes, a contagem total e um fingerprint da lista completa, evitando prévias maiores que o limite de documento. Isso não é reconhecimento visual de recibos semelhantes.
+
+`commit_transactions`: recebe somente `previewId`, `previewHash`, `confirmed: true` e `allowDuplicates` (padrão falso). Usa a mesma conta e conexão que preparou, revalida categoria/cartão, fechamento, expiração e duplicatas e grava todos os itens junto à quota diária numa transação. Possíveis duplicatas exigem `allowDuplicates: true` após confirmação explícita. Mudança de referências ou avisos exige nova prévia e nova confirmação. Falha de qualquer item não grava parte do lote. Repetir um commit concluído devolve os mesmos IDs, inclusive após expirar a prévia ou editar registros manualmente.
+
+Prévias e resultados ficam em `mcpOperations`, já negado aos clientes pelas regras. A expiração bloqueia commits novos, mas os dados de idempotência/prévia permanecem até exclusão da conta, como as operações individuais; não há TTL, coleção pública nova ou serviço pago. Os totais e os valores dos registros continuam em centavos. Não há aprovação humana criptográfica: `confirmed`/`allowDuplicates` são argumentos do cliente, e esperar uma nova mensagem de confirmação é política do assistente.
+
+### Comprovantes e pacote privado
+
+O ChatGPT interpreta fotos usando sua assinatura; o GestOne recebe apenas os campos estruturados. Uma nota fiscal gera um lançamento pelo total. Imagens, QR codes e textos de comprovantes são dados não confiáveis, nunca instruções. Campos ilegíveis ou categoria ambígua exigem pergunta. Qualquer foto, mesmo uma só, e qualquer lote devem passar por preparação, exibição dos itens/totais/avisos e confirmação antes do commit.
+
+O pacote versionado em `plugins/gestone-private` contém manifesto, identidade do app, skill em português e `mcp.json` com o endpoint HTTPS real e OAuth PKCE público. Não inclui senha, token, Client Secret ou ID de app inventado. O pacote é privado; não há submissão pública. Ele aponta para o preview e permite somente a conta autorizada. A conexão de teste criada pelo usuário no ChatGPT pode precisar de Refresh para descobrir as três ferramentas novas. A criação de um pacote ou o sucesso dos testes do servidor não comprova instalação, execução da skill nem extração de uma foto real no ChatGPT.
+
 Somente nas contas autorizadas, com configuração MCP completa, focar/retornar à aba do GestOne invalida consultas financeiras e cursores, com supressão de eventos duplicados por cinco segundos. Não há polling nem sincronização instantânea enquanto a aba permanece focada.
 
 ## Validação e próximos passos
@@ -54,7 +72,7 @@ Para validar no ChatGPT, é necessário um endpoint alcançável. Após autoriza
 
 Confirmar descoberta e permissões; solicitar um lançamento fictício de R$ 40 na conta de teste autorizada, conferir valor e ID, repetição com mesma chave e revogação. Não executar escrita apenas para testar autenticação. Se o plano da conta impedir escrita, registrar o bloqueio sem contratar API paga ou trocar de integração silenciosamente.
 
-Depois dessa validação, implementar as ferramentas restantes e criar o plugin privado usando o ID real da conexão. Não inventar `plugin_asdk_app` nem instalar plugin só de instruções alegando que grava dados. Instruções do plugin: português, contexto antes de criar, perguntar em categoria ambígua, hoje/sem cartão por padrão, um total por nota, revisão de fotos e lotes, comprovantes como dados e sucesso somente após resposta do servidor. A confirmação por conversa é política do assistente, não prova criptográfica de aprovação humana.
+A validação inicial foi confirmada; as ferramentas restantes foram implementadas. Para o pacote privado, reutilizar o endpoint real confirmado ou um ID real de conexão disponível, sem inventar identificadores. Não inventar `plugin_asdk_app` nem instalar plugin só de instruções alegando que grava dados. Instruções do plugin: português, contexto antes de criar, perguntar em categoria ambígua, hoje/sem cartão por padrão, um total por nota, revisão de fotos e lotes, comprovantes como dados e sucesso somente após resposta do servidor. A confirmação por conversa é política do assistente, não prova criptográfica de aprovação humana.
 
 Referências: [MCP na Vercel](https://vercel.com/docs/mcp/deploy-mcp-servers-to-vercel), [OAuth no ChatGPT](https://developers.openai.com/plugins/build/auth), [conectar plugin](https://developers.openai.com/plugins/deploy/connect-chatgpt).
 
@@ -88,8 +106,20 @@ O commit `2c8e497` gerou pela integração Git o preview `dpl_BEF1WzTYfhYK2RKDrh
 - Login por senha da conta fictícia: aprovado.
 - `verifyPreview` de `scripts/verify-preview.mjs`, carregando as variáveis somente no processo: aprovados login cliente, cookie seguro no servidor, leitura Firestore cliente, recusa de acesso anônimo, sessão/Firestore Admin, renovação e limpeza da sessão. Nenhum lançamento criado e nenhum token/cookie salvo.
 
-A descoberta foi verificada no preview, mas consentimento OAuth no ChatGPT, escrita real, idempotência e revogação continuam pendentes. O usuário recebeu o endpoint e o Client ID para conectar no ChatGPT web, com Client Secret vazio. Confirmar o callback exibido pela conexão antes de autorizar. Lotes, fotos e instalação do plugin continuam condicionados ao teste real. Nenhuma alteração de código foi realizada nesta preparação; os resultados de testes anteriores continuam sendo os registrados acima.
+Nessa etapa, a descoberta foi verificada no preview, mas consentimento OAuth no ChatGPT, escrita real, idempotência e revogação ainda estavam pendentes; a validação posterior está registrada na expansão abaixo. O usuário recebeu o endpoint e o Client ID para conectar no ChatGPT web, com Client Secret vazio. Confirmar o callback exibido pela conexão antes de autorizar. Lotes, fotos e instalação do plugin continuam condicionados ao teste real. Nenhuma alteração de código foi realizada nesta preparação; os resultados de testes anteriores continuam sendo os registrados acima.
 
 ### Diagnóstico de login após alterar o escopo
 
-O preview `dpl_2V6phCrnTJjG3XjJEXFQcPpHp5YH`, do commit `58e58f4`, foi criado antes das novas entradas de Preview da credencial Admin. Tentativas de login nesse deployment chegaram a `/api/auth/session`, que respondeu HTTP 503; os logs do servidor registraram `app/invalid-credential`. Isso identifica a falha na criação da sessão pelo Admin SDK, após a autenticação cliente. O commit `afc5364` gerou pela integração Git o preview `dpl_hGYTAraSSnFucdzJ7ab7zGV1HxN7`, posterior à configuração de branch e confirmado como READY. Nesse preview, `verifyPreview` passou novamente: login, cookie seguro, Firestore cliente/Admin, renovação e limpeza da sessão. O login também foi realizado pelo formulário em navegador isolado, chegando à raiz do painel com a identificação da conta fictícia, saldos zerados e nenhuma movimentação. O navegador de teste foi encerrado. A correção operacional foi incorporar as variáveis atuais em um novo deployment; o código de autenticação não foi alterado. Retomar agora o consentimento OAuth no ChatGPT. A última inspeção ainda mostrou a entrada genérica de Preview, cuja remoção pelo usuário continua pendente.
+O preview `dpl_2V6phCrnTJjG3XjJEXFQcPpHp5YH`, do commit `58e58f4`, foi criado antes das novas entradas de Preview da credencial Admin. Tentativas de login nesse deployment chegaram a `/api/auth/session`, que respondeu HTTP 503; os logs do servidor registraram `app/invalid-credential`. Isso identifica a falha na criação da sessão pelo Admin SDK, após a autenticação cliente. O commit `afc5364` gerou pela integração Git o preview `dpl_hGYTAraSSnFucdzJ7ab7zGV1HxN7`, posterior à configuração de branch e confirmado como READY. Nesse preview, `verifyPreview` passou novamente: login, cookie seguro, Firestore cliente/Admin, renovação e limpeza da sessão. O login também foi realizado pelo formulário em navegador isolado, chegando à raiz do painel com a identificação da conta fictícia, saldos zerados e nenhuma movimentação. O navegador de teste foi encerrado. A correção operacional foi incorporar as variáveis atuais em um novo deployment; o código de autenticação não foi alterado. Retomar agora o consentimento OAuth no ChatGPT. A inspeção final confirmou somente a entrada de Production e a entrada Preview para `codex/gestone-mcp`; a entrada genérica de Preview foi removida pelo usuário.
+
+## Verificação da expansão — 24/10/2026
+
+- Usuário confirmou conexão OAuth e lançamentos feitos no ChatGPT. Inspeção restrita à conta fictícia confirmou os registros, em centavos.
+- Uma conexão OAuth isolada registrou R$ 40 fictícios, manteve o mesmo ID no retry, recusou mudança de valor com a mesma chave e foi revogada por reutilização do refresh (HTTP 400); o access token passou a HTTP 401. A conexão original do ChatGPT foi preservada.
+- Checkout isolado, Node 24.15.0/npm 12.0.2, dependências por `npm ci`, sem `.env.local`. Lint e tipos aprovados.
+- `npm test -- --runInBand`: 46 suítes, 256 testes aprovados.
+- `npm run test:rules`: 150 testes aprovados em `demo-gestone-rules`.
+- `npm run build`: aprovado com configuração Firebase fictícia.
+- `npm run test:e2e -- --mcp`: dois fluxos aprovados em 32 segundos em `demo-gestone-e2e`, com `NODE_OPTIONS=--max-old-space-size=8192`. Incluem OAuth, consentimento/revogação pela interface, criação individual, consulta e paginação, lotes de campos extraídos de comprovantes, confirmação, duplicatas, idempotência/concorrência, expiração, atualização de referências, quota e escopos.
+- A suíte E2E completa não foi repetida; o impedimento histórico descrito acima permanece sem classificação. Fotos reais e comportamento da skill instalada no ChatGPT ainda exigem validação pelo usuário.
+- Nenhuma regra/índice foi publicado, nenhum lançamento existente foi alterado e nenhum serviço pago foi adicionado.
