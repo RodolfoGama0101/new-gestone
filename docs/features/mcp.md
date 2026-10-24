@@ -50,7 +50,7 @@ Somente nas contas autorizadas, com configuração MCP completa, focar/retornar 
 
 Execute `npm run lint`, `npm run typecheck`, `npm test -- --runInBand`, `npm run test:rules`, `npm run build` e `npm run test:e2e`. Para verificar somente o MCP, use `npm run test:e2e -- --mcp`: ele também inicia os emuladores, sem chamar Playwright diretamente. O modo focado não é combinável com `--production`, pois o OAuth localhost é aceito somente fora de produção. O E2E MCP usa somente `demo-gestone-e2e` e testa protocolo JSON-RPC real, OAuth, PKCE, concorrência, valores, quotas e revogação. Testes de regras verificam a negação das coleções internas inclusive ao dono.
 
-Para validar no ChatGPT, é necessário um endpoint alcançável. Após autorização explícita para disponibilizar um ambiente, configurar preview HTTPS com Firebase **de teste**, origem e callbacks correspondentes; a proteção Vercel precisa permitir OAuth/MCP sem incluir segredos de bypass no plugin. Em Plugins → Adicionar servidor MCP personalizado, escolher OAuth e conectar o endpoint. Completar consentimento no GestOne.
+Para validar no ChatGPT, é necessário um endpoint alcançável. Após autorização explícita para disponibilizar um ambiente, configurar preview HTTPS com uma conta Firebase **de teste**, origem e callbacks correspondentes; a proteção Vercel precisa permitir OAuth/MCP sem incluir segredos de bypass no plugin. Em Plugins → Adicionar servidor MCP personalizado, escolher OAuth e conectar o endpoint. Completar consentimento no GestOne.
 
 Confirmar descoberta e permissões; solicitar um lançamento fictício de R$ 40 na conta de teste autorizada, conferir valor e ID, repetição com mesma chave e revogação. Não executar escrita apenas para testar autenticação. Se o plano da conta impedir escrita, registrar o bloqueio sem contratar API paga ou trocar de integração silenciosamente.
 
@@ -70,3 +70,15 @@ Verificações executadas em cópia temporária dos arquivos versionados e desta
 - `npm run test:e2e` completo: **não aprovado/não concluído**. A tentativa atingiu o limite de heap de aproximadamente 4 GiB em um processo Node após cerca de 12 minutos. Antes disso houve timeouts em gráficos, navegação/carregamento da conta, seleção de categoria e tema. Não foi estabelecido se esses timeouts são preexistentes ou regressões; não foram corrigidos por suposição. Não declarar a suíte completa como verde.
 
 Java precisou de execução fora do sandbox para iniciar. Somente processos dos testes desta tarefa foram encerrados ao recuperar as tentativas interrompidas. Nenhum processo alheio foi encerrado. A validação no ChatGPT real continua pendente, assim como a implementação das demais ferramentas condicionadas a ela.
+
+## Preparação do preview — 24/10/2026
+
+O usuário autorizou usar o projeto Firebase existente `new-gestone`, que ainda não está em produção, com uma conta separada e somente dados fictícios. Não foi criado outro projeto nem habilitada cobrança.
+
+- Conta fictícia criada e confirmada no Firebase Authentication. A senha gerada está apenas em `.env.mcp-preview.local` no checkout original; o arquivo é ignorado pelo Git e não deve ser copiado para documentação, chat ou plugin. Nenhum lançamento financeiro foi criado nesta preparação.
+- Variáveis `MCP_ORIGIN`, `MCP_ALLOWED_UIDS`, `MCP_CLIENT_ID` e `MCP_REDIRECT_URIS` criadas somente em Preview, para a branch `codex/gestone-mcp`. A allowlist contém apenas a conta fictícia. Cliente público com PKCE S256, sem `MCP_CLIENT_SECRET`.
+- Origem de teste: `https://new-gestone-git-codex-gestone-mcp-rodolfo-gamas-projects.vercel.app`. Cliente OAuth: `gestone-chatgpt-preview`. Callback configurado: `https://chatgpt.com/connector_platform_oauth_redirect`; conferir o callback exato exibido pelo ChatGPT antes do consentimento.
+- O usuário adicionou uma Deployment Protection Exception somente para esse domínio de branch. Requisições anônimas aos dois endpoints de descoberta e a `/api/mcp` chegaram ao aplicativo, sem redirecionamento ao SSO, retornando `503 mcp/not-configured` no deployment anterior às novas variáveis. As demais proteções do projeto permanecem configuradas.
+- Os metadados da Vercel mostram `FIREBASE_SERVICE_ACCOUNT_KEY` somente em Production. A variável é secreta e seu valor não é recuperável pelo conector. A configuração da credencial Admin em Preview, restrita à mesma branch, foi solicitada ao usuário no painel; não enviar o valor pelo chat. As variáveis públicas Firebase já têm destino Preview.
+
+Após salvar a credencial, publicar um novo preview pela integração Git para incorporar as variáveis. A disponibilidade da origem não comprova descoberta OAuth, consentimento, escrita real no ChatGPT, idempotência ou revogação: essas validações continuam pendentes. Lotes, fotos e instalação do plugin continuam condicionados ao teste real. Nenhuma alteração de código foi realizada nesta preparação; os resultados de testes anteriores continuam sendo os registrados acima.
