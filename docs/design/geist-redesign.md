@@ -18,6 +18,38 @@ o `height: auto` aplicado aos botões pelo `PageHeader`. Uma reprodução no
 Chromium com o CSS do projeto confirmou 40 px antes e 50 px depois, igual
 aos 50 px do seletor.
 
+## Formulário compacto de lançamento
+
+O formulário compartilhado de criação e edição mostra uma seção por vez:
+“Lançamento” reúne tipo, descrição, valor, data, categoria e cartão;
+“Repetição” reúne o modo e as opções de recorrência ou parcelamento;
+“Detalhes” reúne tags e notas opcionais. Na edição, a repetição continua
+administrada em Séries. A data do formulário usa o formato `dd/MM/aaaa`.
+
+Os valores são mantidos ao navegar entre seções e a confirmação fica
+disponível em todas. Ao validar, o formulário abre a seção com o primeiro
+erro e move o foco ao campo correspondente. Em desktop, as seções mantêm
+uma altura mínima comum para evitar saltos do modal. Os campos principais
+usam duas colunas onde couber; categoria e cartão empilham no celular.
+
+O conteúdo compacto evita rolagem nas alturas usuais. O limite de altura
+e a rolagem de segurança do diálogo compartilhado permanecem para telas
+muito baixas, teclado virtual e zoom, sem esconder ou cortar campos.
+
+Verificação: lint (excluindo cópias e scripts em `dogfood-output/` e
+`.worktrees/`), tipos e 226 testes unitários aprovados. O build e os três
+E2E de modal, recorrência e parcelamento passaram na cópia isolada de
+produção. O E2E do modal cobre
+as três seções nos temas claro/escuro em 1280×900, 1280×720, 390×844 e
+320×740, preservação dos campos, foco no erro e acesso à confirmação em
+320×450. O comando padrão foi impedido pela porta 8081 ocupada; a revisão
+usa uma cópia sem credenciais de produção em
+`dogfood-output/transaction-modal-review/`, com webpack, projeto
+`demo-gestone-e2e`, Authentication 49111, Firestore 48111 e app 3315.
+O ano completo da data também é verificado em todas as larguras. As portas
+e a configuração do produto não foram alteradas. Capturas da
+revisão ficam no subdiretório `dogfood-output/` dessa cópia isolada.
+
 ## Etapas
 
 1. Base visual: tokens dos temas e componentes compartilhados.
