@@ -109,6 +109,19 @@ afterAll(async () => {
 })
 
 describe('isolamento por usuário', () => {
+  test.each(['mcpSecrets', 'mcpConnections', 'mcpOperations', 'mcpUsage', 'mcpDrafts'])(
+    'coleção interna %s é inacessível inclusive ao dono', async (name) => {
+      await environment.withSecurityRulesDisabled(async (context) => {
+        await setDoc(doc(context.firestore(), `users/owner/${name}/secret`), { private: true })
+      })
+      for (const db of [owner, other, anonymous]) {
+        await assertFails(getDoc(doc(db, `users/owner/${name}/secret`)))
+        await assertFails(getDocs(collection(db, `users/owner/${name}`)))
+        await assertFails(setDoc(doc(db, `users/owner/${name}/new`), { private: true }))
+        await assertFails(deleteDoc(doc(db, `users/owner/${name}/secret`)))
+      }
+    },
+  )
   test.each([
     'users/owner',
     'users/owner/categories/expense',

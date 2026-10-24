@@ -2,6 +2,7 @@ import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { adminAuth } from '@/lib/firebase/admin'
 import { DashboardClientLayout } from '@/components/layout/dashboard-client-layout'
+import { mcpConfig } from '@/lib/mcp/config'
 
 export const dynamic = 'force-dynamic'
 
@@ -12,10 +13,11 @@ export default async function DashboardLayout({
 }) {
   const session = (await cookies()).get('session')?.value
   let isValidSession = false
+  let uid = ''
 
   if (session) {
     try {
-      await adminAuth.verifySessionCookie(session, true)
+      uid = (await adminAuth.verifySessionCookie(session, true)).uid
       isValidSession = true
     } catch {
       isValidSession = false
@@ -24,5 +26,15 @@ export default async function DashboardLayout({
 
   if (!isValidSession) redirect('/login')
 
-  return <DashboardClientLayout>{children}</DashboardClientLayout>
+  let mcpEnabled = false
+  try {
+    mcpEnabled = mcpConfig().uids.includes(uid)
+  } catch {
+    /* Integração opcional, fechada por padrão. */
+  }
+  return (
+    <DashboardClientLayout mcpEnabled={mcpEnabled}>
+      {children}
+    </DashboardClientLayout>
+  )
 }

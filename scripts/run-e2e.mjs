@@ -19,8 +19,15 @@ const env = {
   METADATA_SERVER_DETECTION: 'none',
   FIREBASE_AUTH_EMULATOR_HOST: '127.0.0.1:9099',
   FIRESTORE_EMULATOR_HOST: '127.0.0.1:8081',
+  MCP_ORIGIN: 'http://localhost:3102',
+  MCP_ALLOWED_UIDS: 'demo-mcp-owner',
+  MCP_CLIENT_ID: 'demo-mcp-client',
+  MCP_CLIENT_SECRET: '',
+  MCP_REDIRECT_URIS: 'https://example.test/oauth/callback',
 }
 const production = process.argv.includes('--production')
+const mcpOnly = process.argv.includes('--mcp')
+if (production && mcpOnly) throw new Error('Use --mcp sem --production para validar OAuth no localhost de teste.')
 if (production) {
   await new Promise((resolve, reject) => {
     const build = spawn(process.execPath, [require.resolve('next/dist/bin/next'), 'build', '--webpack'], { env, stdio: 'inherit' })
@@ -43,7 +50,9 @@ const child = spawn(
       ? 'next dev --turbopack --port 3102'
       : production
         ? 'playwright test --config playwright.production.config.ts'
-        : 'playwright test',
+        : mcpOnly
+          ? 'playwright test tests/e2e/mcp.test.ts'
+          : 'playwright test',
   ],
   { env, stdio: 'inherit' },
 )
