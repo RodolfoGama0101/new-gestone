@@ -2,7 +2,7 @@
 
 ## Estado
 
-Servidor MCP com OAuth, consulta paginada e gravação individual ou em lotes com prévia e confirmação. Ferramentas: `get_context`, `list_transactions`, `create_transaction`, `prepare_transactions` e `commit_transactions`. Em 24/10/2026, o usuário confirmou lançamentos feitos pelo ChatGPT; a conta de teste contém despesas e receita. Idempotência e revogação foram verificadas em uma conexão de teste separada, preservando a conexão do usuário. O pacote privado está em `plugins/gestone-private`; salvar/ativar o plugin e validar o fluxo de fotos no ChatGPT são etapas separadas do teste do servidor. Não houve merge, publicação de regras ou deploy de produção.
+Servidor MCP com OAuth, consulta paginada e gravação individual ou em lotes com prévia e confirmação. Ferramentas: `get_context`, `list_transactions`, `create_transaction`, `prepare_transactions` e `commit_transactions`. Em 24/10/2026, o usuário confirmou lançamentos feitos pelo ChatGPT; a conta de teste contém despesas e receita. Idempotência e revogação foram verificadas em uma conexão de teste separada, preservando a conexão do usuário. O pacote privado está em `plugins/gestone-private`; o plugin foi salvo como privado na conta do usuário. Ativação e validação do fluxo de fotos no ChatGPT são etapas separadas do teste do servidor. Não houve merge, publicação de regras ou deploy de produção.
 
 Não há API de IA, modelo local, Redis, cron ou armazenamento de imagens. A interpretação acontece no ChatGPT, dentro dos recursos e limites da conta.
 
@@ -123,3 +123,13 @@ O preview `dpl_2V6phCrnTJjG3XjJEXFQcPpHp5YH`, do commit `58e58f4`, foi criado an
 - `npm run test:e2e -- --mcp`: dois fluxos aprovados em 32 segundos em `demo-gestone-e2e`, com `NODE_OPTIONS=--max-old-space-size=8192`. Incluem OAuth, consentimento/revogação pela interface, criação individual, consulta e paginação, lotes de campos extraídos de comprovantes, confirmação, duplicatas, idempotência/concorrência, expiração, atualização de referências, quota e escopos.
 - A suíte E2E completa não foi repetida; o impedimento histórico descrito acima permanece sem classificação. Fotos reais e comportamento da skill instalada no ChatGPT ainda exigem validação pelo usuário.
 - Nenhuma regra/índice foi publicado, nenhum lançamento existente foi alterado e nenhum serviço pago foi adicionado.
+
+### Preview publicado e plugin salvo
+
+A implementação `73e2452` foi publicada em `codex/gestone-mcp`; o deployment Git `dpl_Ck4bhkAYQUGHcgsYcFt3Urzen73D` ficou READY, sem destino de produção. Uma conexão OAuth isolada confirmou as cinco ferramentas, duas páginas de consulta e a preparação de um comprovante fictício. Essa prévia não foi commitada; a conexão isolada foi revogada ao final. Nenhum lançamento existente foi alterado.
+
+Pacote validado e salvo na conta pessoal como PRIVATE, versão `0.2.0`: [GestOne](https://chatgpt.com/plugins/plugins_6adcd265ef0c8191b79ac1f1414cc7c3). ID real do plugin: `plugins_6adcd265ef0c8191b79ac1f1414cc7c3`; release: `pluginrel_6adcd26797fc819183ccd26e02a46026`. A leitura posterior dos arquivos salvos confirmou manifesto, skill e configuração OAuth para o endpoint real. Não foi inventado ID de app nem incluída credencial.
+
+Criar/salvar o plugin não comprova instalação ou autenticação no ChatGPT. Abrir o link, ativar o plugin, conectar com OAuth e testar um comprovante fictício. Conferir a prévia e as possíveis duplicatas antes de confirmar. Se continuar usando a conexão de teste já criada, usar Refresh para descobrir as novas ferramentas. A interpretação real da foto e o comportamento da skill no ChatGPT ainda precisam dessa validação; o commit atômico foi verificado nos emuladores.
+
+A repetição final do E2E inicialmente encontrou a porta 8081 ocupada por um Java remanescente dos testes deste próprio checkout. Após conferir caminho, projeto fictício e PID, somente esses emuladores foram encerrados e a execução final passou. Nenhum processo alheio foi encerrado. A inspeção do pacote identificou que o ícone existente era JPEG com extensão PNG; no pacote foi preservada a imagem, com extensão `.jpg` correta.
