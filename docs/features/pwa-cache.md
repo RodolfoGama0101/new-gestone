@@ -14,6 +14,16 @@ Os ícones públicos e de instalação usam o mesmo “G” de seta circular da 
 `public/logo.svg`, `public/logo.png`, o recurso local
 `plugins/gestone-private/assets/icon.jpg` e os quatro PNGs do manifest nas
 dimensões 192 e 512. As variantes maskable mantêm o desenho na área central segura.
+O mesmo gerador produz `src/app/icon.png` (32), `src/app/apple-icon.png` (180)
+e `src/app/favicon.ico` (16/32/48). As convenções de metadata do Next.js incluem
+as tags automaticamente; não há um segundo desenho de favicon em TSX.
+O fallback estático usa `/logo.svg`, precacheado como recurso público.
+O tema do manifest acompanha o fundo neutro da marca.
+Na revisão complementar, lint, tipos e build fictício passaram. O HTML de
+`/login` incluiu as tags de favicon, PNG e Apple touch icon; as nove URLs de
+ícones públicos e metadata retornaram HTTP 200, com dimensões corretas.
+Os três frames do ICO foram decodificados e o SVG offline foi confirmado no
+precache e visualmente no navegador. Essa revisão não repetiu o E2E de logout.
 O build inclui as revisões novas no precache. Instaladores do sistema podem
 reter um ícone antigo até atualizar ou reinstalar o atalho do PWA.
 Categorias com o identificador legado do ícone substituído exibem uma carteira;
