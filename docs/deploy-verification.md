@@ -54,15 +54,22 @@ Validação local em 26/10/2026: `npm run typecheck` e os 228 testes de
 `npm test -- --runInBand --roots ./tests` passaram. O lint passou com
 `npm run lint -- --ignore-pattern '.worktrees/**' --ignore-pattern 'dogfood-output/**'`,
 excluindo cópias de outras worktrees e artefatos locais de revisão. O build
-executado por `npm run test:e2e -- --production` compilou. Após liberar a porta
-8081, a suíte executou: os dois testes PWA passaram (logout offline/troca de
-conta e limpeza de cache/fallback). O seletor do menu da conta foi atualizado
-para seu nome acessível atual. Os dois testes Google falharam antes de criar a
-sessão: o canal `parentContainer` do iframe do Auth Emulator não ficou pronto
-em 30 segundos. O carregamento do GAPI também foi investigado sem contornar a
-autenticação. O teste agora aguarda esse canal e o fechamento do popup para
-distinguir uma falha do emulador de uma falha de navegação. O fluxo Google
-completo permanece sem validação E2E; não houve validação autenticada em produção.
+executado por `npm run test:e2e -- --production` compilou e os quatro testes
+passaram: login Google com navegação de documento e persistência da sessão,
+mensagem de erro após resposta 503, logout offline/troca de conta e limpeza de
+cache/fallback. O seletor do menu da conta usa seu nome acessível atual.
+
+As falhas iniciais estavam no ambiente local: o iframe não inicializava com a
+aplicação em `localhost` e o Auth Emulator em `127.0.0.1`. A conexão **cliente**
+do emulador agora usa `localhost:9099`, o mesmo hostname da aplicação E2E;
+o Admin SDK continua usando `127.0.0.1:9099` pelo ambiente isolado. O teste
+aguarda a inicialização do formulário do emulador e do canal do iframe antes
+de confirmar a conta. Não há simulação do login bem-sucedido nem alteração da
+validação de origem da API para fazer os testes passarem.
+
+O preview da branch ainda precisa de `FIREBASE_SERVICE_ACCOUNT_KEY` e de uma
+conta de teste configuradas para a verificação hospedada. Não houve validação
+autenticada nem alteração de produção nesta etapa.
 
 Em 21/10/2026, o PR #1 publicou até `da91f69`. O [CI remoto](https://github.com/RodolfoGama0101/new-gestone/actions/runs/39697338400) passou: qualidade/build, 122 testes do aplicativo, 122 de regras e oito E2E. A árvore local tinha 125 testes porque incluía três testes de sessão ainda não commitados e preservados fora do PR. O bot Vercel informou [deployment Ready](https://vercel.com/rodolfo-gamas-projects/new-gestone/HLvTwNjcaMDGpYG1LABoUxD1oYbr). O job legado de Firebase Hosting falhou por variáveis públicas vazias; não é o deploy vigente do app.
 

@@ -1,6 +1,12 @@
 import { test, expect, type Page } from '@playwright/test'
 
+const origin = 'http://localhost:3102'
+
 async function signInWithGoogle(page: Page) {
+  const browserErrors: string[] = []
+  page.on('pageerror', (error) => {
+    browserErrors.push(error.message)
+  })
   if (process.env.FIREBASE_AUTH_EMULATOR_HOST !== '127.0.0.1:9099') {
     throw new Error(
       'Execute npm run test:e2e: somente o emulador local é permitido.',
@@ -10,6 +16,11 @@ async function signInWithGoogle(page: Page) {
   const popupPromise = page.waitForEvent('popup')
   await page.getByRole('button', { name: 'Continuar com o Google' }).click()
   const popup = await popupPromise
+  await popup.waitForFunction(
+    () => typeof Reflect.get(window, 'finishWithUser') === 'function',
+    undefined,
+    { timeout: 60000 },
+  )
   await popup.getByRole('button', { name: 'Add new account' }).click()
   await popup
     .locator('#email-input')
@@ -26,11 +37,28 @@ async function signInWithGoogle(page: Page) {
   const authFrame = page
     .frames()
     .find((frame) => frame.url().includes('/emulator/auth/iframe'))!
-  await authFrame.waitForFunction(
-    () => Boolean(Reflect.get(window, 'parentContainer')),
-    undefined,
-    { timeout: 30000 },
-  )
+  try {
+    await authFrame.waitForFunction(
+      () => Boolean(Reflect.get(window, 'parentContainer')),
+      undefined,
+      { timeout: 30000 },
+    )
+  } catch (error) {
+    const state = await authFrame.evaluate(() => ({
+      readyState: document.readyState,
+      hasGapi: typeof Reflect.get(window, 'gapi'),
+      hasGapiFrames: Boolean(Reflect.get(window, 'gapi')?.iframes),
+      hasOnload: typeof Reflect.get(window, 'gapi_onload'),
+      scripts: Array.from(document.scripts, (script) => script.src).filter(
+        Boolean,
+      ),
+    }))
+    console.info(
+      'Auth Emulator iframe:',
+      JSON.stringify({ state, browserErrors }),
+    )
+    throw error
+  }
   await Promise.all([
     popup.waitForEvent('close', { timeout: 60000 }),
     popup
@@ -46,14 +74,14 @@ test('login Google no desktop abre o painel após fechar o popup e criar a sess�
   await page.goto('/login')
   // Confirma que a área protegida recusa uma visita anônima antes do login.
   await page.goto('/')
-  await expect(page).toHaveURL('http://localhost:3102/login')
+  await expect(page).toHaveURL(`${origin}/login`)
   const dashboardDocument = page.waitForRequest(
     (request) =>
       request.isNavigationRequest() && new URL(request.url()).pathname === '/',
     { timeout: 60000 },
   )
   await Promise.all([dashboardDocument, signInWithGoogle(page)])
-  await expect(page).toHaveURL('http://localhost:3102/', { timeout: 30000 })
+  await expect(page).toHaveURL(`${origin}/`, { timeout: 30000 })
   await expect(
     page.getByRole('button', { name: 'Abrir menu da conta' }),
   ).toBeVisible()
@@ -62,7 +90,7 @@ test('login Google no desktop abre o painel após fechar o popup e criar a sess�
   )
   expect(session?.httpOnly).toBe(true)
   await page.reload()
-  await expect(page).toHaveURL('http://localhost:3102/')
+  await expect(page).toHaveURL(`${origin}/`)
   await expect(
     page.getByRole('button', { name: 'Abrir menu da conta' }),
   ).toBeVisible()
@@ -90,7 +118,7 @@ test('falha de sessão após o popup Google mostra o motivo e permite tentar nov
       'O serviço de sessão está indisponível. Tente novamente em instantes.',
     ),
   ).toBeVisible()
-  await expect(page).toHaveURL('http://localhost:3102/login')
+  await expect(page).toHaveURL(`${origin}/login`)
   await expect(
     page.getByRole('button', { name: 'Continuar com o Google' }),
   ).toBeEnabled()

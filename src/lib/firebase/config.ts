@@ -34,8 +34,9 @@ if (process.env.NEXT_PUBLIC_USE_EMULATORS === 'true') {
   if (!firebaseConfig.projectId.startsWith('demo-'))
     throw new Error('Emuladores exigem um projeto demo-.')
   // Uma instância por carregamento do módulo; o SDK mantém as conexões no HMR.
+  // Compartilha o hostname localhost do app E2E com o popup e seu iframe.
   if (!auth.emulatorConfig)
-    connectAuthEmulator(auth, 'http://127.0.0.1:9099', {
+    connectAuthEmulator(auth, 'http://localhost:9099', {
       disableWarnings: true,
     })
   try {

@@ -47,6 +47,8 @@ Os testes de regras requerem Java 21 ou superior e iniciam somente o emulador Fi
 
 Para os E2E, instale o navegador com `npx playwright install chromium`. `npm run test:e2e` inicia Authentication em 9099, Firestore em 8081 e o aplicativo em 3102, usando somente `demo-gestone-e2e`. O script substitui a configuração Firebase por valores fictícios e não usa credenciais de produção. Os relatórios ficam em `playwright-report/`; falhas retêm screenshots e traces. Instale Java e Chromium no ambiente local para executar os E2E.
 
+Abra o aplicativo E2E em `http://localhost:3102`: a conexão cliente com o Auth Emulator também usa `localhost`, mantendo o popup e seu iframe no mesmo hostname. O Admin SDK e o processo dos emuladores continuam usando os endereços `127.0.0.1` definidos pelo script isolado.
+
 ## Manutenção e rollback
 
 O Dependabot verifica dependências npm semanalmente. Atualizações minor/patch são agrupadas; Next/React/configuração ESLint/tipos React ficam juntos. O SDK `firebase` e `@firebase/rules-unit-testing` formam o grupo `firebase-sdk`, incluindo majors, para preservar a compatibilidade exigida entre ambos. As demais majors abrem PRs separados para revisão de migração, sem merge automático. TypeScript 7 ou superior fica temporariamente ignorado porque o `typescript-eslint` instalado não oferece suporte; retire a exceção em `.github/dependabot.yml` ao preparar e validar essa migração com lint, tipos, testes e build. Execute localmente as verificações pertinentes antes de promover mudanças, incluindo regras e E2E quando afetados. Alertas e exceções de segurança estão em [docs/dependencies/2026-10-19/README.md](docs/dependencies/2026-10-19/README.md).
