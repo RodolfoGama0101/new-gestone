@@ -8,6 +8,17 @@ export const listMcpTransactionsSchema = z
   .object({
     startDate: date.optional(),
     endDate: date.optional(),
+    type: z.enum(['income', 'expense', 'investment']).optional(),
+    categoryId: z
+      .string()
+      .regex(/^[^/]{1,128}$/)
+      .optional(),
+    creditCardId: z
+      .string()
+      .regex(/^[^/]{1,128}$/)
+      .nullable()
+      .optional(),
+    search: z.string().max(200).optional(),
     limit: z.number().int().min(1).max(50).default(20),
     cursor: z.string().min(1).max(2048).optional(),
   })

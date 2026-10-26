@@ -82,8 +82,7 @@ export async function exchangeToken(params: URLSearchParams) {
     params.get(grant === 'authorization_code' ? 'code' : 'refresh_token') ?? '',
   )
   const user = await adminAuth.getUser(uid)
-  if (user.disabled)
-    throw new McpError('invalid_grant', 'Conta indisponível.')
+  if (user.disabled) throw new McpError('invalid_grant', 'Conta indisponível.')
   const access = newSecret(),
     refresh = newSecret(),
     newConnection = newSecret()
@@ -184,8 +183,7 @@ export async function exchangeToken(params: URLSearchParams) {
       scope: data.scopes.join(' '),
     }
   })
-  if (!result)
-    throw new McpError('invalid_grant', 'Autorização já utilizada.')
+  if (!result) throw new McpError('invalid_grant', 'Autorização já utilizada.')
   return result
 }
 
@@ -220,7 +218,11 @@ export async function verifyMcpToken(token: string) {
   }
 }
 
-export async function consumeToolQuota(uid: string, id: string, scope: string) {
+export async function consumeToolQuota(
+  uid: string,
+  id: string,
+  scope: string | string[],
+) {
   assertAllowedUid(uid)
   const now = Date.now()
   await adminDb.runTransaction(async (tx) => {
@@ -229,7 +231,9 @@ export async function consumeToolQuota(uid: string, id: string, scope: string) {
       !connection ||
       connection.revoked ||
       connection.expiresAt.toMillis() <= now ||
-      !connection.scopes.includes(scope)
+      !(Array.isArray(scope) ? scope : [scope]).every((item) =>
+        connection.scopes.includes(item),
+      )
     ) {
       throw new McpError('insufficient_scope', 'Conexão sem permissão.', 403)
     }

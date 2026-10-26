@@ -24,6 +24,7 @@ const env = {
   MCP_CLIENT_ID: 'demo-mcp-client',
   MCP_CLIENT_SECRET: '',
   MCP_REDIRECT_URIS: 'https://example.test/oauth/callback',
+  GESTONE_E2E_WEBPACK: process.argv.includes('--webpack') ? 'true' : 'false',
 }
 const production = process.argv.includes('--production')
 const mcpOnly = process.argv.includes('--mcp')

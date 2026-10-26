@@ -1,4 +1,8 @@
-import { authorizationRequest, McpError } from '@/lib/mcp/config'
+import {
+  authorizationRequest,
+  McpError,
+  MCP_SCOPE_LABELS,
+} from '@/lib/mcp/config'
 import { integrationUid } from '@/lib/mcp/http'
 import { McpConsent } from '@/components/integrations/mcp-consent'
 
@@ -41,19 +45,14 @@ export default async function AuthorizePage({
   return (
     <main className="bg-background mx-auto max-w-xl space-y-6 px-6 py-12">
       <h1 className="text-2xl font-semibold">Conectar ChatGPT ao GestOne</h1>
+      <p>Você está concedendo ao ChatGPT estas permissões:</p>
+      <ul className="list-disc space-y-2 pl-6">
+        {input.scopes.map((scope) => (
+          <li key={scope}>{MCP_SCOPE_LABELS[scope]}</li>
+        ))}
+      </ul>
       <p>
-        O ChatGPT poderá{' '}
-        {input.scopes.includes('transactions:read')
-          ? 'consultar suas categorias, cartões e contexto financeiro'
-          : ''}
-        {input.scopes.includes('transactions:read') &&
-        input.scopes.includes('transactions:write')
-          ? ' e '
-          : ''}
-        {input.scopes.includes('transactions:write')
-          ? 'registrar lançamentos avulsos na sua conta'
-          : ''}
-        .
+        Novas alterações e exclusões exigem prévia e confirmação na conversa.
       </p>
       <p className="text-muted-foreground text-sm">
         A conexão vale por até 30 dias. Você pode revogar o acesso em

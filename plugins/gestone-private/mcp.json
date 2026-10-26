@@ -19,7 +19,17 @@
             ],
             "defaultScopes": [
               "transactions:read",
-              "transactions:write"
+              "transactions:write",
+              "categories:read",
+              "categories:write",
+              "cards:read",
+              "cards:write",
+              "invoices:read",
+              "invoices:write",
+              "series:read",
+              "series:write",
+              "budgets:read",
+              "budgets:write"
             ]
           }
         }

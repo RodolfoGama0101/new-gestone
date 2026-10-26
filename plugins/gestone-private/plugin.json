@@ -4,7 +4,7 @@
     "email": "rodolfo.gama2006@gmail.com",
     "name": "Rodolfo Gama"
   },
-  "description": "Consulte e registre despesas, receitas e investimentos no GestOne por texto ou comprovantes, com revisão de lotes.",
+  "description": "Consulte e administre suas finanças no GestOne, com prévia e confirmação de alterações.",
   "extensions": {
     "com.openai": {
       "interface": {
@@ -18,11 +18,11 @@
         "developerName": "Rodolfo Gama",
         "displayName": "GestOne",
         "logo": "./assets/icon.jpg",
-        "longDescription": "Integração privada com o GestOne. Lançamentos avulsos por texto e lotes/comprovantes com prévia, confirmação e alertas de duplicidade. Requer OAuth e uma conta autorizada no ambiente de produção.",
+        "longDescription": "Integração privada com o GestOne. Consultas e resumos financeiros; lançamentos por texto e comprovantes; cartões, categorias, faturas, séries e orçamentos com prévia e confirmação. Requer OAuth, permissões por módulo e uma conta autorizada. A versão do servidor deve disponibilizar as ferramentas correspondentes.",
         "shortDescription": "Finanças por texto e recibos"
       }
     }
   },
   "name": "gestone-private",
-  "version": "0.2.1"
+  "version": "0.3.0"
 }

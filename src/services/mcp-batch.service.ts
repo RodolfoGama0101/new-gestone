@@ -5,6 +5,10 @@ import {
   type Transaction,
 } from 'firebase-admin/firestore'
 import { z } from 'zod'
+import {
+  matchesTransactionSearch,
+  normalizeTransactionSearch,
+} from '@/lib/utils/transaction-search'
 import { adminDb } from '@/lib/firebase/admin'
 import { assertAllowedUid, hashSecret, McpError } from '@/lib/mcp/config'
 import {
@@ -49,8 +53,25 @@ const transactions = (uid: string) =>
 export async function listMcpTransactions(uid: string, input: unknown) {
   assertAllowedUid(uid)
   const args = parse(listMcpTransactionsSchema, input)
+  const filtered =
+    args.type !== undefined ||
+    args.categoryId !== undefined ||
+    args.creditCardId !== undefined ||
+    !!args.search?.trim()
   const binding = hashSecret(
-    JSON.stringify([uid, args.startDate, args.endDate]),
+    JSON.stringify(
+      filtered
+        ? [
+            uid,
+            args.startDate,
+            args.endDate,
+            args.type ?? null,
+            args.categoryId ?? null,
+            args.creditCardId === undefined ? 'all' : args.creditCardId,
+            normalizeTransactionSearch(args.search ?? ''),
+          ]
+        : [uid, args.startDate, args.endDate],
+    ),
   )
   let query: Query = transactions(uid)
     .orderBy('date', 'desc')
@@ -91,12 +112,34 @@ export async function listMcpTransactions(uid: string, input: unknown) {
       )
     }
   }
-  const snapshot = await query.limit(args.limit + 1).get()
-  const page = snapshot.docs.slice(0, args.limit)
-  const last = page.at(-1)
+  // Filtros em memória limitam a leitura sem exigir índices combinatórios.
+  // O cursor avança pelo último candidato consumido, inclusive em páginas vazias.
+  const scanLimit = filtered ? 100 : args.limit
+  const snapshot = await query.limit(scanLimit + 1).get()
+  const page: typeof snapshot.docs = []
+  let consumed = 0
+  for (const doc of snapshot.docs.slice(0, scanLimit)) {
+    consumed++
+    const value = doc.data()
+    if (args.type && value.type !== args.type) continue
+    if (args.categoryId && value.categoryId !== args.categoryId) continue
+    if (
+      args.creditCardId !== undefined &&
+      (value.creditCardId ?? null) !== args.creditCardId
+    )
+      continue
+    if (
+      args.search &&
+      !matchesTransactionSearch(value.description, args.search)
+    )
+      continue
+    page.push(doc)
+    if (page.length === args.limit) break
+  }
+  const last = snapshot.docs[consumed - 1]
   const stamp = last?.data().date as Timestamp | undefined
   const nextCursor =
-    snapshot.size > args.limit && last && stamp
+    snapshot.size > consumed && last && stamp
       ? Buffer.from(
           JSON.stringify({
             binding,

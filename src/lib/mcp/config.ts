@@ -10,7 +10,37 @@ export class McpError extends Error {
   }
 }
 
-export const MCP_SCOPES = ['transactions:read', 'transactions:write'] as const
+export const MCP_DEFAULT_SCOPES = [
+  'transactions:read',
+  'transactions:write',
+] as const
+export const MCP_SCOPES = [
+  ...MCP_DEFAULT_SCOPES,
+  'categories:read',
+  'categories:write',
+  'cards:read',
+  'cards:write',
+  'invoices:read',
+  'invoices:write',
+  'series:read',
+  'series:write',
+  'budgets:read',
+  'budgets:write',
+] as const
+export const MCP_SCOPE_LABELS: Record<(typeof MCP_SCOPES)[number], string> = {
+  'transactions:read': 'Consultar lançamentos, contexto e resumos financeiros',
+  'transactions:write': 'Registrar, editar e excluir lançamentos',
+  'categories:read': 'Consultar categorias, inclusive histórico',
+  'categories:write': 'Criar, editar e remover categorias',
+  'cards:read': 'Consultar cartões, inclusive inativos e arquivados',
+  'cards:write': 'Criar, editar, arquivar e excluir cartões',
+  'invoices:read': 'Consultar faturas e quitações',
+  'invoices:write': 'Registrar e estornar quitações integrais',
+  'series:read': 'Consultar recorrências e parcelamentos',
+  'series:write': 'Criar séries, gerar pendências, editar e cancelar futuras',
+  'budgets:read': 'Consultar orçamentos e metas',
+  'budgets:write': 'Definir e remover limites e metas',
+}
 export const hashSecret = (value: string) =>
   createHash('sha256').update(value).digest('hex')
 export const newSecret = () => randomBytes(32).toString('base64url')
@@ -90,7 +120,7 @@ export function authorizationRequest(params: URLSearchParams) {
   const challenge = read('code_challenge'),
     state = read('state')
   const resource = read('resource'),
-    scope = read('scope') || MCP_SCOPES.join(' ')
+    scope = read('scope') || MCP_DEFAULT_SCOPES.join(' ')
   if (
     read('response_type') !== 'code' ||
     clientId !== config.clientId ||
@@ -112,7 +142,7 @@ export function authorizationRequest(params: URLSearchParams) {
     challenge,
     state,
     resource,
-    scopes: [...new Set(scope.split(' '))],
+    scopes: [...new Set(scope.split(' ') as (typeof MCP_SCOPES)[number][])],
   }
 }
 

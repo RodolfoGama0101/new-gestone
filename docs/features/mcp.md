@@ -1,5 +1,9 @@
 # MCP privado — lançamentos e comprovantes
 
+A evolução 0.3.0 está descrita em [Paridade financeira do MCP](mcp-parity.md),
+com novos contratos, permissões e operações com prévia. Os registros de deploy
+e testes abaixo documentam a versão anterior; não comprovam publicação da 0.3.0.
+
 ## Estado
 
 Servidor MCP com OAuth, consulta paginada e gravação individual ou em lotes com prévia e confirmação. Ferramentas: `get_context`, `list_transactions`, `create_transaction`, `prepare_transactions` e `commit_transactions`. Em 24/10/2026, o usuário confirmou lançamentos feitos pelo ChatGPT; a conta de teste contém despesas e receita. Idempotência e revogação foram verificadas em uma conexão de teste separada, preservando a conexão do usuário. O pacote privado está em `plugins/gestone-private`; o plugin foi salvo como privado na conta do usuário. Ativação e validação do fluxo de fotos no ChatGPT são etapas separadas do teste do servidor. A publicação em produção foi autorizada pelo usuário em 24/10/2026; consulte o registro de produção ao final. Não há publicação de regras ou índices nesta entrega.
