@@ -6,12 +6,10 @@ import { Loader2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/contexts/auth-context'
-import { useRouter } from 'next/navigation'
 
 export function GoogleAuthButton() {
   const [isLoading, setIsLoading] = React.useState(false)
   const { signInWithGoogle } = useAuth()
-  const router = useRouter()
 
   const handleGoogleSignIn = async () => {
     try {
@@ -19,8 +17,6 @@ export function GoogleAuthButton() {
       const user = await signInWithGoogle()
       if (user) {
         toast.success('Login efetuado com sucesso via Google!')
-        router.replace('/')
-        router.refresh()
       }
     } catch (error) {
       setIsLoading(false)

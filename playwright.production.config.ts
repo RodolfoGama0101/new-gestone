@@ -4,7 +4,7 @@ import config from './playwright.config'
 export default defineConfig({
   ...config,
   testIgnore: [],
-  testMatch: '**/pwa.production.test.ts',
+  testMatch: ['**/pwa.production.test.ts', '**/google-login.test.ts'],
   webServer: {
     command: 'npm run start -- --port 3102',
     url: 'http://localhost:3102',

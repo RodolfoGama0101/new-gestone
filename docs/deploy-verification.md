@@ -35,6 +35,29 @@ A verificação cobre login por senha, cookie HttpOnly/Secure/SameSite=Lax sem c
 
 ## Evidências e limites
 
+### Login Google no desktop
+
+O Firebase autentica no popup e o cliente aguarda o `POST /api/auth/session`
+antes de sair de `/login`. O `AuthProvider` faz uma única navegação de documento
+com `window.location.replace('/')`, enviando o cookie HttpOnly recém-criado ao
+layout protegido. Os botões de login não iniciam outra navegação nem um
+`router.refresh()` concorrente. As demais navegações internas continuam usando
+o roteador do Next.js. O `Toaster` global exibe o resultado e as falhas de sessão.
+
+`tests/e2e/google-login.test.ts` cobre o popup Google no emulador, a entrada no
+painel após uma visita anônima, a persistência após recarregar e a mensagem de
+erro quando a sessão responde 503. Ele faz parte de `npm run test:e2e` e de
+`npm run test:e2e -- --production`. A execução com emuladores não substitui o
+teste visual com uma conta de teste no domínio autorizado do preview Vercel.
+
+Validação local em 26/10/2026: `npm run typecheck` e os 228 testes de
+`npm test -- --runInBand --roots ./tests` passaram. O lint passou com
+`npm run lint -- --ignore-pattern '.worktrees/**' --ignore-pattern 'dogfood-output/**'`,
+excluindo cópias de outras worktrees e artefatos locais de revisão. O build
+executado por `npm run test:e2e -- --production` compilou; os E2E da correção
+aguardam execução porque a porta 8081 estava ocupada pelo emulador de outra
+worktree, que foi preservado. Não houve validação autenticada em produção.
+
 Em 21/10/2026, o PR #1 publicou até `da91f69`. O [CI remoto](https://github.com/RodolfoGama0101/new-gestone/actions/runs/39697338400) passou: qualidade/build, 122 testes do aplicativo, 122 de regras e oito E2E. A árvore local tinha 125 testes porque incluía três testes de sessão ainda não commitados e preservados fora do PR. O bot Vercel informou [deployment Ready](https://vercel.com/rodolfo-gamas-projects/new-gestone/HLvTwNjcaMDGpYG1LABoUxD1oYbr). O job legado de Firebase Hosting falhou por variáveis públicas vazias; não é o deploy vigente do app.
 
 Uma requisição anônima ao preview redirecionou ao SSO Vercel. Sem acesso de automação, não foi possível verificar Firebase Admin/sessão no runtime. Nenhuma conta de teste foi criada e nenhuma proteção foi desabilitada. Não houve promoção à `main` ou publicação de regras. A comprovação de PR real do Dependabot depende da configuração na branch padrão.

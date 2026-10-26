@@ -54,6 +54,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const hasInitializedRef = React.useRef(false)
   const authActionInFlightRef = React.useRef(false)
   const synchronizedUserIdRef = React.useRef<string | null>(null)
+  const loginNavigationStartedRef = React.useRef(false)
   const sessionQueueRef = React.useRef<Promise<void>>(Promise.resolve())
 
   const queueSessionOperation = React.useCallback((operation: () => Promise<void>) => {
@@ -192,9 +193,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [queueSessionOperation, clearPrivateCache])
 
   React.useEffect(() => {
-    if (!isLoading && user) {
+    if (
+      !isLoading &&
+      user &&
+      !authActionInFlightRef.current &&
+      synchronizedUserIdRef.current === user.uid
+    ) {
+      if (pathname === '/login') {
+        if (!loginNavigationStartedRef.current) {
+          loginNavigationStartedRef.current = true
+          // A sessão mudou via fetch: abra um documento novo com o cookie atual,
+          // sem reutilizar uma resposta anônima do cache de navegação do Next.js.
+          window.location.replace('/')
+        }
+        return
+      }
       const isAuthPage =
-        pathname === '/login' ||
         pathname === '/register' ||
         pathname === '/forgot-password'
       if (isAuthPage) {

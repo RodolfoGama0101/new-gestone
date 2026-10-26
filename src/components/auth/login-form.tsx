@@ -16,12 +16,10 @@ import { Separator } from '@/components/ui/separator'
 import { GoogleAuthButton } from './google-auth-button'
 import { loginSchema, type LoginInput } from '@/lib/validations/auth.schema'
 import { useAuth } from '@/contexts/auth-context'
-import { useRouter } from 'next/navigation'
 
 export function LoginForm() {
   const [isLoading, setIsLoading] = React.useState(false)
   const { signInWithEmail } = useAuth()
-  const router = useRouter()
 
   const {
     register,
@@ -40,8 +38,6 @@ export function LoginForm() {
     try {
       await signInWithEmail(data.email, data.password)
       toast.success('Login realizado com sucesso!')
-      router.replace('/')
-      router.refresh()
     } catch (error) {
       setIsLoading(false)
       const authError = error as { code?: string }
