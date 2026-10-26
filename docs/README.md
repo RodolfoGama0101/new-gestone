@@ -7,6 +7,10 @@
 
 ## Funcionalidades
 
+- [Paridade financeira do MCP](features/mcp-parity.md)
+
+- [MCP privado — validação inicial](features/mcp.md)
+
 - [Exclusão de cartões](features/card-deletion.md)
 - [Aparência e personalização dos cartões](features/card-personalization.md)
 

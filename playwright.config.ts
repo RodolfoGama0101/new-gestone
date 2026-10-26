@@ -23,7 +23,10 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm run dev -- --port 3102',
+    command:
+      process.env.GESTONE_E2E_WEBPACK === 'true'
+        ? 'node node_modules/next/dist/bin/next dev --webpack --port 3102'
+        : 'npm run dev -- --port 3102',
     url: 'http://localhost:3102',
     reuseExistingServer: false,
     timeout: 120000,

@@ -54,3 +54,28 @@ corridas verificam que nenhum vínculo permaneça sem cartão. Capturas da
 confirmação móvel e do bloqueio no desktop foram revisadas em
 `dogfood-output/cards-validation/dogfood-output/card-deletion/`.
 Nenhuma regra, índice ou dado de produção foi publicado ou alterado.
+
+## Regressão do teste concorrente — ROD-128
+
+O teste reutilizava o nome “Cartão vazio” nos cartões criados para as corridas.
+Quando uma compra ou quitação era gravada primeiro, a API preservava corretamente
+o cartão com HTTP 409, mas a asserção final exigia que todos os cartões com aquele
+nome desaparecessem. O falso negativo foi reproduzido na base `0691f18`.
+
+Os cartões da corrida agora têm nomes próprios. Após recarregar, o teste verifica
+individualmente os alvos excluídos e os preservados, além de confirmar no banco
+que o cartão vazio original continua ausente. Também cobre compra e quitação
+nas duas ordens determinísticas: exclusão primeiro (HTTP 200 e vínculo recusado)
+e vínculo primeiro (HTTP 409 e ambos preservados), seguidas de quatro disputas
+simultâneas reais. Cada execução tem oito cenários de concorrência.
+
+Em 26/10/2026, três repetições consecutivas passaram em `demo-gestone-e2e`, com
+24 cenários no total. O filtro de teste e `repeatEach: 3` foram temporários,
+restaurados após executar `npm run test:e2e -- --webpack`. As mensagens
+`PERMISSION_DENIED` dos writes posteriores à exclusão são recusas esperadas,
+verificadas pelo teste. Lint, tipos e 263 testes unitários também passaram.
+Nenhuma regra de autorização ou comportamento de exclusão do aplicativo mudou.
+
+A regressão completa `npm run test:e2e -- --webpack` aprovou os 43 testes em
+8,3 minutos, incluindo os oito fluxos MCP e a exclusão de conta que havia falhado
+intermitentemente na execução anterior. Os 150 testes de regras também passaram.

@@ -9,11 +9,14 @@ import { useAuth } from '@/contexts/auth-context'
 import { Sidebar } from '@/components/layout/sidebar'
 import { Header } from '@/components/layout/header'
 import { BottomNav } from '@/components/layout/bottom-nav'
+import { McpFocusSync } from '@/components/integrations/mcp-focus-sync'
 
 export function DashboardClientLayout({
   children,
+  mcpEnabled = false,
 }: {
   children: React.ReactNode
+  mcpEnabled?: boolean
 }) {
   const { user, isLoading } = useAuth()
   const router = useRouter()
@@ -40,6 +43,7 @@ export function DashboardClientLayout({
   return (
     <div className="bg-background text-foreground min-h-screen transition-colors duration-200">
       <SkipLink />
+      {mcpEnabled && <McpFocusSync />}
       <Sidebar />
       <div className="flex min-h-screen flex-col pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-0 md:pl-[200px]">
         <Header />

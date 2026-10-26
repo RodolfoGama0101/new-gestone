@@ -1,0 +1,27 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "author": {
+    "email": "rodolfo.gama2006@gmail.com",
+    "name": "Rodolfo Gama"
+  },
+  "description": "Consulte e administre lançamentos, categorias, cartões, faturas, séries e orçamentos no GestOne, com prévia e confirmação.",
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "capabilities": [],
+        "category": "Finance",
+        "defaultPrompt": [
+          "Registre uma despesa no GestOne.",
+          "Consulte minhas últimas despesas no GestOne.",
+          "Revise estes comprovantes antes de lançá-los no GestOne."
+        ],
+        "developerName": "Rodolfo Gama",
+        "displayName": "GestOne Produção",
+        "longDescription": "Integração privada com o GestOne de produção via OAuth. Consultas e resumos financeiros; lançamentos por texto e comprovantes; categorias, cartões, faturas, séries e orçamentos com prévia e confirmação. Novos módulos exigem consentimento específico.",
+        "shortDescription": "Finanças pelo ChatGPT"
+      }
+    }
+  },
+  "name": "gestone-producao",
+  "version": "0.3.0"
+}

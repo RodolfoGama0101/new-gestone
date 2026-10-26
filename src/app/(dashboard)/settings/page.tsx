@@ -32,6 +32,7 @@ import {
 import { PageHeader } from '@/components/shared/page-header'
 import { passwordSchema } from '@/lib/validations/auth.schema'
 import { useAuth } from '@/contexts/auth-context'
+import { McpConnections } from '@/components/integrations/mcp-connections'
 
 export default function SettingsPage() {
   const {
@@ -46,7 +47,7 @@ export default function SettingsPage() {
   const user = auth.currentUser
 
   const [activeTab, setActiveTab] = React.useState<
-    'profile' | 'preferences' | 'security' | 'danger'
+    'profile' | 'preferences' | 'security' | 'integrations' | 'danger'
   >('profile')
 
   // Estados de Nome
@@ -218,6 +219,7 @@ export default function SettingsPage() {
             { id: 'profile', label: 'Perfil', icon: User },
             { id: 'preferences', label: 'Preferências', icon: SettingsIcon },
             { id: 'security', label: 'Segurança', icon: Lock },
+            { id: 'integrations', label: 'Integrações', icon: SettingsIcon },
             { id: 'danger', label: 'Excluir conta', icon: Trash2 },
           ] as const
         ).map((tab) => {
@@ -249,6 +251,7 @@ export default function SettingsPage() {
         aria-labelledby={'settings-' + activeTab}
         className="max-w-[760px] min-w-0 [&_button]:h-auto [&_button]:min-h-10 [&_button]:max-w-full [&_button]:py-2 [&_button]:whitespace-normal"
       >
+        {activeTab === 'integrations' && <McpConnections />}
         {activeTab === 'profile' && (
           <Card className="border-border bg-card rounded-md">
             <CardHeader className="border-border border-b pb-6">

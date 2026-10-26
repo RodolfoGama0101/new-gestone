@@ -1,0 +1,28 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "author": {
+    "email": "rodolfo.gama2006@gmail.com",
+    "name": "Rodolfo Gama"
+  },
+  "description": "Consulte e administre suas finanças no GestOne, com prévia e confirmação de alterações.",
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "capabilities": [],
+        "category": "Finance",
+        "composerIcon": "./assets/icon.jpg",
+        "defaultPrompt": [
+          "Registre uma despesa no GestOne.",
+          "Revise meus comprovantes antes de registrar no GestOne."
+        ],
+        "developerName": "Rodolfo Gama",
+        "displayName": "GestOne",
+        "logo": "./assets/icon.jpg",
+        "longDescription": "Integração privada com o GestOne. Consultas e resumos financeiros; lançamentos por texto e comprovantes; cartões, categorias, faturas, séries e orçamentos com prévia e confirmação. Requer OAuth, permissões por módulo e uma conta autorizada. A versão do servidor deve disponibilizar as ferramentas correspondentes.",
+        "shortDescription": "Finanças por texto e recibos"
+      }
+    }
+  },
+  "name": "gestone-private",
+  "version": "0.3.0"
+}

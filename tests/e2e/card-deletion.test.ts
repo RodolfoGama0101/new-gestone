@@ -238,15 +238,18 @@ test('exclui cartões vazios, preserva vínculos e resiste a escritas concorrent
   })
   const clientDb = getClientFirestore(clientApp)
   connectFirestoreEmulator(clientDb, '127.0.0.1', 8081)
+  const raceResults: { name: string; deleted: boolean }[] = []
   try {
     await signInWithEmailAndPassword(clientAuth, email, password)
     await expect
       .poll(async () => (await user.collection('categories').get()).size)
       .toBeGreaterThan(0)
-    for (let index = 0; index < 4; index++) {
+    // Cobre as duas ordens determinísticas para compra/quitação e quatro corridas reais.
+    for (let index = 0; index < 8; index++) {
       const id = `race-${index}`
+      const name = `Cartão concorrente ${index + 1}`
       const cardRef = user.collection('creditCards').doc(id)
-      await cardRef.set(card)
+      await cardRef.set({ ...card, name })
       const linkedPath =
         index % 2
           ? `users/${uid}/creditCards/${id}/payments/2026-10`
@@ -268,20 +271,39 @@ test('exclui cartões vazios, preserva vínculos e resiste a escritas concorrent
               createdAt: ClientTimestamp.now(),
               updatedAt: ClientTimestamp.now(),
             }
-      const [deletion] = await Promise.all([
-        page.request.delete(`/api/credit-cards/${id}`),
+      const writeLink = () =>
         setDoc(doc(clientDb, linkedPath), data).then(
           () => true,
           () => false,
-        ),
-      ])
+        )
+      const deleteCard = () => page.request.delete(`/api/credit-cards/${id}`)
+      let deletion: Awaited<ReturnType<typeof deleteCard>>
+      let written: boolean
+      if (index < 2) {
+        deletion = await deleteCard()
+        expect(deletion.status()).toBe(200)
+        written = await writeLink()
+      } else if (index < 4) {
+        written = await writeLink()
+        expect(written).toBe(true)
+        deletion = await deleteCard()
+        expect(deletion.status()).toBe(409)
+      } else {
+        const results = await Promise.all([deleteCard(), writeLink()])
+        deletion = results[0]
+        written = results[1]
+      }
       expect([200, 409]).toContain(deletion.status())
       const [remainingCard, linked] = await Promise.all([
         cardRef.get(),
         db.doc(linkedPath).get(),
       ])
       expect(remainingCard.exists || !linked.exists).toBe(true)
-      if (deletion.status() === 200) expect(remainingCard.exists).toBe(false)
+      const deleted = deletion.status() === 200
+      expect(remainingCard.exists).toBe(!deleted)
+      expect(linked.exists).toBe(!deleted)
+      expect(written).toBe(!deleted)
+      raceResults.push({ name, deleted })
     }
   } finally {
     await terminate(clientDb)
@@ -294,4 +316,14 @@ test('exclui cartões vazios, preserva vínculos e resiste a escritas concorrent
       exact: true,
     }),
   ).toHaveCount(0)
+  expect((await user.collection('creditCards').doc('empty').get()).exists).toBe(
+    false,
+  )
+  for (const result of raceResults)
+    await expect(
+      page.getByRole('button', {
+        name: `Selecionar cartão ${result.name} · Banco teste`,
+        exact: true,
+      }),
+    ).toHaveCount(result.deleted ? 0 : 1)
 })

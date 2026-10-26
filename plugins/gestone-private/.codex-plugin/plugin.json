@@ -1,0 +1,26 @@
+{
+  "interface": {
+    "capabilities": [],
+    "category": "Finance",
+    "composerIcon": "./assets/icon.jpg",
+    "defaultPrompt": [
+      "Registre uma despesa no GestOne.",
+      "Revise meus comprovantes antes de registrar no GestOne."
+    ],
+    "developerName": "Rodolfo Gama",
+    "displayName": "GestOne",
+    "logo": "./assets/icon.jpg",
+    "longDescription": "Integração privada com o GestOne. Lançamentos avulsos por texto e lotes/comprovantes com prévia, confirmação e alertas de duplicidade. Requer OAuth e uma conta autorizada no ambiente de produção.",
+    "shortDescription": "Finanças por texto e recibos"
+  },
+  "name": "gestone-private",
+  "version": "0.2.1",
+  "description": "Consulte e registre despesas, receitas e investimentos no GestOne por texto ou comprovantes, com revisão de lotes.",
+  "author": {
+    "name": "Rodolfo Gama",
+    "email": "rodolfo.gama2006@gmail.com"
+  },
+  "keywords": [],
+  "skills": "./skills",
+  "mcpServers": "./.mcp.json"
+}

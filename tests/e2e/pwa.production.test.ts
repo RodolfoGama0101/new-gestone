@@ -25,7 +25,7 @@ test('logout offline e segunda conta não recuperam o histórico anterior', asyn
   await expect(dialog).not.toBeVisible()
   await expect(page.getByText('Histórico privado da primeira conta', { exact: true })).toBeVisible()
   await context.setOffline(true)
-  await page.locator('header').getByRole('button', { name: 'Abrir menu da conta' }).click()
+  await page.getByRole('button', { name: 'Abrir menu da conta', exact: true }).click()
   await page.getByRole('menuitem', { name: 'Sair da conta' }).click()
   await expect(page.getByText('Histórico privado da primeira conta', { exact: true })).toHaveCount(0)
   await expect(page).toHaveURL('http://localhost:3102/login')
