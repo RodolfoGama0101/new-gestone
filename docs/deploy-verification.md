@@ -80,6 +80,9 @@ Google escolhido e `data-auth-error` com um código
 redirecionamento, observador Firebase, espera pelo lock, obtenção do ID token,
 gravação do cookie e navegação. Nunca incluem o token, e-mail, UID ou mensagem
 bruta da exceção. Eles são diagnósticos locais, não autorização de acesso.
+Somente o nome do fluxo Google e o código de erro sanitizado são preservados
+em `sessionStorage` para investigar o retorno da autenticação; se o navegador
+bloquear esse armazenamento, o diagnóstico não interrompe o login.
 
 Em 21/10/2026, o PR #1 publicou até `da91f69`. O [CI remoto](https://github.com/RodolfoGama0101/new-gestone/actions/runs/39697338400) passou: qualidade/build, 122 testes do aplicativo, 122 de regras e oito E2E. A árvore local tinha 125 testes porque incluía três testes de sessão ainda não commitados e preservados fora do PR. O bot Vercel informou [deployment Ready](https://vercel.com/rodolfo-gamas-projects/new-gestone/HLvTwNjcaMDGpYG1LABoUxD1oYbr). O job legado de Firebase Hosting falhou por variáveis públicas vazias; não é o deploy vigente do app.
 
