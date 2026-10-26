@@ -201,3 +201,45 @@ foram validados nesta entrega. Isso exige um ambiente HTTPS com configuração
 MCP e uma conta de teste autorizada, além de novo consentimento para os módulos.
 Não houve merge em `main`, promoção de produção, publicação do pacote na conta,
 migração ou publicação de regras/índices.
+
+## Liberação autorizada em 26/10/2026 — ROD-128
+
+Após o pedido explícito de publicar a evolução MCP junto à correção dos cartões,
+a ROD-128 corrigiu o falso negativo do teste, sem alterar a API de exclusão.
+O commit `ccf3e63` aprovou três repetições do cenário (24 disputas) e a regressão
+completa com 43 E2E aprovados em 8,3 minutos. Lint, tipos, 263 testes unitários,
+150 testes de regras e seis verificações do script de preview também passaram.
+
+Uma checagem adicional de produção local encontrou outro seletor antigo no
+teste PWA: o menu da conta é identificado por “Abrir menu da conta”, não pelo
+nome aleatório do usuário. O commit `d068f4d` ajustou somente esse seletor.
+Depois, `npm run test:e2e -- --production` aprovou o build e os dois cenários
+PWA: logout offline/troca de conta e limpeza de caches/fallback sem cachear APIs.
+
+O preview da branch `codex/gestone-mcp`, deployment
+`dpl_FmbSDWzP4ZcNaL3QsS5FkzYzY6TZ`, ficou READY no commit `ccf3e63`.
+Na origem de branch já configurada, uma sessão HTTP isolada conferiu o UID da
+conta fictícia e aprovou login, cookie seguro, Firestore cliente/Admin, renovação
+e encerramento da sessão. Nenhum registro financeiro foi alterado. A descoberta
+OAuth retornou HTTP 200 com emissor exato e 12 escopos; MCP anônimo retornou 401.
+A primeira sondagem ainda viu dois escopos enquanto o build estava em andamento;
+a verificação foi repetida e aprovada após READY.
+
+A publicação usa exclusivamente a integração Git da Vercel, avançando `main`
+somente se continuar ancestral dos commits revisados. O projeto confirmado é
+`new-gestone` (`prj_3ypKiGzPIlKklPyu8HjNojkKAesq`), equipe
+`team_9j7705CCtkbBObBbYZJbUMEv`, origem de produção
+`https://new-gestone.vercel.app`. Não há novas variáveis, mudança de credenciais,
+migração ou regras/índices a publicar. Alterações locais anteriores de login
+no checkout principal foram preservadas. O resultado final do deploy e seu
+commit são registrados na ROD-128 após confirmação de READY e sondagem pública.
+
+O pacote instalado “GestOne Produção” tem fonte própria em
+`plugins/gestone-producao`, preservando seu ID
+`plugins_6add2fde1d888191bfc1e933c630186b`, audiência privada, endpoint e Client ID.
+A atualização 0.3.0 mantém os três prompts e acrescenta instruções para as novas
+operações e os escopos dos módulos. Ela é distinta do pacote `gestone-private`
+e da conexão App-backed “GestOne”. Atualizar o pacote não amplia tokens antigos.
+Após o deploy, atualizar o catálogo da conexão e reconectar com novo consentimento
+para usar categorias, cartões, faturas, séries e orçamentos. Abrir uma nova
+conversa depois da atualização; as cinco funções antigas continuam compatíveis.

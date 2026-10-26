@@ -1,0 +1,39 @@
+{
+  "mcpServers": {
+    "gestone-producao": {
+      "type": "streamable-http",
+      "url": "https://new-gestone.vercel.app/api/mcp",
+      "headers": {},
+      "extensions": {
+        "com.openai": {
+          "auth": {
+            "type": "oauth",
+            "client": {
+              "mode": "provided",
+              "clientId": "gestone-chatgpt",
+              "tokenEndpointAuthMethod": "none"
+            },
+            "baseScopes": [
+              "transactions:read",
+              "transactions:write"
+            ],
+            "defaultScopes": [
+              "transactions:read",
+              "transactions:write",
+              "categories:read",
+              "categories:write",
+              "cards:read",
+              "cards:write",
+              "invoices:read",
+              "invoices:write",
+              "series:read",
+              "series:write",
+              "budgets:read",
+              "budgets:write"
+            ]
+          }
+        }
+      }
+    }
+  }
+}
