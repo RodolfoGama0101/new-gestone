@@ -9,6 +9,7 @@ import {
 } from 'firebase/auth'
 import { auth } from './config'
 import { createSessionRenewal } from './session-renewal'
+import { recordAuthStage } from './auth-diagnostics'
 
 const sessionRenewal = createSessionRenewal({
   storage: () => typeof window === 'undefined' ? undefined : window.localStorage,
@@ -50,10 +51,13 @@ async function getSessionError(response: Response) {
 }
 
 export async function syncSessionCookie(user: User, force = true) {
+  recordAuthStage('session:waiting-for-lock')
   return sessionRenewal.renew(user.uid, async () => {
+  recordAuthStage('session:reading-token')
   if (auth.currentUser?.uid !== user.uid) return
   const token = await user.getIdToken()
   if (auth.currentUser?.uid !== user.uid) return
+  recordAuthStage('session:posting-cookie')
   const response = await fetch('/api/auth/session', {
     method: 'POST',
     credentials: 'same-origin',
@@ -66,11 +70,14 @@ export async function syncSessionCookie(user: User, force = true) {
   if (!response.ok) {
     throw await getSessionError(response)
   }
+  recordAuthStage('session:created')
   }, force)
 }
 
 export async function clearSessionCookie() {
+  recordAuthStage('session:clearing')
   return sessionRenewal.clear(auth.currentUser?.uid, async () => {
+  recordAuthStage('session:deleting-cookie')
   const response = await fetch('/api/auth/session', {
     method: 'DELETE',
     credentials: 'same-origin',
@@ -79,6 +86,7 @@ export async function clearSessionCookie() {
   if (!response.ok) {
     throw await getSessionError(response)
   }
+  recordAuthStage('session:cleared')
   })
 }
 
@@ -104,19 +112,24 @@ function shouldUseRedirect() {
 
 export async function signInWithGoogle() {
   if (shouldUseRedirect()) {
+    recordAuthStage('google:standalone-redirect')
     await signInWithRedirect(auth, googleProvider)
     return null
   }
 
   try {
+    recordAuthStage('google:opening-popup')
     const userCredential = await signInWithPopup(auth, googleProvider)
+    recordAuthStage('google:popup-authenticated')
     return userCredential.user
   } catch (error) {
+    recordAuthStage('google:popup-error', error)
     const authError = error as { code?: string }
     if (
       authError.code === 'auth/popup-blocked' ||
       authError.code === 'auth/operation-not-supported-in-this-environment'
     ) {
+      recordAuthStage('google:popup-fallback-redirect', error)
       await signInWithRedirect(auth, googleProvider)
       return null
     }

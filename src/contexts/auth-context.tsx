@@ -5,6 +5,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { User, getRedirectResult, onIdTokenChanged, signOut } from 'firebase/auth'
 import { toast } from 'sonner'
 import { auth } from '@/lib/firebase/config'
+import { recordAuthStage } from '@/lib/firebase/auth-diagnostics'
 import {
   clearSessionCookie,
   signInWithEmail as signInWithEmailCredential,
@@ -78,6 +79,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (isMountedRef.current) setUser(firebaseUser)
         return firebaseUser
       } catch (error) {
+        recordAuthStage('authentication:failed', error)
         synchronizedUserIdRef.current = null
         if (isMountedRef.current) setUser(null)
         await signOut(auth).catch(() => undefined)
@@ -134,8 +136,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   React.useEffect(() => {
     isMountedRef.current = true
+    recordAuthStage('authentication:initializing')
 
     const unsubscribe = onIdTokenChanged(auth, async (firebaseUser) => {
+      recordAuthStage(firebaseUser ? 'observer:authenticated' : 'observer:anonymous')
       const isInitialState = !hasInitializedRef.current
       if (synchronizedUserIdRef.current !== (firebaseUser?.uid ?? null)) {
         setIsLoading(true)
@@ -166,6 +170,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (isMountedRef.current) setUser(firebaseUser)
       } catch (error) {
+        recordAuthStage('observer:failed', error)
         console.error('Failed to synchronize the authentication session:', error)
         synchronizedUserIdRef.current = null
         if (isMountedRef.current) setUser(null)
@@ -202,6 +207,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (pathname === '/login') {
         if (!loginNavigationStartedRef.current) {
           loginNavigationStartedRef.current = true
+          recordAuthStage('navigation:dashboard')
           // A sessão mudou via fetch: abra um documento novo com o cookie atual,
           // sem reutilizar uma resposta anônima do cache de navegação do Next.js.
           window.location.replace('/')
