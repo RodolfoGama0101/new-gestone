@@ -9,6 +9,24 @@ tema local (`light` ou `dark` na chave `theme`) ou a preferência do sistema,
 sem consultar a conta nem depender de recursos remotos. Ele não introduz uma
 nova marca; as telas React continuam reutilizando o componente `Logo` original.
 
+Os ícones públicos e de instalação usam o mesmo “G” de seta circular da interface.
+`node scripts/generate-brand-icons.mjs` extrai os traços de `Logo` e gera
+`public/logo.svg`, `public/logo.png`, o recurso local
+`plugins/gestone-private/assets/icon.jpg` e os quatro PNGs do manifest nas
+dimensões 192 e 512. As variantes maskable mantêm o desenho na área central segura.
+O build inclui as revisões novas no precache. Instaladores do sistema podem
+reter um ícone antigo até atualizar ou reinstalar o atalho do PWA.
+Categorias com o identificador legado do ícone substituído exibem uma carteira;
+ao salvar a edição, passam a usar essa opção, sem migração de dados em produção.
+
+Verificação da substituição de marca em 26/10/2026: lint, tipos, dez testes de
+categorias, dimensões dos PNGs e inspeção visual aprovados. O build com a
+configuração fictícia do runner PWA passou. No E2E de produção local, o teste
+de cache/fallback passou; o de logout offline falhou esperando `/login` após
+limpar o histórico visível. A tentativa de repetição encontrou a porta 8081
+ocupada e não encerrou processos alheios. Autenticação e worker não foram
+alterados nesta entrega; a causa desse resultado de logout não foi determinada.
+
 Uma nova versão assume controle com `skipWaiting`/`clientsClaim`. Na ativação, o worker personalizado remove caches antigos que não pertencem ao prefixo público atual. Assim, caches legados de páginas e APIs deixam de sobreviver à atualização. Esse trabalho é limitado ao origin da aplicação.
 
 Logout e troca de UID cancelam consultas e limpam o QueryClient antes de disponibilizar a próxima conta. A saída local funciona mesmo se a exclusão do cookie falhar. Um cookie HttpOnly só pode ser removido pelo servidor: se a saída ocorrer offline, a interface informa a necessidade de reconectar. O estado Firebase local é encerrado e a área financeira exige usuário ativo no cliente.

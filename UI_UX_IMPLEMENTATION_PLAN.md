@@ -11,7 +11,7 @@ Este documento descreve as melhorias de UI/UX planejadas para a aplicação Gest
 | Área | Problema | Impacto |
 |------|----------|---------|
 | **Padding/Espaçamento** | Falta de padding em quase todos os elementos. Cards, headers, e áreas de conteúdo estão "colados" | Sensação de interface apertada e amadora |
-| **Logo** | Não existe logo — usa apenas um ícone `PiggyBank` do Lucide com texto gradiente | Sem identidade visual própria |
+| **Logo** | Diagnóstico superado: a interface usa o “G” de seta circular de `Logo` | Manter a mesma marca nos recursos externos |
 | **Cards do Dashboard** | `CardHeader` com `pb-2` e `CardContent` com `pb-4` criam espaçamentos internos inconsistentes | Visual desbalanceado |
 | **Header** | Altura fixa de `h-14` (56px) muito compacta, padding lateral mínimo `px-4` | Respiro insuficiente |
 | **Bottom Nav** | Padding `py-1.5` e `px-2` muito apertado, ícones text-[10px] | Alvo de toque pequeno demais (< 44px recomendado) |
@@ -43,7 +43,7 @@ Este documento descreve as melhorias de UI/UX planejadas para a aplicação Gest
 
 ## Proposta de Logo
 
-A logo gerada representa um cofrinho de porco integrado com uma linha de gráfico ascendente, simbolizando o crescimento financeiro de forma moderna e minimalista. A imagem da logo foi gerada em `public/logo.png` e uma versão em vetor SVG será integrada nos componentes React da aplicação.
+A marca atual é o “G” de seta circular do componente `src/components/shared/logo.tsx`. Os arquivos `public/logo.svg`, `public/logo.png` e os ícones do PWA são derivados desse desenho por `node scripts/generate-brand-icons.mjs`. A proposta visual anterior foi substituída integralmente.
 
 ---
 

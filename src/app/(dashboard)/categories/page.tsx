@@ -46,7 +46,7 @@ import {
   Plane,
   Gift,
   DollarSign,
-  PiggyBank,
+  Wallet,
   Check,
   Plus,
 } from 'lucide-react'
@@ -70,7 +70,7 @@ const AVAILABLE_ICONS = [
   { name: 'Plane', icon: Plane },
   { name: 'Gift', icon: Gift },
   { name: 'DollarSign', icon: DollarSign },
-  { name: 'PiggyBank', icon: PiggyBank },
+  { name: 'Wallet', icon: Wallet },
 ]
 
 // Mapeamento de cores pré-definidas
@@ -101,7 +101,7 @@ function DynamicIcon({
         string,
         React.ComponentType<{ className?: string }>
       >
-    )[name] || Icons.HelpCircle
+    )[/piggy.?bank/i.test(name) ? 'Wallet' : name] || Icons.HelpCircle
   return <IconComponent className={className} />
 }
 
@@ -156,7 +156,7 @@ export default function CategoriesPage() {
     } else {
       setType('expense')
     }
-    setSelectedIcon(cat.icon)
+    setSelectedIcon(/piggy.?bank/i.test(cat.icon) ? 'Wallet' : cat.icon)
     setSelectedColor(cat.color)
   }
 
