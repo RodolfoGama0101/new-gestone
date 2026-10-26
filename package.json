@@ -55,7 +55,7 @@
     "@types/react-dom": "^19.3.0",
     "eslint": "^10.13.0",
     "eslint-config-next": "16.4.2",
-    "firebase-tools": "15.34.0",
+    "firebase-tools": "15.34.1",
     "jest": "^30.5.2",
     "jest-environment-jsdom": "^30.5.2",
     "postcss": "^8.5.31",
