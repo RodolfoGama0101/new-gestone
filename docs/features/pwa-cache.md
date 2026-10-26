@@ -22,3 +22,14 @@ Execute `npm run test:e2e -- --production` para construir com configuração fic
 Na versão instalada, `cacheStartUrl: false` precisa vir junto de `dynamicStartUrl: false`: caso contrário o worker ainda recebe uma regra `NetworkFirst` para `/`. A regra `NetworkOnly` precisa de `options: {}` para o plugin injetar seu fallback. O caminho `customWorkerSrc: src/worker` garante que o worker de limpeza seja compilado. Essas condições foram conferidas no código distribuído do plugin e no `sw.js` gerado; a suíte de produção também rejeita a presença de `start-url` e testa uma visita à raiz antes de inspecionar os caches.
 
 Execute localmente `npm run test:e2e` e depois `npm run test:e2e -- --production`. O Jest usa descoberta explícita em `tests/unit/`, evitando misturar regras e Playwright em caminhos Windows com diretórios ocultos.
+
+## Validação da liberação MCP 0.3.0 — 26/10/2026
+
+O cenário de logout offline ainda procurava o menu pelo nome aleatório da conta,
+embora o botão atual tenha o rótulo acessível “Abrir menu da conta”. O seletor foi
+atualizado para esse rótulo, sem alterar o aplicativo ou o isolamento de cache.
+A primeira execução parou antes de realizar logout; após o ajuste, os dois
+testes de `npm run test:e2e -- --production` passaram em 12,6 segundos, além do
+build de produção com configuração Firebase fictícia. O teste continua verificando
+que a primeira conta desaparece da interface offline e não reaparece após criar
+ou navegar com a segunda conta. Nenhum dado ou credencial de produção foi usado.

@@ -13,7 +13,7 @@ async function register(page: Page) {
 }
 
 test('logout offline e segunda conta não recuperam o histórico anterior', async ({ page, context }) => {
-  const first = await register(page)
+  await register(page)
   await page.goto('/expenses')
   await page.getByRole('button', { name: 'Nova Despesa', exact: true }).click()
   const dialog = page.getByRole('dialog')
@@ -25,7 +25,7 @@ test('logout offline e segunda conta não recuperam o histórico anterior', asyn
   await expect(dialog).not.toBeVisible()
   await expect(page.getByText('Histórico privado da primeira conta', { exact: true })).toBeVisible()
   await context.setOffline(true)
-  await page.locator('header').getByRole('button', { name: first }).click()
+  await page.getByRole('button', { name: 'Abrir menu da conta', exact: true }).click()
   await page.getByRole('menuitem', { name: 'Sair da conta' }).click()
   await expect(page.getByText('Histórico privado da primeira conta', { exact: true })).toHaveCount(0)
   await expect(page).toHaveURL('http://localhost:3102/login')
