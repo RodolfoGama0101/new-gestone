@@ -15,9 +15,28 @@ async function signInWithGoogle(page: Page) {
     .locator('#email-input')
     .fill(`google-${crypto.randomUUID()}@example.test`)
   await popup.locator('#display-name-input').fill('Conta Google de teste')
-  await popup
-    .getByRole('button', { name: 'Sign in with Google.com', exact: true })
-    .click()
+  // O emulador só consegue entregar o resultado quando o canal do iframe está pronto.
+  await expect
+    .poll(() =>
+      page
+        .frames()
+        .some((frame) => frame.url().includes('/emulator/auth/iframe')),
+    )
+    .toBe(true)
+  const authFrame = page
+    .frames()
+    .find((frame) => frame.url().includes('/emulator/auth/iframe'))!
+  await authFrame.waitForFunction(
+    () => Boolean(Reflect.get(window, 'parentContainer')),
+    undefined,
+    { timeout: 30000 },
+  )
+  await Promise.all([
+    popup.waitForEvent('close', { timeout: 60000 }),
+    popup
+      .getByRole('button', { name: 'Sign in with Google.com', exact: true })
+      .click(),
+  ])
 }
 
 test('login Google no desktop abre o painel após fechar o popup e criar a sessão', async ({
@@ -31,9 +50,9 @@ test('login Google no desktop abre o painel após fechar o popup e criar a sess�
   const dashboardDocument = page.waitForRequest(
     (request) =>
       request.isNavigationRequest() && new URL(request.url()).pathname === '/',
+    { timeout: 60000 },
   )
-  await signInWithGoogle(page)
-  await dashboardDocument
+  await Promise.all([dashboardDocument, signInWithGoogle(page)])
   await expect(page).toHaveURL('http://localhost:3102/', { timeout: 30000 })
   await expect(
     page.getByRole('button', { name: 'Abrir menu da conta' }),
