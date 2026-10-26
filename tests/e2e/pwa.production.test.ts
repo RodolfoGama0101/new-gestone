@@ -28,8 +28,14 @@ test('logout offline e segunda conta não recuperam o histórico anterior', asyn
   await page.getByRole('button', { name: 'Abrir menu da conta', exact: true }).click()
   await page.getByRole('menuitem', { name: 'Sair da conta' }).click()
   await expect(page.getByText('Histórico privado da primeira conta', { exact: true })).toHaveCount(0)
-  await expect(page).toHaveURL('http://localhost:3102/login')
+  // Sem rede, o Next pode exibir o fallback estático mantendo a URL anterior.
+  await expect(page.getByRole('heading', {
+    name: /^(Entre na sua conta|Sem conexão com a internet)$/,
+  })).toBeVisible()
   await context.setOffline(false)
+  await page.goto('/login')
+  await expect(page).toHaveURL('http://localhost:3102/login')
+  await expect(page.getByRole('heading', { name: 'Entre na sua conta' })).toBeVisible()
   await register(page)
   await page.goto('/expenses')
   await expect(page.getByText('Sem despesas registradas', { exact: true })).toBeVisible()

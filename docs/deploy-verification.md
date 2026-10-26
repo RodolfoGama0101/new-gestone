@@ -50,7 +50,7 @@ erro quando a sessão responde 503. Ele faz parte de `npm run test:e2e` e de
 `npm run test:e2e -- --production`. A execução com emuladores não substitui o
 teste visual com uma conta de teste no domínio autorizado do preview Vercel.
 
-Validação local em 26/10/2026: `npm run typecheck` e os 228 testes de
+Validação local em 26/10/2026, após integrar a `main`: `npm run typecheck` e os 265 testes de
 `npm test -- --runInBand --roots ./tests` passaram. O lint passou com
 `npm run lint -- --ignore-pattern '.worktrees/**' --ignore-pattern 'dogfood-output/**'`,
 excluindo cópias de outras worktrees e artefatos locais de revisão. O build
@@ -58,6 +58,8 @@ executado por `npm run test:e2e -- --production` compilou e os quatro testes
 passaram: login Google com navegação de documento e persistência da sessão,
 mensagem de erro após resposta 503, logout offline/troca de conta e limpeza de
 cache/fallback. O seletor do menu da conta usa seu nome acessível atual.
+O cenário de logout offline aceita a tela de login ou o fallback documentado,
+e confirma a sessão encerrada ao reconectar antes de cadastrar a segunda conta.
 
 As falhas iniciais estavam no ambiente local: o iframe não inicializava com a
 aplicação em `localhost` e o Auth Emulator em `127.0.0.1`. A conexão **cliente**

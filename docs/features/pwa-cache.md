@@ -13,6 +13,11 @@ Uma nova versão assume controle com `skipWaiting`/`clientsClaim`. Na ativação
 
 Logout e troca de UID cancelam consultas e limpam o QueryClient antes de disponibilizar a próxima conta. A saída local funciona mesmo se a exclusão do cookie falhar. Um cookie HttpOnly só pode ser removido pelo servidor: se a saída ocorrer offline, a interface informa a necessidade de reconectar. O estado Firebase local é encerrado e a área financeira exige usuário ativo no cliente.
 
+Ao sair sem rede, o roteador pode mostrar a tela de login que já está na memória
+ou o fallback estático, mantendo a URL anterior. O teste aceita esses dois
+estados sem dados privados; após reconectar, abre `/login` e confirma a sessão
+encerrada antes de criar a segunda conta e verificar o isolamento do histórico.
+
 `sw.js`, `workbox-*`, `worker-*` e `fallback-*` são saídas ignoradas pelo Git. O deploy da Vercel executa `next build`, que gera os artefatos junto dos arquivos com hash correspondentes. Nunca publique apenas o worker de outro build. O rollback deve restaurar o build completo.
 
 Execute `npm run test:e2e -- --production` para construir com configuração fictícia, iniciar emuladores e testar o worker em produção local. A suíte verifica ativação de uma versão alterada, remoção de cache legado, exclusão de APIs e fallback offline. Não usa credenciais reais. Para os demais fluxos, use `npm run test:e2e`.
