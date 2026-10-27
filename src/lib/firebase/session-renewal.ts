@@ -13,22 +13,36 @@ export function createSessionRenewal(options: {
       return options.lock(async () => {
         const key = `gestone-session:${uid}`
         let last = memory.get(uid) ?? 0
-        try { last = Number(options.storage()?.getItem(key)) || last } catch { /* armazenamento indisponível */ }
+        try {
+          const storage = options.storage()
+          if (storage) last = Number(storage.getItem(key)) || 0
+        } catch {
+          /* armazenamento indisponível */
+        }
         const age = now() - last
-        if (!force && last > 0 && age >= 0 && age < SESSION_RENEW_INTERVAL_MS) return
+        if (!force && last > 0 && age >= 0 && age < SESSION_RENEW_INTERVAL_MS)
+          return
         await operation()
         const timestamp = now()
         memory.set(uid, timestamp)
-        try { options.storage()?.setItem(key, String(timestamp)) } catch { /* usa memória */ }
+        try {
+          options.storage()?.setItem(key, String(timestamp))
+        } catch {
+          /* usa memória */
+        }
       })
     },
     clear(uid: string | undefined, operation: () => Promise<void>) {
       return options.lock(async () => {
-        await operation()
         if (uid) {
           memory.delete(uid)
-          try { options.storage()?.removeItem(`gestone-session:${uid}`) } catch { /* usa memória */ }
+          try {
+            options.storage()?.removeItem(`gestone-session:${uid}`)
+          } catch {
+            /* usa memória */
+          }
         }
+        await operation()
       })
     },
   }

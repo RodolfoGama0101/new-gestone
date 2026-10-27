@@ -16,10 +16,12 @@ import { Separator } from '@/components/ui/separator'
 import { GoogleAuthButton } from './google-auth-button'
 import { loginSchema, type LoginInput } from '@/lib/validations/auth.schema'
 import { useAuth } from '@/contexts/auth-context'
+import { authErrorCode } from '@/lib/firebase/auth-errors'
 
 export function LoginForm() {
-  const [isLoading, setIsLoading] = React.useState(false)
-  const { signInWithEmail } = useAuth()
+  const [isSubmitting, setIsLoading] = React.useState(false)
+  const { signInWithEmail, isLoading: authLoading } = useAuth()
+  const isLoading = isSubmitting || authLoading
 
   const {
     register,
@@ -41,7 +43,7 @@ export function LoginForm() {
     } catch (error) {
       setIsLoading(false)
       const authError = error as { code?: string }
-      console.error('Login Error:', error)
+      console.error('Login Error:', authErrorCode(error))
       switch (authError.code) {
         case 'auth/invalid-credential':
         case 'auth/wrong-password':

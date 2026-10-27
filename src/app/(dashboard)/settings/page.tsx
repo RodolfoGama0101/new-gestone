@@ -3,6 +3,7 @@
 import * as React from 'react'
 import { usePreferences } from '@/providers/preferences-provider'
 import { auth } from '@/lib/firebase/config'
+import { authErrorCode } from '@/lib/firebase/auth-errors'
 import { AccountDeletionError, deleteAccount } from '@/lib/firebase/account'
 import { updateProfile, updatePassword } from 'firebase/auth'
 import {
@@ -82,7 +83,7 @@ export default function SettingsPage() {
       // Força recarregamento leve dos componentes da casca para atualizar avatar
       window.location.reload()
     } catch (error) {
-      console.error(error)
+      console.error('Profile update failed:', authErrorCode(error))
       toast.error('Erro ao atualizar nome de perfil.')
     } finally {
       setIsSavingName(false)
@@ -120,7 +121,7 @@ export default function SettingsPage() {
       setConfirmPassword('')
     } catch (error) {
       const authError = error as { code?: string }
-      console.error(error)
+      console.error('Password update failed:', authErrorCode(error))
       // Se exigir login recente, abre diálogo de reautenticação
       if (authError.code === 'auth/requires-recent-login') {
         setReauthAction('password')
@@ -148,7 +149,7 @@ export default function SettingsPage() {
         setNewPassword('')
         setConfirmPassword('')
       } catch (err) {
-        console.error(err)
+        console.error('Password update failed:', authErrorCode(err))
         toast.error('Falha ao redefinir senha após reautenticação.')
       } finally {
         setIsSavingPassword(false)

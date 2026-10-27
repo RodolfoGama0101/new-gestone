@@ -10,6 +10,8 @@ import { Sidebar } from '@/components/layout/sidebar'
 import { Header } from '@/components/layout/header'
 import { BottomNav } from '@/components/layout/bottom-nav'
 import { McpFocusSync } from '@/components/integrations/mcp-focus-sync'
+import { SessionRecovery } from '@/components/auth/session-recovery'
+import { Button } from '@/components/ui/button'
 
 export function DashboardClientLayout({
   children,
@@ -18,12 +20,12 @@ export function DashboardClientLayout({
   children: React.ReactNode
   mcpEnabled?: boolean
 }) {
-  const { user, isLoading } = useAuth()
+  const { user, isLoading, sessionError, signOutUser } = useAuth()
   const router = useRouter()
 
   React.useEffect(() => {
-    if (!isLoading && !user) router.replace('/login')
-  }, [isLoading, router, user])
+    if (!isLoading && !user && !sessionError) router.replace('/login')
+  }, [isLoading, router, user, sessionError])
 
   if (isLoading) {
     return (
@@ -38,6 +40,15 @@ export function DashboardClientLayout({
     )
   }
 
+  if (sessionError)
+    return (
+      <main className="mx-auto max-w-md px-6 py-24">
+        <SessionRecovery />
+        <Button variant="ghost" onClick={() => void signOutUser()}>
+          Sair e entrar novamente
+        </Button>
+      </main>
+    )
   if (!user) return null
 
   return (

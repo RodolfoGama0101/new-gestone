@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { Logo } from '@/components/shared/logo'
 import { ThemeToggle } from '@/components/shared/theme-toggle'
+import { SessionRecovery } from './session-recovery'
 
 export function AuthFrame({ children }: { children: ReactNode }) {
   return (
@@ -12,6 +13,7 @@ export function AuthFrame({ children }: { children: ReactNode }) {
         <div className="mb-6 flex justify-center">
           <Logo variant="full" size="lg" href="" />
         </div>
+        <SessionRecovery />
         {children}
       </div>
     </div>

@@ -50,3 +50,24 @@ test('não copia um código arbitrário que possa conter dados privados', () => 
   expect(document.documentElement.dataset.authError).toBeUndefined()
   expect(sessionStorage.getItem('gestone:auth-debug-error')).toBeNull()
 })
+
+test('histórico limita etapas e inclui somente status/código sanitizados', () => {
+  delete document.documentElement.dataset.authHistory
+  for (let step = 0; step < 25; step++)
+    recordAuthStage('session:posting-cookie')
+  recordAuthStage('authentication:failed', {
+    code: 'auth/session-service-unavailable',
+    status: 503,
+    token: 'private-token',
+    email: 'private@example.test',
+  })
+  const history = JSON.parse(
+    document.documentElement.dataset.authHistory!,
+  ) as Array<{ status?: number; code?: string }>
+  expect(history).toHaveLength(20)
+  expect(history.at(-1)).toMatchObject({
+    status: 503,
+    code: 'auth/session-service-unavailable',
+  })
+  expect(JSON.stringify(history)).not.toMatch(/private-token|private@example/)
+})

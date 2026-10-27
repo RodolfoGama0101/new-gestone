@@ -2,231 +2,299 @@
 
 import * as React from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { User, getRedirectResult, onIdTokenChanged, signOut } from 'firebase/auth'
+import {
+  type User,
+  getRedirectResult,
+  onIdTokenChanged,
+  signOut,
+} from 'firebase/auth'
 import { toast } from 'sonner'
+import { usePathname } from 'next/navigation'
 import { auth } from '@/lib/firebase/config'
 import { recordAuthStage } from '@/lib/firebase/auth-diagnostics'
+import { AuthFlowError, authErrorMessage } from '@/lib/firebase/auth-errors'
 import {
   clearSessionCookie,
+  consumeGoogleRedirect,
+  hasPendingLogout,
+  markLogoutPending,
   signInWithEmail as signInWithEmailCredential,
   signInWithGoogle as signInWithGoogleCredential,
   signUpWithEmail as signUpWithEmailCredential,
   syncSessionCookie,
+  withAuthTimeout,
 } from '@/lib/firebase/auth'
-import { useRouter, usePathname } from 'next/navigation'
 
+type AuthStatus =
+  'initializing' | 'authenticating' | 'synchronizing' | 'ready' | 'error'
 interface AuthContextType {
   user: User | null
   isLoading: boolean
+  sessionError: string | null
+  retrySession: () => Promise<void>
   signInWithEmail: (email: string, password: string) => Promise<User>
   signUpWithEmail: (email: string, password: string) => Promise<User>
-  signInWithGoogle: () => Promise<User | null>
+  signInWithGoogle: (mode?: 'popup' | 'redirect') => Promise<User | null>
   signOutUser: () => Promise<void>
 }
 
+const unavailable = async (): Promise<never> => {
+  throw new Error('AuthProvider não está disponível.')
+}
 const AuthContext = React.createContext<AuthContextType>({
   user: null,
   isLoading: true,
-  signInWithEmail: async () => {
-    throw new Error('AuthProvider não está disponível.')
-  },
-  signUpWithEmail: async () => {
-    throw new Error('AuthProvider não está disponível.')
-  },
-  signInWithGoogle: async () => {
-    throw new Error('AuthProvider não está disponível.')
-  },
-  signOutUser: async () => {
-    throw new Error('AuthProvider não está disponível.')
-  },
+  sessionError: null,
+  retrySession: unavailable,
+  signInWithEmail: unavailable,
+  signUpWithEmail: unavailable,
+  signInWithGoogle: unavailable,
+  signOutUser: unavailable,
 })
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = React.useState<User | null>(null)
-  const [isLoading, setIsLoading] = React.useState(true)
+  const [status, setStatus] = React.useState<AuthStatus>('initializing')
+  const [sessionError, setSessionError] = React.useState<string | null>(null)
   const queryClient = useQueryClient()
-  const clearPrivateCache = React.useCallback(async () => {
+  const pathname = usePathname()
+  const mounted = React.useRef(false)
+  const initialized = React.useRef(false)
+  const generation = React.useRef(0)
+  const action = React.useRef<number | null>(null)
+  const synchronizedUid = React.useRef<string | null>(null)
+  const navigating = React.useRef(false)
+  const redirectResult = React.useRef<Promise<void> | null>(null)
+  const invalidate = React.useCallback(() => {
+    generation.current += 1
+  }, [])
+
+  const clearCache = React.useCallback(async () => {
     await queryClient.cancelQueries()
     queryClient.clear()
   }, [queryClient])
-  const router = useRouter()
-  const pathname = usePathname()
-  const isMountedRef = React.useRef(true)
-  const hasInitializedRef = React.useRef(false)
-  const authActionInFlightRef = React.useRef(false)
-  const synchronizedUserIdRef = React.useRef<string | null>(null)
-  const loginNavigationStartedRef = React.useRef(false)
-  const sessionQueueRef = React.useRef<Promise<void>>(Promise.resolve())
 
-  const queueSessionOperation = React.useCallback((operation: () => Promise<void>) => {
-    const queuedOperation = sessionQueueRef.current.then(operation, operation)
-    sessionQueueRef.current = queuedOperation.catch(() => undefined)
-    return queuedOperation
+  const isCurrent = React.useCallback(
+    (id: number, firebaseUser: User | null) =>
+      mounted.current &&
+      generation.current === id &&
+      (auth.currentUser?.uid ?? null) === (firebaseUser?.uid ?? null),
+    [],
+  )
+
+  const synchronize = React.useCallback(
+    async (firebaseUser: User | null, id: number, force = true) => {
+      const current = () => isCurrent(id, firebaseUser)
+      if (!current()) throw new AuthFlowError('auth/operation-cancelled')
+      // Bloqueia o painel antes de aguardar a limpeza da conta anterior.
+      // Renovação do mesmo UID preserva os diálogos de reautenticação.
+      if (force || synchronizedUid.current !== (firebaseUser?.uid ?? null)) {
+        setStatus('synchronizing')
+      }
+      if (synchronizedUid.current !== (firebaseUser?.uid ?? null)) {
+        setUser(null)
+        await clearCache()
+      }
+      if (!current()) throw new AuthFlowError('auth/operation-cancelled')
+      if (firebaseUser) await syncSessionCookie(firebaseUser, force, current)
+      else
+        await clearSessionCookie(synchronizedUid.current ?? undefined, current)
+      if (!current()) throw new AuthFlowError('auth/operation-cancelled')
+      synchronizedUid.current = firebaseUser?.uid ?? null
+      setSessionError(null)
+      setUser(firebaseUser)
+      setStatus('ready')
+    },
+    [clearCache, isCurrent],
+  )
+
+  const failSession = React.useCallback((error: unknown, id: number) => {
+    if (!mounted.current || generation.current !== id) return
+    recordAuthStage('authentication:failed', error)
+    ++generation.current
+    synchronizedUid.current = null
+    setUser(null)
+    setSessionError(authErrorMessage(error))
+    setStatus('error')
   }, [])
 
   const completeAuthentication = React.useCallback(
     async (authenticate: () => Promise<User | null>) => {
-      authActionInFlightRef.current = true
-      setIsLoading(true)
-
+      if (action.current !== null || !initialized.current)
+        throw new AuthFlowError('auth/action-in-progress')
+      const id = ++generation.current
+      action.current = id
+      setStatus('authenticating')
+      setSessionError(null)
+      let credential: User | null = null
       try {
-        const firebaseUser = await authenticate()
-        if (!firebaseUser) return null
-
-        await clearPrivateCache()
-        await queueSessionOperation(() => syncSessionCookie(firebaseUser))
-        synchronizedUserIdRef.current = firebaseUser.uid
-        if (isMountedRef.current) setUser(firebaseUser)
-        return firebaseUser
+        // Chamada imediata mantém o vínculo entre clique e popup do SDK.
+        credential = await authenticate()
+        if (!credential) {
+          if (generation.current === id && mounted.current) setStatus('ready')
+          return null
+        }
+        await synchronize(credential, id)
+        return credential
       } catch (error) {
-        recordAuthStage('authentication:failed', error)
-        synchronizedUserIdRef.current = null
-        if (isMountedRef.current) setUser(null)
-        await signOut(auth).catch(() => undefined)
+        if (credential) failSession(error, id)
+        else if (generation.current === id && mounted.current)
+          setStatus('ready')
         throw error
       } finally {
-        authActionInFlightRef.current = false
-        if (isMountedRef.current) setIsLoading(false)
+        if (action.current === id) action.current = null
       }
     },
-    [queueSessionOperation, clearPrivateCache],
+    [synchronize, failSession],
   )
 
   const signInWithEmail = React.useCallback(
     async (email: string, password: string) => {
-      const firebaseUser = await completeAuthentication(() => signInWithEmailCredential(email, password))
-      if (!firebaseUser) throw new Error('O login por e-mail não retornou um usuário.')
-      return firebaseUser
+      const result = await completeAuthentication(() =>
+        signInWithEmailCredential(email, password),
+      )
+      if (!result) throw new AuthFlowError('auth/null-user')
+      return result
     },
     [completeAuthentication],
   )
-
   const signUpWithEmail = React.useCallback(
     async (email: string, password: string) => {
-      const firebaseUser = await completeAuthentication(() => signUpWithEmailCredential(email, password))
-      if (!firebaseUser) throw new Error('O cadastro não retornou um usuário.')
-      return firebaseUser
+      const result = await completeAuthentication(() =>
+        signUpWithEmailCredential(email, password),
+      )
+      if (!result) throw new AuthFlowError('auth/null-user')
+      return result
     },
     [completeAuthentication],
   )
-
   const signInWithGoogle = React.useCallback(
-    () => completeAuthentication(signInWithGoogleCredential),
+    (mode?: 'popup' | 'redirect') =>
+      completeAuthentication(() => signInWithGoogleCredential(mode)),
     [completeAuthentication],
   )
 
-  const signOutUser = React.useCallback(async () => {
-    authActionInFlightRef.current = true
-    setIsLoading(true)
-
+  const retrySession = React.useCallback(async () => {
+    if (action.current !== null || !initialized.current) return
+    const id = ++generation.current
+    action.current = id
+    setStatus('synchronizing')
     try {
-      // A saída local e a limpeza não dependem da disponibilidade do servidor.
-      await clearPrivateCache()
-      await signOut(auth)
-      await queueSessionOperation(clearSessionCookie).catch(() => {
-        toast.error('Você saiu neste dispositivo. Reconecte para encerrar a sessão do servidor.')
-      })
-      synchronizedUserIdRef.current = null
-      if (isMountedRef.current) setUser(null)
+      await synchronize(auth.currentUser, id)
+    } catch (error) {
+      failSession(error, id)
     } finally {
-      authActionInFlightRef.current = false
-      if (isMountedRef.current) setIsLoading(false)
+      if (action.current === id) action.current = null
     }
-  }, [queueSessionOperation, clearPrivateCache])
+  }, [synchronize, failSession])
+
+  const signOutUser = React.useCallback(async () => {
+    if (action.current !== null)
+      throw new AuthFlowError('auth/action-in-progress')
+    const uid = auth.currentUser?.uid
+    const id = ++generation.current
+    action.current = id
+    markLogoutPending()
+    setUser(null)
+    setSessionError(null)
+    setStatus('synchronizing')
+    try {
+      await clearCache()
+      await signOut(auth)
+      await clearSessionCookie(uid).catch(() => {
+        toast.error(
+          'Você saiu neste dispositivo. Reconecte para encerrar a sessão do servidor.',
+        )
+      })
+      synchronizedUid.current = null
+    } finally {
+      if (action.current === id) action.current = null
+      if (mounted.current && generation.current === id) setStatus('ready')
+    }
+  }, [clearCache])
 
   React.useEffect(() => {
-    isMountedRef.current = true
+    mounted.current = true
+    let active = true
     recordAuthStage('authentication:initializing')
-
-    const unsubscribe = onIdTokenChanged(auth, async (firebaseUser) => {
-      recordAuthStage(firebaseUser ? 'observer:authenticated' : 'observer:anonymous')
-      const isInitialState = !hasInitializedRef.current
-      if (synchronizedUserIdRef.current !== (firebaseUser?.uid ?? null)) {
-        setIsLoading(true)
-        setUser(null)
-        await clearPrivateCache()
-      }
-
-      try {
-        if (isInitialState) {
-          setIsLoading(true)
-          await queueSessionOperation(() =>
-            firebaseUser ? syncSessionCookie(firebaseUser) : clearSessionCookie(),
-          )
-          synchronizedUserIdRef.current = firebaseUser?.uid ?? null
-          hasInitializedRef.current = true
-        } else if (!authActionInFlightRef.current) {
-          if (firebaseUser && synchronizedUserIdRef.current !== firebaseUser.uid) {
-            setIsLoading(true)
-            await queueSessionOperation(() => syncSessionCookie(firebaseUser))
-            synchronizedUserIdRef.current = firebaseUser.uid
-          } else if (firebaseUser) {
-            await queueSessionOperation(() => syncSessionCookie(firebaseUser, false))
-          } else if (!firebaseUser) {
-            await queueSessionOperation(clearSessionCookie)
-            synchronizedUserIdRef.current = null
+    if (!redirectResult.current) {
+      const pending = consumeGoogleRedirect()
+      redirectResult.current = withAuthTimeout(getRedirectResult(auth))
+        .then((result) => {
+          if (pending && !result && !auth.currentUser) {
+            toast.error(
+              'O login com o Google não foi concluído. Tente novamente.',
+            )
           }
-        }
-
-        if (isMountedRef.current) setUser(firebaseUser)
-      } catch (error) {
-        recordAuthStage('observer:failed', error)
-        console.error('Failed to synchronize the authentication session:', error)
-        synchronizedUserIdRef.current = null
-        if (isMountedRef.current) setUser(null)
-        if (firebaseUser) await signOut(auth).catch(() => undefined)
-      } finally {
-        if (isInitialState) hasInitializedRef.current = true
-        if (isMountedRef.current && (isInitialState || !authActionInFlightRef.current)) {
-          setIsLoading(false)
-        }
-      }
-    })
-
-    void getRedirectResult(auth).catch((error) => {
-      const authError = error as { code?: string }
-      console.error('Google redirect sign-in failed:', error)
-      if (authError.code !== 'auth/null-user') {
-        toast.error('Não foi possível concluir o login com o Google. Tente novamente.')
-      }
-    })
-
-    return () => {
-      isMountedRef.current = false
-      unsubscribe()
+        })
+        .catch((error: unknown) => {
+          recordAuthStage('google:redirect-error', error)
+          toast.error(authErrorMessage(error))
+        })
     }
-  }, [queueSessionOperation, clearPrivateCache])
+    const unsubscribe = onIdTokenChanged(auth, async (firebaseUser) => {
+      if (!active || action.current !== null) return
+      const id = ++generation.current
+      try {
+        await redirectResult.current
+        if (!active || action.current !== null || !isCurrent(id, firebaseUser))
+          return
+        recordAuthStage(
+          firebaseUser ? 'observer:authenticated' : 'observer:anonymous',
+        )
+        if (hasPendingLogout() && firebaseUser) {
+          await signOut(auth)
+          return
+        }
+        await synchronize(
+          firebaseUser,
+          id,
+          !initialized.current || synchronizedUid.current !== firebaseUser?.uid,
+        )
+      } catch (error) {
+        failSession(error, id)
+      } finally {
+        if (active && action.current === null) initialized.current = true
+      }
+    })
+    const reconcile = () => {
+      if (!auth.currentUser && hasPendingLogout()) void retrySession()
+    }
+    window.addEventListener('online', reconcile)
+    window.addEventListener('storage', reconcile)
+    return () => {
+      active = false
+      mounted.current = false
+      invalidate()
+      unsubscribe()
+      window.removeEventListener('online', reconcile)
+      window.removeEventListener('storage', reconcile)
+    }
+  }, [synchronize, failSession, isCurrent, retrySession, invalidate])
 
   React.useEffect(() => {
-    if (
-      !isLoading &&
-      user &&
-      !authActionInFlightRef.current &&
-      synchronizedUserIdRef.current === user.uid
-    ) {
-      if (pathname === '/login') {
-        if (!loginNavigationStartedRef.current) {
-          loginNavigationStartedRef.current = true
-          recordAuthStage('navigation:dashboard')
-          // A sessão mudou via fetch: abra um documento novo com o cookie atual,
-          // sem reutilizar uma resposta anônima do cache de navegação do Next.js.
-          window.location.replace('/')
-        }
-        return
-      }
-      const isAuthPage =
-        pathname === '/register' ||
-        pathname === '/forgot-password'
-      if (isAuthPage) {
-        router.replace('/')
-        router.refresh()
-      }
+    if (status !== 'ready' || !user || synchronizedUid.current !== user.uid)
+      return
+    if (!['/login', '/register', '/forgot-password'].includes(pathname)) return
+    if (!navigating.current) {
+      navigating.current = true
+      recordAuthStage('navigation:dashboard')
+      window.location.replace('/')
     }
-  }, [user, isLoading, pathname, router])
+  }, [status, user, pathname])
 
   return (
     <AuthContext.Provider
-      value={{ user, isLoading, signInWithEmail, signUpWithEmail, signInWithGoogle, signOutUser }}
+      value={{
+        user,
+        isLoading: status !== 'ready' && status !== 'error',
+        sessionError,
+        retrySession,
+        signInWithEmail,
+        signUpWithEmail,
+        signInWithGoogle,
+        signOutUser,
+      }}
     >
       {children}
     </AuthContext.Provider>

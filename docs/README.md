@@ -7,6 +7,7 @@
 
 ## Funcionalidades
 
+- [Autenticação, sessão e login Google](features/authentication.md)
 - [Paridade financeira do MCP](features/mcp-parity.md)
 
 - [MCP privado — validação inicial](features/mcp.md)

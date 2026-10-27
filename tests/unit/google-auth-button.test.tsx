@@ -8,6 +8,7 @@ import { GoogleAuthButton } from '@/components/auth/google-auth-button'
 import { useAuth } from '@/contexts/auth-context'
 
 jest.mock('@/contexts/auth-context', () => ({ useAuth: jest.fn() }))
+jest.mock('@/lib/firebase/auth', () => ({ canUseGoogleRedirect: () => true }))
 jest.mock('next/navigation', () => ({ useRouter: jest.fn() }))
 jest.mock('sonner', () => ({ toast: { success: jest.fn(), error: jest.fn() } }))
 
@@ -21,6 +22,8 @@ beforeEach(() => {
   jest.mocked(useAuth).mockReturnValue({
     user: null,
     isLoading: false,
+    sessionError: null,
+    retrySession: jest.fn(),
     signInWithGoogle,
     signInWithEmail: jest.fn(),
     signUpWithEmail: jest.fn(),
@@ -90,4 +93,31 @@ test('falha ao criar a sessão exibe o erro e permite uma nova tentativa', async
   } finally {
     jest.restoreAllMocks()
   }
+})
+
+test('restauração inicial impede clique prematuro no Google', () => {
+  jest.mocked(useAuth).mockReturnValue({ ...useAuth(), isLoading: true })
+  render(<GoogleAuthButton />)
+  fireEvent.click(
+    screen.getByRole('button', { name: 'Continuar com o Google' }),
+  )
+  expect(signInWithGoogle).not.toHaveBeenCalled()
+})
+
+test('popup bloqueado oferece redirect somente por novo clique explícito', async () => {
+  signInWithGoogle.mockRejectedValueOnce({ code: 'auth/popup-blocked' })
+  signInWithGoogle.mockResolvedValueOnce(null)
+  render(<GoogleAuthButton />)
+  fireEvent.click(
+    screen.getByRole('button', { name: 'Continuar com o Google' }),
+  )
+  const fallback = await screen.findByRole('button', {
+    name: 'Continuar nesta aba',
+  })
+  expect(signInWithGoogle).toHaveBeenCalledTimes(1)
+  fireEvent.click(fallback)
+  await waitFor(() =>
+    expect(signInWithGoogle).toHaveBeenLastCalledWith('redirect'),
+  )
+  expect(toast.success).not.toHaveBeenCalled()
 })

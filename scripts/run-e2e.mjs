@@ -6,6 +6,7 @@ const env = {
   NEXT_PUBLIC_USE_EMULATORS: 'true',
   NEXT_PUBLIC_FIREBASE_API_KEY: 'demo-api-key',
   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: 'localhost',
+  NEXT_PUBLIC_FIREBASE_AUTH_PROXY: 'false',
   NEXT_PUBLIC_FIREBASE_PROJECT_ID: 'demo-gestone-e2e',
   NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: 'demo-gestone-e2e.appspot.com',
   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: '123456789',
@@ -28,12 +29,26 @@ const env = {
 }
 const production = process.argv.includes('--production')
 const mcpOnly = process.argv.includes('--mcp')
-if (production && mcpOnly) throw new Error('Use --mcp sem --production para validar OAuth no localhost de teste.')
+const authOnly = process.argv.includes('--auth')
+if (authOnly && (production || mcpOnly))
+  throw new Error('Use --auth sem --production ou --mcp.')
+if (production && mcpOnly)
+  throw new Error(
+    'Use --mcp sem --production para validar OAuth no localhost de teste.',
+  )
 if (production) {
   await new Promise((resolve, reject) => {
-    const build = spawn(process.execPath, [require.resolve('next/dist/bin/next'), 'build', '--webpack'], { env, stdio: 'inherit' })
+    const build = spawn(
+      process.execPath,
+      [require.resolve('next/dist/bin/next'), 'build', '--webpack'],
+      { env, stdio: 'inherit' },
+    )
     build.on('error', reject)
-    build.on('exit', (code) => code === 0 ? resolve() : reject(new Error('Build E2E de produção falhou.')))
+    build.on('exit', (code) =>
+      code === 0
+        ? resolve()
+        : reject(new Error('Build E2E de produção falhou.')),
+    )
   })
 }
 const child = spawn(
@@ -53,7 +68,9 @@ const child = spawn(
         ? 'playwright test --config playwright.production.config.ts'
         : mcpOnly
           ? 'playwright test tests/e2e/mcp.test.ts'
-          : 'playwright test',
+          : authOnly
+            ? 'playwright test tests/e2e/google-login.test.ts tests/e2e/financial-flows.test.ts --grep "popup|Google|cadastro, CRUD"'
+            : 'playwright test',
   ],
   { env, stdio: 'inherit' },
 )

@@ -1,6 +1,7 @@
 import { getApps, initializeApp, cert, getApp } from 'firebase-admin/app'
-import { getAuth } from 'firebase-admin/auth'
-import { getFirestore } from 'firebase-admin/firestore'
+import { getAuth, type Auth } from 'firebase-admin/auth'
+import { getFirestore, type Firestore } from 'firebase-admin/firestore'
+import { AuthFlowError } from './auth-errors'
 
 const initializeFirebaseAdmin = () => {
   if (getApps().length > 0) {
@@ -18,25 +19,61 @@ const initializeFirebaseAdmin = () => {
     return initializeApp({ projectId })
   }
 
-  const serviceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY
-    ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY)
+  const projectId =
+    process.env.FIREBASE_PROJECT_ID ??
+    process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID
+  if (
+    projectId &&
+    process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID &&
+    projectId !== process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID
+  ) {
+    throw new AuthFlowError('app/invalid-credential')
+  }
+  const serviceAccountKey: unknown = process.env.FIREBASE_SERVICE_ACCOUNT_KEY
+    ? (JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY) as unknown)
     : null
 
-  if (serviceAccountKey) {
+  if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
+    if (
+      !serviceAccountKey ||
+      typeof serviceAccountKey !== 'object' ||
+      !('project_id' in serviceAccountKey) ||
+      typeof serviceAccountKey.project_id !== 'string' ||
+      !('client_email' in serviceAccountKey) ||
+      typeof serviceAccountKey.client_email !== 'string' ||
+      !('private_key' in serviceAccountKey) ||
+      typeof serviceAccountKey.private_key !== 'string' ||
+      (projectId && serviceAccountKey.project_id !== projectId)
+    ) {
+      throw new AuthFlowError('app/invalid-credential')
+    }
     return initializeApp({
-      credential: cert(serviceAccountKey),
+      credential: cert({
+        projectId: serviceAccountKey.project_id,
+        clientEmail: serviceAccountKey.client_email,
+        privateKey: serviceAccountKey.private_key,
+      }),
     })
   }
 
   return initializeApp({
-    projectId:
-      process.env.FIREBASE_PROJECT_ID ??
-      process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+    projectId,
   })
 }
 
-const app = initializeFirebaseAdmin()
-const adminAuth = getAuth(app)
-const adminDb = getFirestore(app)
+// Inicializa dentro da operação: configuração inválida chega ao tratamento da rota.
+function lazyService<T extends object>(create: () => T): T {
+  return new Proxy({} as T, {
+    get(_target, property) {
+      const service = create()
+      const value: unknown = Reflect.get(service, property)
+      return typeof value === 'function' ? value.bind(service) : value
+    },
+  })
+}
+const adminAuth = lazyService<Auth>(() => getAuth(initializeFirebaseAdmin()))
+const adminDb = lazyService<Firestore>(() =>
+  getFirestore(initializeFirebaseAdmin()),
+)
 
 export { adminAuth, adminDb }

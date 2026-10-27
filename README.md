@@ -5,7 +5,7 @@ GestOne é uma aplicação de controle financeiro pessoal com lançamentos, cate
 ## Requisitos
 
 - Node.js 24.x e npm 12.0.2
-- Um projeto Firebase com **Authentication (e-mail/senha)** e **Firestore** habilitados
+- Um projeto Firebase com **Authentication (e-mail/senha e Google)** e **Firestore** habilitados
 
 ## Configuração local
 
@@ -19,6 +19,8 @@ npm run dev
 ```
 
 Abra `http://localhost:3000`.
+
+O login Google e a alternativa de redirecionamento exigem configuração de domínio/callback. Consulte [autenticação e sessão](docs/features/authentication.md) antes de habilitar `NEXT_PUBLIC_FIREBASE_AUTH_PROXY` na Vercel.
 
 ## Segurança e deploy do Firestore
 

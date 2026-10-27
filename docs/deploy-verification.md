@@ -37,6 +37,11 @@ A verificação cobre login por senha, cookie HttpOnly/Secure/SameSite=Lax sem c
 
 ### Login Google no desktop
 
+Atualização de 27/10/2026: o contrato vigente de prontidão, recuperação da sessão,
+origem estrita e proxy opcional está em [autenticação e sessão](features/authentication.md).
+Os relatos datados abaixo são históricos. O proxy só deve ser ativado após registrar
+o callback da origem escolhida no cliente OAuth Google e validar um novo build.
+
 Se o navegador bloquear o popup, o aplicativo informa o motivo e mantém a tela
 disponível para nova tentativa após permitir pop-ups para o site. Esse erro não
 inicia automaticamente `signInWithRedirect`: com o domínio de autenticação em

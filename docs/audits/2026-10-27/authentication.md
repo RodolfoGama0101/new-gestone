@@ -10,7 +10,7 @@ Há dois problemas distintos a investigar: abrir/concluir o OAuth Google e trans
 
 A auditoria encontrou problemas concretos de coordenação de estado, tratamento de indisponibilidade e cadastro. A causa exata do bloqueio no navegador do usuário ainda não foi reproduzida: navegador, versão, modo instalado e extensões não foram informados. Não se deve atribuí-la automaticamente a cookies, credenciais Admin, React ou falta de domínio autorizado.
 
-Esta entrega altera somente documentação. As correções abaixo ainda precisam ser implementadas e validadas.
+O diagnóstico abaixo registra o estado anterior às correções. A implementação solicitada posteriormente está descrita em [autenticação e sessão](../../features/authentication.md), incluindo os pré-requisitos externos e limites da validação. A seção de verificações desta auditoria continua sendo o registro da etapa documental.
 
 ## Escopo e evidências
 
@@ -179,3 +179,37 @@ Executar lint, typecheck, unitários relacionados e `npm run test:e2e` para alte
 - [Cache/PWA](../../features/pwa-cache.md)
 - [Reautenticação e exclusão](../../account-deletion.md)
 - [Isolamento Firestore](../../firestore-security.md)
+
+## Execução do plano de correção
+
+Implementação posterior ao diagnóstico, na mesma branch de trabalho:
+
+- A1/A2: proxy restrito e opt-in de mesma origem; callback e flag de build documentados; fallback por novo clique explícito; redirect em standalone somente quando configurado. Prontidão inicial bloqueia tentativas precoces. O helper foi excluído do fallback HTML do worker.
+- A3/A4: ações exclusivas, geração/UID antes e depois das esperas, sincronização cancelada distinta de sucesso, limites de espera/rede e recuperação de sessão preservando a credencial válida. Renovação em segundo plano mantém a reautenticação montada; troca de conta bloqueia a navegação antes da limpeza de cache.
+- A5/A8: validação de JSON/tamanho/origem exata, classificação de erros e política distinta de emissão recente versus renovação com cookie do mesmo UID. Admin inicializa sob demanda e rejeita divergência de projeto sem expor credenciais.
+- A6/A7: uma navegação após autenticação, onboarding idempotente separado e reconciliação de saída ao reconectar/antes de novo login, capturando o UID anterior e invalidando marcas mesmo após falha do DELETE.
+- A9/A10: mensagens e logs sanitizados, histórico local limitado de etapas/duração/status, texto neutro na recuperação de senha e regressões de concorrência, redirect, sessão, origem, prazos e reautenticação. O comando E2E aceita `--auth` para repetir apenas os cinco cenários do fluxo afetado.
+
+### Evidência externa adicional
+
+Consulta administrativa somente de leitura confirmou Google habilitado e `new-gestone.vercel.app` autorizado no Firebase. Metadados Vercel confirmaram existência da variável Admin em Preview e Production; valores/permissões efetivas não foram validados nem alterados. A variável nova de proxy ainda não estava configurada.
+
+Um navegador Chrome isolado abriu o login publicado e, após o clique, exibiu a tela de entrada do Google para `new-gestone.firebaseapp.com`. Nenhuma conta foi selecionada/autenticada; a sessão de navegador foi encerrada. Isso comprova a abertura nesse ambiente, sem reproduzir o bloqueio do navegador do usuário ou validar o retorno completo.
+
+### Registro das verificações da implementação
+
+- Lint: `npm run lint -- --ignore-pattern '.worktrees/**' --ignore-pattern 'dogfood-output/**'`, aprovado. As exclusões são de cópias locais/artefatos anteriores à tarefa.
+- Tipos: `npm run typecheck`, aprovado; os builds também executam TypeScript.
+- Unitários: `npm test -- --runInBand --roots ./tests/unit`: **52 suítes, 319 testes aprovados**.
+- `npm run test:preview-check`: seis verificações do script aprovadas, sem rede/credenciais.
+- `npm run test:e2e`: 45/47 passaram na primeira execução completa. A falha de reautenticação revelou desmontagem indevida durante renovação; a outra era clique anterior à inicialização do formulário do emulador. Ambos foram corrigidos. `npm run test:e2e -- --auth`: cinco cenários aprovados após os ajustes, incluindo cadastro/login/exclusão, popup e redirect e recuperação do 503 sem outro popup.
+- `npm run test:e2e -- --production`: build webpack e seis E2E de autenticação/PWA aprovados, incluindo bloqueio de fallback HTML no helper. A versão final é reconstruída após alterações de código.
+- `npm run test:rules` incluiu cópias antigas em `dogfood-output`, que exigiam porta diferente; a execução ampla foi interrompida. Reexecução equivalente com raiz limitada: `npm exec --no -- firebase emulators:exec --config firebase.rules-test.json --only firestore --project demo-gestone-rules "jest --config jest.rules.config.mjs --runInBand --roots ./tests/rules"`: **150/150 aprovados**.
+- Java 25.0.2 confirmado fora do sandbox. No Windows, o Firestore deixou processos Java após informar shutdown. Foram identificados por PID, porta, projeto fictício e caminho das regras; somente os processos destas execuções foram encerrados para liberar a próxima verificação.
+- Verificações integradas usaram `demo-gestone-e2e`/`demo-gestone-rules`. Não houve merge, deploy manual, publicação de regras, alteração de configuração de produção ou teste autenticado com dados reais.
+
+### Pendências de ativação externa
+
+O código não habilita o proxy antes de existir callback autorizado. Para ativar a alternativa ao popup, falta cadastrar `https://HOSTNAME/__/auth/handler` no cliente OAuth Google, autorizar o hostname exato do preview no Firebase e habilitar `NEXT_PUBLIC_FIREBASE_AUTH_PROXY=true` no build daquele preview. Depois, validar OAuth real com conta de teste e a matriz Firefox/Safari/iOS/PWA. A configuração/publicação de produção permanece sujeita à autorização explícita prevista no AGENTS.md.
+
+Esses aceites externos permanecem abertos; testes com emuladores e a consulta de configuração não substituem o round-trip no navegador afetado. Procedimento, política de sessão e rollback estão em [autenticação e sessão](../../features/authentication.md).

@@ -19,6 +19,7 @@ import {
   type ForgotPasswordInput,
 } from '@/lib/validations/auth.schema'
 import { sendPasswordReset } from '@/lib/firebase/auth'
+import { authErrorCode } from '@/lib/firebase/auth-errors'
 
 export default function ForgotPasswordPage() {
   const [isLoading, setIsLoading] = React.useState(false)
@@ -51,7 +52,7 @@ export default function ForgotPasswordPage() {
       )
     } catch (error) {
       const authError = error as { code?: string }
-      console.error('Password Reset Error:', error)
+      console.error('Password Reset Error:', authErrorCode(error))
       if (authError.code === 'auth/user-not-found') {
         setSent(true)
         toast.success(
@@ -82,11 +83,12 @@ export default function ForgotPasswordPage() {
               E-mail enviado!
             </h1>
             <p className="text-muted-foreground text-sm leading-relaxed">
-              Enviamos um link de recuperação para{' '}
+              Se existir uma conta para{' '}
               <span className="text-foreground font-semibold">
                 {getValues('email')}
               </span>
-              . Verifique sua caixa de entrada e o spam.
+              , enviaremos as instruções. Verifique sua caixa de entrada e o
+              spam.
             </p>
           </div>
           <Button

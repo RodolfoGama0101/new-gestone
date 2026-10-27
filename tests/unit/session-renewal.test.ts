@@ -1,8 +1,23 @@
-import { createSessionRenewal, SESSION_RENEW_INTERVAL_MS } from '@/lib/firebase/session-renewal'
+import {
+  createSessionRenewal,
+  SESSION_RENEW_INTERVAL_MS,
+} from '@/lib/firebase/session-renewal'
 test('mais de cinco dias de refresh mantém renovações antecipadas sem chamadas por token', async () => {
   let now = 100000
   const storage = new Map<string, string>()
-  const coordinator = createSessionRenewal({ now: () => now, storage: () => ({ getItem: (key) => storage.get(key) ?? null, setItem: (key, value) => { storage.set(key, value) }, removeItem: (key) => { storage.delete(key) } }), lock: (op) => op() })
+  const coordinator = createSessionRenewal({
+    now: () => now,
+    storage: () => ({
+      getItem: (key) => storage.get(key) ?? null,
+      setItem: (key, value) => {
+        storage.set(key, value)
+      },
+      removeItem: (key) => {
+        storage.delete(key)
+      },
+    }),
+    lock: (op) => op(),
+  })
   const operation = jest.fn().mockResolvedValue(undefined)
   for (let hour = 0; hour < 6 * 24; hour++) {
     await coordinator.renew('user', operation)
@@ -13,11 +28,31 @@ test('mais de cinco dias de refresh mantém renovações antecipadas sem chamada
 })
 test('abas compartilham limite, falhas não marcam sucesso e logout remove a marca', async () => {
   const values = new Map<string, string>()
-  const storage = { getItem: (key: string) => values.get(key) ?? null, setItem: (key: string, value: string) => { values.set(key, value) }, removeItem: (key: string) => { values.delete(key) } }
+  const storage = {
+    getItem: (key: string) => values.get(key) ?? null,
+    setItem: (key: string, value: string) => {
+      values.set(key, value)
+    },
+    removeItem: (key: string) => {
+      values.delete(key)
+    },
+  }
   let queue = Promise.resolve()
-  const lock = <T,>(op: () => Promise<T>): Promise<T> => { const next = queue.then(op, op); queue = next.then(() => {}, () => {}); return next }
-  const options = { now: () => SESSION_RENEW_INTERVAL_MS * 2, storage: () => storage, lock }
-  const a = createSessionRenewal(options), b = createSessionRenewal(options)
+  const lock = <T>(op: () => Promise<T>): Promise<T> => {
+    const next = queue.then(op, op)
+    queue = next.then(
+      () => {},
+      () => {},
+    )
+    return next
+  }
+  const options = {
+    now: () => SESSION_RENEW_INTERVAL_MS * 2,
+    storage: () => storage,
+    lock,
+  }
+  const a = createSessionRenewal(options),
+    b = createSessionRenewal(options)
   const operation = jest.fn().mockResolvedValue(undefined)
   await Promise.all([a.renew('user', operation), b.renew('user', operation)])
   expect(operation).toHaveBeenCalledTimes(1)
@@ -26,5 +61,34 @@ test('abas compartilham limite, falhas não marcam sucesso e logout remove a mar
   await expect(b.renew('user', failure, true)).rejects.toThrow('revoked')
   expect(values.size).toBe(0)
   await a.renew('user', operation, true)
+  expect(operation).toHaveBeenCalledTimes(2)
+})
+
+test('logout falho invalida a marca inclusive na memória de outra aba', async () => {
+  const values = new Map<string, string>()
+  const storage = {
+    getItem: (key: string) => values.get(key) ?? null,
+    setItem: (key: string, value: string) => {
+      values.set(key, value)
+    },
+    removeItem: (key: string) => {
+      values.delete(key)
+    },
+  }
+  const options = {
+    now: () => SESSION_RENEW_INTERVAL_MS * 2,
+    storage: () => storage,
+    lock: async <T>(op: () => Promise<T>) => op(),
+  }
+  const a = createSessionRenewal(options)
+  const b = createSessionRenewal(options)
+  const operation = jest.fn().mockResolvedValue(undefined)
+  await b.renew('user', operation, true)
+  await expect(
+    a.clear('user', async () => {
+      throw new Error('offline')
+    }),
+  ).rejects.toThrow('offline')
+  await b.renew('user', operation)
   expect(operation).toHaveBeenCalledTimes(2)
 })

@@ -2,18 +2,30 @@ import { test, expect, type Page } from '@playwright/test'
 
 const origin = 'http://localhost:3102'
 
-test('popup bloqueado informa o motivo sem iniciar redirecionamento', async ({ page }) => {
+test('popup bloqueado informa o motivo sem iniciar redirecionamento', async ({
+  page,
+}) => {
   await page.addInitScript(() => {
     window.open = () => null
   })
   await page.goto('/login')
   await page.getByRole('button', { name: 'Continuar com o Google' }).click()
-  await expect(page.getByText(
-    'O navegador bloqueou a janela do Google. Permita pop-ups para este site e tente novamente.',
-  )).toBeVisible()
+  await expect(
+    page.getByText(
+      'O navegador bloqueou a janela do Google. Permita pop-ups para este site e tente novamente.',
+    ),
+  ).toBeVisible()
   await expect(page).toHaveURL(`${origin}/login`)
-  await expect(page.getByRole('button', { name: 'Continuar com o Google' })).toBeEnabled()
-  await expect(page.locator('html')).toHaveAttribute('data-auth-flow', 'google:popup-error')
+  await expect(
+    page.getByRole('button', { name: 'Continuar com o Google' }),
+  ).toBeEnabled()
+  await expect(page.locator('html')).toHaveAttribute(
+    'data-auth-flow',
+    'google:popup-error',
+  )
+  await expect(
+    page.getByRole('button', { name: 'Continuar nesta aba' }),
+  ).toBeVisible()
 })
 
 async function signInWithGoogle(page: Page) {
@@ -128,9 +140,11 @@ test('falha de sessão após o popup Google mostra o motivo e permite tentar nov
   await page.goto('/login')
   await signInWithGoogle(page)
   await expect(
-    page.getByText(
-      'O serviço de sessão está indisponível. Tente novamente em instantes.',
-    ),
+    page
+      .getByRole('alert')
+      .getByText(
+        'O serviço de sessão está indisponível. Tente novamente em instantes.',
+      ),
   ).toBeVisible()
   await expect(page).toHaveURL(`${origin}/login`)
   await expect(
@@ -139,4 +153,56 @@ test('falha de sessão após o popup Google mostra o motivo e permite tentar nov
   expect(
     (await context.cookies()).some((cookie) => cookie.name === 'session'),
   ).toBe(false)
+  // Reutiliza a credencial válida, sem abrir outro popup ou pedir a conta novamente.
+  let newPopups = 0
+  page.on('popup', () => {
+    newPopups += 1
+  })
+  await page.unroute('**/api/auth/session')
+  await page.getByRole('button', { name: 'Tentar sincronizar sessão' }).click()
+  await expect(page).toHaveURL(`${origin}/`, { timeout: 30000 })
+  await expect(
+    page.getByRole('button', { name: 'Abrir menu da conta' }),
+  ).toBeVisible()
+  expect(newPopups).toBe(0)
+})
+
+test('popup bloqueado permite login Google na mesma aba pelo redirect', async ({
+  page,
+  context,
+}) => {
+  if (process.env.FIREBASE_AUTH_EMULATOR_HOST !== '127.0.0.1:9099') {
+    throw new Error('Execute npm run test:e2e com os emuladores isolados.')
+  }
+  await page.addInitScript(() => {
+    window.open = () => null
+  })
+  await page.goto('/login')
+  await page.getByRole('button', { name: 'Continuar com o Google' }).click()
+  await page.getByRole('button', { name: 'Continuar nesta aba' }).click()
+  await page.waitForFunction(
+    () => typeof Reflect.get(window, 'finishWithUser') === 'function',
+    undefined,
+    { timeout: 60000 },
+  )
+  await page.getByRole('button', { name: 'Add new account' }).click()
+  await page
+    .locator('#email-input')
+    .fill(`redirect-${crypto.randomUUID()}@example.test`)
+  await page.locator('#display-name-input').fill('Google por redirecionamento')
+  await page
+    .getByRole('button', { name: 'Sign in with Google.com', exact: true })
+    .click()
+  await expect(page).toHaveURL(`${origin}/`, { timeout: 60000 })
+  await expect(
+    page.getByRole('button', { name: 'Abrir menu da conta' }),
+  ).toBeVisible()
+  expect(
+    (await context.cookies()).find((cookie) => cookie.name === 'session')
+      ?.httpOnly,
+  ).toBe(true)
+  await page.reload()
+  await expect(
+    page.getByRole('button', { name: 'Abrir menu da conta' }),
+  ).toBeVisible()
 })

@@ -18,13 +18,12 @@ import {
   type RegisterInput,
 } from '@/lib/validations/auth.schema'
 import { useAuth } from '@/contexts/auth-context'
-import { CategoryService } from '@/services/category.service'
-import { useRouter } from 'next/navigation'
+import { authErrorCode } from '@/lib/firebase/auth-errors'
 
 export function RegisterForm() {
-  const [isLoading, setIsLoading] = React.useState(false)
-  const { signUpWithEmail } = useAuth()
-  const router = useRouter()
+  const [isSubmitting, setIsLoading] = React.useState(false)
+  const { signUpWithEmail, isLoading: authLoading } = useAuth()
+  const isLoading = isSubmitting || authLoading
 
   const {
     register,
@@ -42,17 +41,12 @@ export function RegisterForm() {
   const onSubmit = async (data: RegisterInput) => {
     setIsLoading(true)
     try {
-      const user = await signUpWithEmail(data.email, data.password)
-      if (user) {
-        await CategoryService.seedDefaultCategories(user.uid)
-      }
+      await signUpWithEmail(data.email, data.password)
       toast.success('Conta criada com sucesso! Bem-vindo(a).')
-      router.replace('/')
-      router.refresh()
     } catch (error) {
       setIsLoading(false)
       const authError = error as { code?: string }
-      console.error('Registration Error:', error)
+      console.error('Registration Error:', authErrorCode(error))
       switch (authError.code) {
         case 'auth/email-already-in-use':
           toast.error('Este e-mail já está cadastrado.')
