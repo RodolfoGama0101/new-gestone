@@ -37,6 +37,12 @@ A verificação cobre login por senha, cookie HttpOnly/Secure/SameSite=Lax sem c
 
 ### Login Google no desktop
 
+Se o navegador bloquear o popup, o aplicativo informa o motivo e mantém a tela
+disponível para nova tentativa após permitir pop-ups para o site. Esse erro não
+inicia automaticamente `signInWithRedirect`: com o domínio de autenticação em
+outra origem, navegadores que particionam armazenamento podem perder o resultado
+do redirecionamento. O fluxo do modo instalado permanece separado.
+
 O Firebase autentica no popup e o cliente aguarda o `POST /api/auth/session`
 antes de sair de `/login`. O `AuthProvider` faz uma única navegação de documento
 com `window.location.replace('/')`, enviando o cookie HttpOnly recém-criado ao

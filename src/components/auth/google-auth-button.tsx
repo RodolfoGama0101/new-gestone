@@ -22,7 +22,9 @@ export function GoogleAuthButton() {
       setIsLoading(false)
       const authError = error as { code?: string }
       console.error('Google Sign-In Error:', error)
-      if (authError.code === 'auth/unauthorized-domain') {
+      if (authError.code === 'auth/popup-blocked') {
+        toast.error('O navegador bloqueou a janela do Google. Permita pop-ups para este site e tente novamente.')
+      } else if (authError.code === 'auth/unauthorized-domain') {
         toast.error('Este domínio ainda não foi autorizado no Firebase.')
       } else if (authError.code === 'auth/session-service-unavailable') {
         toast.error('O serviço de sessão está indisponível. Tente novamente em instantes.')

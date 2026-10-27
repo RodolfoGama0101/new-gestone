@@ -2,6 +2,20 @@ import { test, expect, type Page } from '@playwright/test'
 
 const origin = 'http://localhost:3102'
 
+test('popup bloqueado informa o motivo sem iniciar redirecionamento', async ({ page }) => {
+  await page.addInitScript(() => {
+    window.open = () => null
+  })
+  await page.goto('/login')
+  await page.getByRole('button', { name: 'Continuar com o Google' }).click()
+  await expect(page.getByText(
+    'O navegador bloqueou a janela do Google. Permita pop-ups para este site e tente novamente.',
+  )).toBeVisible()
+  await expect(page).toHaveURL(`${origin}/login`)
+  await expect(page.getByRole('button', { name: 'Continuar com o Google' })).toBeEnabled()
+  await expect(page.locator('html')).toHaveAttribute('data-auth-flow', 'google:popup-error')
+})
+
 async function signInWithGoogle(page: Page) {
   const browserErrors: string[] = []
   page.on('pageerror', (error) => {

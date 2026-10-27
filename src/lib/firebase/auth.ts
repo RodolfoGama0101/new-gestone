@@ -125,10 +125,7 @@ export async function signInWithGoogle() {
   } catch (error) {
     recordAuthStage('google:popup-error', error)
     const authError = error as { code?: string }
-    if (
-      authError.code === 'auth/popup-blocked' ||
-      authError.code === 'auth/operation-not-supported-in-this-environment'
-    ) {
+    if (authError.code === 'auth/operation-not-supported-in-this-environment') {
       recordAuthStage('google:popup-fallback-redirect', error)
       await signInWithRedirect(auth, googleProvider)
       return null
