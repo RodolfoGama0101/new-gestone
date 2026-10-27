@@ -27,6 +27,7 @@
 
 ## Auditorias
 
+- [Autenticação e plano de correção do login Google — 27/10/2026](audits/2026-10-27/authentication.md)
 - [Acessibilidade em 22/10/2026](audits/2026-10-22/accessibility.md)
 
 ## Filtros, importação e planejamento
