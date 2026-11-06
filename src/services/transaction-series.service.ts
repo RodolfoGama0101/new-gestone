@@ -2,6 +2,7 @@ import {
   collection,
   doc,
   getDocs,
+  getDoc,
   runTransaction,
   serverTimestamp,
   Timestamp,
@@ -24,6 +25,27 @@ import { TransactionService } from './transaction.service'
 const seriesRef = (uid: string, id: string) =>
   doc(db, 'users', uid, 'transactionSeries', id)
 export const TransactionSeriesService = {
+  async previewCancellation(uid: string, id: string, from: Date) {
+    const cutoff = startOfDay(from)
+    if (!Number.isFinite(cutoff.getTime()) || cutoff < startOfDay(new Date()))
+      throw new Error('Escolha hoje ou uma data futura.')
+    const snapshot = await getDoc(seriesRef(uid, id))
+    if (!snapshot.exists())
+      throw new Error('Série indisponível. Atualize a lista.')
+    const old = snapshot.data().cancelledFrom
+    const effective =
+      old && parseFirestoreDate(old) < cutoff ? parseFirestoreDate(old) : cutoff
+    const rows = await getDocs(
+      query(
+        collection(db, 'users', uid, 'transactions'),
+        where('seriesId', '==', id),
+      ),
+    )
+    const affected = rows.docs.filter(
+      (row) => parseFirestoreDate(row.data().date) >= effective,
+    ).length
+    return { from: effective, affected, preserved: rows.docs.length - affected }
+  },
   async list(uid: string): Promise<TransactionSeries[]> {
     const result = await getDocs(
       collection(db, 'users', uid, 'transactionSeries'),

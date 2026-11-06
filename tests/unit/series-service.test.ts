@@ -1,6 +1,6 @@
 import { TransactionSeriesService } from '@/services/transaction-series.service'
 import { InvoicePaymentService } from '@/services/invoice-payment.service'
-import { runTransaction, getDocs } from 'firebase/firestore'
+import { runTransaction, getDocs, getDoc } from 'firebase/firestore'
 import type { Transaction } from '@/types/transaction'
 
 jest.mock('@/lib/firebase/config', () => ({ db: {} }))
@@ -13,6 +13,7 @@ jest.mock('firebase/firestore', () => ({
   query: (path: string) => path,
   where: jest.fn(),
   getDocs: jest.fn(),
+  getDoc: jest.fn(),
   runTransaction: jest.fn(),
   serverTimestamp: () => new Date(),
   Timestamp: { fromDate: (date: Date) => date },
@@ -33,6 +34,13 @@ const data = () =>
 beforeEach(() => {
   jest.useFakeTimers().setSystemTime(new Date(2026, 2, 31, 12))
   stored.clear()
+  jest.mocked(getDoc).mockImplementation(
+    async (ref) =>
+      ({
+        exists: () => stored.has(String(ref)),
+        data: () => stored.get(String(ref)),
+      }) as never,
+  )
   jest.mocked(runTransaction).mockImplementation(async (_db, operation) => {
     const writes: Array<() => void> = []
     const result = await operation({
@@ -174,4 +182,95 @@ it('cancela futuras sem apagar parcelas anteriores nem recriar as canceladas', a
   await TransactionSeriesService.generate('alice', 'plan', new Date(2026, 5, 1))
   expect(rows()).toHaveLength(2)
   await expect(TransactionSeriesService.cancel('alice', 'plan', new Date(2026, 1, 1))).rejects.toThrow('histórico')
+})
+
+it('prévia conta registros existentes pela data atual, sem escrever, isolada por UID', async () => {
+  await TransactionSeriesService.create(
+    'alice',
+    'plan',
+    data(),
+    'installment',
+    3,
+  )
+  stored.delete('users/alice/transactions/series-plan-1')
+  stored.set('users/bob/transactions/other', { date: new Date(2026, 3, 1) })
+  const before = Array.from(stored.entries())
+  expect(
+    await TransactionSeriesService.previewCancellation(
+      'alice',
+      'plan',
+      new Date(2026, 2, 31),
+    ),
+  ).toEqual({
+    from: new Date(2026, 2, 31),
+    affected: 1,
+    preserved: 1,
+  })
+  expect(Array.from(stored.entries())).toEqual(before)
+  const edited = stored.get('users/alice/transactions/series-plan-0')!
+  stored.set('users/alice/transactions/series-plan-0', { ...edited, date: new Date(2026, 3, 1) })
+  expect((await TransactionSeriesService.previewCancellation('alice', 'plan', new Date(2026, 2, 31))).affected).toBe(2)
+  await expect(
+    TransactionSeriesService.previewCancellation(
+      'alice',
+      'plan',
+      new Date(2026, 1, 1),
+    ),
+  ).rejects.toThrow('hoje')
+  await expect(
+    TransactionSeriesService.previewCancellation(
+      'alice',
+      'missing',
+      new Date(2026, 2, 31),
+    ),
+  ).rejects.toThrow('indisponível')
+})
+
+it('cancelamento parcial retoma com corte original, e prévia reflete somente registros restantes', async () => {
+  await TransactionSeriesService.create(
+    'alice',
+    'plan',
+    { ...data(), date: new Date(2026, 2, 31) },
+    'installment',
+    3,
+  )
+  const implementation = jest.mocked(runTransaction).getMockImplementation()!
+  let calls = 0
+  jest.mocked(runTransaction).mockImplementation(async (...args) => {
+    if (++calls === 3) throw new Error('rede interrompida')
+    return implementation(...args)
+  })
+  await expect(
+    TransactionSeriesService.cancel('alice', 'plan', new Date(2026, 2, 31)),
+  ).rejects.toThrow('rede')
+  jest.setSystemTime(new Date(2026, 3, 1, 12))
+  const preview = await TransactionSeriesService.previewCancellation(
+    'alice',
+    'plan',
+    new Date(2026, 3, 30),
+  )
+  expect(preview.from).toEqual(new Date(2026, 2, 31))
+  expect(preview.affected).toBe(2)
+  expect(preview.preserved).toBe(0)
+  await TransactionSeriesService.cancel('alice', 'plan', new Date(2026, 3, 30))
+  expect(
+    Array.from(stored.keys()).filter((key) => key.includes('/transactions/')),
+  ).toHaveLength(0)
+  expect(await TransactionSeriesService.generate('alice', 'plan')).toBe(0)
+})
+
+it('limita geração atrasada a 120 por execução e retoma a partir do cursor', async () => {
+  await TransactionSeriesService.create(
+    'alice',
+    'old',
+    { ...data(), date: new Date(2000, 0, 31) },
+    'recurring',
+    1200,
+  )
+  expect(stored.get('users/alice/transactionSeries/old')?.nextIndex).toBe(120)
+  expect(await TransactionSeriesService.generate('alice', 'old')).toBe(120)
+  expect(stored.get('users/alice/transactionSeries/old')?.nextIndex).toBe(240)
+  expect(
+    Array.from(stored.keys()).filter((key) => key.includes('/transactions/')),
+  ).toHaveLength(240)
 })

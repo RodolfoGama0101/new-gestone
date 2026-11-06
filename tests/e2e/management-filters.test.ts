@@ -124,9 +124,9 @@ test('filtros de gestão preservam histórico, URL e contexto mensal', async ({
   await page.goto('/series?month=2030-01')
   await choose(page, 'Programação', 'Mês de trabalho')
   await page.getByLabel('Buscar por descrição').fill('futura')
-  await expect(page.getByText('Série futura')).toBeVisible()
+  await expect(page.getByText('Série futura', { exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Próximo mês', exact: true }).click()
-  await expect(page.getByText('Série futura')).toBeVisible()
+  await expect(page.getByText('Série futura', { exact: true })).toBeVisible()
 
   await page.goto('/budgets?month=2030-01')
   await choose(page, 'Situação do limite', 'Dentro do limite')

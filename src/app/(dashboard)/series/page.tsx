@@ -17,7 +17,15 @@ import { LoadError } from '@/components/shared/load-error'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { DatePicker } from '@/components/shared/date-picker'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog'
+import { TransactionForm } from '@/components/transactions/transaction-form'
+import { seriesSchedule } from '@/lib/utils/series-presentation'
 import { ConfirmDialog } from '@/components/shared/confirm-dialog'
 import { useWorkMonth } from '@/providers/work-month-provider'
 import { useCategories } from '@/hooks/use-categories'
@@ -33,11 +41,19 @@ function SeriesItem({
   busy,
   perform,
   month,
+  category,
+  card,
+  previewCancellation,
 }: {
   item: TransactionSeries
   busy: boolean
   perform: ReturnType<typeof useTransactionSeries>['perform']
   month: string
+  category: string
+  card: string
+  previewCancellation: ReturnType<
+    typeof useTransactionSeries
+  >['previewCancellation']
 }) {
   const [amount, setAmount] = useState(
     formatCsvAmount(item.amount).replaceAll('.', ''),
@@ -46,6 +62,14 @@ function SeriesItem({
   const [from, setFrom] = useState(() =>
     format(addDays(new Date(), 1), 'yyyy-MM-dd'),
   )
+  const [preview, setPreview] = useState<Awaited<
+    ReturnType<typeof previewCancellation>
+  > | null>(null)
+  const [previewBusy, setPreviewBusy] = useState(false)
+  const schedule = seriesSchedule(item)
+  const next = schedule.find((row) => !row.processed)
+  const monthRows = schedule.filter((row) => row.month === month)
+  const future = schedule.filter((row) => !row.processed)
   const [confirm, setConfirm] = useState(false)
   const [message, setMessage] = useState('')
   const run = async (operation: () => Promise<unknown>) => {
@@ -55,25 +79,44 @@ function SeriesItem({
       setConfirm(false)
       setMessage('Série atualizada.')
     } catch (error) {
+      setConfirm(false)
       setMessage(
         error instanceof Error
-          ? error.message
+          ? `${error.message} Operação interrompida; o progresso já salvo foi preservado. Repita para retomar.`
           : 'Operação interrompida. Repita para retomar.',
       )
     }
   }
   return (
-    <Card>
-      <CardHeader className="border-border border-b">
-        <CardTitle className="break-words">{item.description}</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <p className="text-2xl font-medium tracking-tight tabular-nums">
+    <details className="border-border min-w-0 rounded-lg border">
+      <summary className="focus-visible:outline-ring cursor-pointer space-y-2 p-4 focus-visible:outline-2">
+        <span className="font-medium break-words">{item.description}</span>
+        <span className="text-muted-foreground block text-sm break-words">
+          {category} · {card}
+        </span>
+        <span className="block text-sm tabular-nums">
           {formatMoney(item.amount)}{' '}
-          <span className="text-muted-foreground text-xs font-normal">
-            {item.kind === 'recurring' ? '/ mês' : 'no total'}
+          {item.kind === 'recurring' ? '/ mês' : 'no total'}
+          {' · '}
+          {item.kind === 'installment' ? item.count + ' parcelas · ' : ''}
+          {item.cancelledFrom
+            ? 'Cancelada · histórico disponível'
+            : item.nextIndex + ' ocorrências processadas'}
+        </span>
+        {item.kind === 'installment' && (
+          <span className="block text-sm tabular-nums">
+            Parcelas de{' '}
+            {formatMoney(
+              installmentAmount(item.amount, item.count, item.count - 1),
+            )}{' '}
+            a {formatMoney(installmentAmount(item.amount, item.count, 0))}
           </span>
-        </p>
+        )}
+        <span className="text-muted-foreground block text-xs">
+          Ver programação e gerenciar série
+        </span>
+      </summary>
+      <div className="border-border space-y-6 border-t p-4">
         <p className="text-sm">
           {item.kind === 'recurring' ? 'Mensal' : `${item.count} parcelas`} ·{' '}
           {formatMoney(item.amount)}{' '}
@@ -84,10 +127,48 @@ function SeriesItem({
         <p className="text-sm">
           {item.cancelledFrom
             ? `Cancelada a partir de ${format(parseFirestoreDate(item.cancelledFrom), 'dd/MM/yyyy')}`
-            : item.endDate
-              ? `Até ${format(parseFirestoreDate(item.endDate), 'dd/MM/yyyy')}`
-              : 'Sem data final (limite de 1.200 meses)'}
+            : item.kind === 'installment'
+              ? `Fim da programação: ${schedule.at(-1)?.month ?? 'encerrada'}`
+              : item.endDate
+                ? `Até ${format(parseFirestoreDate(item.endDate), 'dd/MM/yyyy')}`
+                : 'Sem data final (limite de 1.200 meses)'}
         </p>
+        <p className="text-muted-foreground text-sm">
+          Processamento indica geração, sem controle de pagamento. Ocorrências
+          processadas podem ter sido editadas ou excluídas no extrato.
+        </p>
+        <p className="text-sm">
+          {next
+            ? 'Próxima ocorrência a gerar: ' +
+              format(next.date, 'dd/MM/yyyy') +
+              ' · ' +
+              formatMoney(next.amount)
+            : 'Nenhuma ocorrência restante para gerar.'}
+          {item.kind === 'installment' &&
+            ' Parcelamentos inteiramente processados ainda podem ter faturas futuras.'}
+        </p>
+        <details className="text-sm">
+          <summary className="cursor-pointer py-2">
+            Programação do mês {month} · {monthRows.length} ocorrências
+          </summary>
+          {!monthRows.length && <p>Nenhuma ocorrência programada neste mês.</p>}
+          <ul className="space-y-2">
+            {monthRows.map((row) => (
+              <li key={row.index}>
+                {format(row.date, 'dd/MM/yyyy')} · {formatMoney(row.amount)} ·{' '}
+                {row.processed
+                  ? 'Processada (consulte o extrato)'
+                  : 'Programada, ainda não gerada'}
+                {item.kind === 'installment' &&
+                  ' · Parcela ' + (row.index + 1) + '/' + item.count}
+              </li>
+            ))}
+          </ul>
+          <p className="text-muted-foreground">
+            Programação original, sem somar lançamentos ou antecipar geração.
+            Valores atuais podem diferir após edição no extrato.
+          </p>
+        </details>
         {item.kind === 'installment' && (
           <details className="border-border bg-muted rounded-md border p-4 text-sm">
             <summary className="cursor-pointer">
@@ -121,6 +202,18 @@ function SeriesItem({
             <summary className="border-border inline-flex cursor-pointer rounded-md border px-3 py-2 text-sm font-medium">
               Editar próximos lançamentos
             </summary>
+            <p className="mt-4 text-sm">
+              Somente {future.length} ocorrências ainda não geradas serão
+              alteradas.
+              {next &&
+                ' A partir de ' + format(next.date, 'dd/MM/yyyy') + '.'}{' '}
+              Ocorrências já geradas permanecem inalteradas, mesmo com data
+              futura.
+            </p>
+            <p className="my-3 text-sm break-words" role="status">
+              Prévia: “{description}” · R$ {amount} por mês, em lugar de “
+              {item.description}” · {formatMoney(item.amount)}.
+            </p>
             <form
               className="border-border flex min-w-0 flex-wrap items-end gap-3 border-t pt-6"
               onSubmit={(e) => {
@@ -183,10 +276,28 @@ function SeriesItem({
             </label>
             <Button
               variant="outline"
-              disabled={busy}
-              onClick={() => setConfirm(true)}
+              disabled={busy || previewBusy}
+              onClick={async () => {
+                setMessage('')
+                setPreview(null)
+                setPreviewBusy(true)
+                try {
+                  const date = parsePeriodDate(from)
+                  if (!date) throw new Error('Escolha hoje ou uma data futura.')
+                  setPreview(await previewCancellation(item.id, date))
+                  setConfirm(true)
+                } catch (error) {
+                  setMessage(
+                    error instanceof Error
+                      ? error.message
+                      : 'Não foi possível carregar a prévia. Tente novamente.',
+                  )
+                } finally {
+                  setPreviewBusy(false)
+                }
+              }}
             >
-              Cancelar futuras
+              {previewBusy ? 'Consultando ocorrências…' : 'Cancelar futuras'}
             </Button>
           </div>
         </details>
@@ -197,7 +308,7 @@ function SeriesItem({
           }}
           onConfirm={() =>
             run(() => {
-              const date = parsePeriodDate(from)
+              const date = preview && parsePeriodDate(from)
               if (
                 !date ||
                 date < parsePeriodDate(format(new Date(), 'yyyy-MM-dd'))!
@@ -207,14 +318,24 @@ function SeriesItem({
             })
           }
           title="Cancelar futuras?"
-          description={`As ocorrências de “${item.description}” a partir de ${from} serão removidas. As anteriores serão preservadas. Em falha, repita o cancelamento para concluir a limpeza.`}
+          description={
+            preview
+              ? 'Corte local: ' +
+                format(preview.from, 'dd/MM/yyyy') +
+                '. ' +
+                preview.affected +
+                ' ocorrências existentes serão removidas; ' +
+                preview.preserved +
+                ' anteriores serão preservadas. A programação posterior será encerrada. A prévia reflete a consulta atual; alterações concorrentes podem mudar a quantidade. Em falha, repita para concluir a limpeza.'
+              : 'Consulte a prévia antes de cancelar.'
+          }
           confirmText="Confirmar cancelamento"
           isDestructive
           isLoading={busy}
         />
         {message && <p role="status">{message}</p>}
-      </CardContent>
-    </Card>
+      </div>
+    </details>
   )
 }
 export default function SeriesPage() {
@@ -224,10 +345,32 @@ export default function SeriesPage() {
   const cards = useCreditCards()
   const { values, setValues } = useManagementFilters()
   const [message, setMessage] = useState('')
-  const filteredSeries = (series.data ?? []).filter((item) =>
-    matchesSeries(item, values, month),
+  const [creating, setCreating] = useState<'recurring' | 'installment' | null>(
+    null,
   )
-  if (series.error)
+  const context = JSON.stringify([month, values])
+  const [recovery, setRecovery] = useState<{
+    id: string
+    context: string
+  } | null>(null)
+  const perform: typeof series.perform = async (action, options) => {
+    // O refetch de onSettled pode mudar os filtros antes de a Promise rejeitar.
+    if (action.kind !== 'generate') setRecovery({ id: action.id, context })
+    try {
+      const result = await series.perform(action, options)
+      setRecovery(null)
+      return result
+    } catch (error) {
+      if (action.kind !== 'generate') setRecovery({ id: action.id, context })
+      throw error
+    }
+  }
+  const filteredSeries = (series.data ?? []).filter(
+    (item) =>
+      matchesSeries(item, values, month) ||
+      (recovery?.context === context && recovery.id === item.id),
+  )
+  if (series.error && !series.data)
     return <LoadError error={series.error} retry={series.refetch} />
   if (categories.error || cards.error)
     return (
@@ -240,8 +383,49 @@ export default function SeriesPage() {
     <div className="space-y-8">
       <PageHeader
         title="Séries de lançamentos"
-        description={`Mês de trabalho: ${month}. Todas as séries estão disponíveis abaixo. Crie uma série pelo formulário de lançamento.`}
+        description={`Mês de trabalho: ${month}. Consulte a programação e gerencie recorrências e compras parceladas.`}
       />
+      {series.error && (
+        <LoadError error={series.error} retry={series.refetch} />
+      )}
+      <div className="flex flex-wrap gap-3">
+        <Button onClick={() => setCreating('recurring')}>
+          Nova recorrência
+        </Button>
+        <Button variant="outline" onClick={() => setCreating('installment')}>
+          Nova compra parcelada
+        </Button>
+      </div>
+      <Dialog
+        open={!!creating}
+        onOpenChange={(open) => {
+          if (!open) setCreating(null)
+        }}
+      >
+        <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>
+              {creating === 'installment'
+                ? 'Nova compra parcelada'
+                : 'Nova recorrência'}
+            </DialogTitle>
+            <DialogDescription>
+              {creating === 'installment'
+                ? 'Informe o valor total e um cartão ativo. Confira a quantidade em Repetição.'
+                : 'Informe o valor mensal. Confira o término opcional em Repetição.'}{' '}
+              A data inicial é a data do lançamento, independente do mês de
+              consulta.
+            </DialogDescription>
+          </DialogHeader>
+          {creating && (
+            <TransactionForm
+              key={creating}
+              defaultSchedule={creating}
+              onSuccess={() => setCreating(null)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
       <ManagementFilters
         values={values}
         setValues={setValues}
@@ -323,9 +507,11 @@ export default function SeriesPage() {
             setMessage(
               'Geração concluída. Se houver mais de 120 meses atrasados, repita para continuar.',
             )
-          } catch {
+          } catch (error) {
             setMessage(
-              'Geração interrompida. Repita para retomar sem duplicatas.',
+              error instanceof Error
+                ? error.message
+                : 'Geração interrompida. Repita para retomar sem duplicatas.',
             )
           }
         }}
@@ -356,8 +542,21 @@ export default function SeriesPage() {
                     key={item.id}
                     item={item}
                     busy={series.busy}
-                    perform={series.perform}
+                    perform={perform}
                     month={month}
+                    category={
+                      categories.categories.find(
+                        (category) => category.id === item.categoryId,
+                      )?.name ?? 'Categoria indisponível'
+                    }
+                    card={
+                      item.creditCardId
+                        ? (cards.creditCards.find(
+                            (card) => card.id === item.creditCardId,
+                          )?.name ?? 'Cartão indisponível')
+                        : 'Sem cartão'
+                    }
+                    previewCancellation={series.previewCancellation}
                   />
                 ))}
               {!filteredSeries.some((item) => item.kind === kind) && (

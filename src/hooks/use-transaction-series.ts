@@ -39,5 +39,13 @@ export function useTransactionSeries() {
       ])
     },
   })
-  return { ...query, perform: mutation.mutateAsync, busy: mutation.isPending }
+  return {
+    ...query,
+    perform: mutation.mutateAsync,
+    busy: mutation.isPending,
+    previewCancellation: (id: string, from: Date) => {
+      if (!uid) throw new Error('Autenticação necessária.')
+      return TransactionSeriesService.previewCancellation(uid, id, from)
+    },
+  }
 }

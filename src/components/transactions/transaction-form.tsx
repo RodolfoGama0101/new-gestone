@@ -40,12 +40,14 @@ import { invalidateTransactionData } from '@/lib/transaction-cache'
 interface TransactionFormProps {
   onSuccess?: () => void
   defaultType?: 'income' | 'expense' | 'investment'
+  defaultSchedule?: 'single' | 'recurring' | 'installment'
   editingTransaction?: Transaction
 }
 
 export function TransactionForm({
   onSuccess,
   defaultType = 'expense',
+  defaultSchedule = 'single',
   editingTransaction,
 }: TransactionFormProps) {
   const { user } = useAuth()
@@ -66,7 +68,7 @@ export function TransactionForm({
 
   const isEditMode = !!editingTransaction
 
-  const [schedule, setSchedule] = React.useState('single')
+  const [schedule, setSchedule] = React.useState<string>(defaultSchedule)
   const [installments, setInstallments] = React.useState('3')
   const [endDate, setEndDate] = React.useState('')
   const [activeSection, setActiveSection] = React.useState('entry')
@@ -96,13 +98,16 @@ export function TransactionForm({
       await invalidateTransactionData(queryClient, userId)
       toast.success('Lançamento registrado com sucesso!')
     },
-    onError: (error: Error) =>
+    onError: async (error: Error) => {
+      if (schedule !== 'single')
+        await invalidateTransactionData(queryClient, userId)
       toast.error(
         schedule === 'single'
           ? error.message || 'Erro ao registrar lançamento.'
           : 'A série pode ter sido salva parcialmente. Repita sem mudar o modo ou abra Séries e use Gerar pendentes. ' +
               error.message,
-      ),
+      )
+    },
   })
 
   const updateMutation = useMutation({
