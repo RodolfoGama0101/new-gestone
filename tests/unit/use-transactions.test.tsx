@@ -116,6 +116,22 @@ test('digitação rápida consulta apenas o termo final após a pausa', async ()
   expect(getPaged).toHaveBeenLastCalledWith('user', expect.objectContaining({ search: 'alvo' }), expect.objectContaining({ signal: expect.any(AbortSignal) }))
 })
 
+test('filtros avançados reiniciam a página e critérios inválidos suspendem a consulta', async () => {
+  const initialProps = { minAmount: 100, maxAmount: 500, modality: 'recurring' as const, enabled: true }
+  const { result, rerender } = renderHook(({ enabled, ...filters }) => useTransactions(filters, enabled), { initialProps, wrapper: wrapper() })
+  await waitFor(() => expect(result.current.isLoading).toBe(false))
+  act(() => result.current.goToNextPage())
+  await waitFor(() => expect(result.current.currentPage).toBe(2))
+  await waitFor(() => expect(result.current.isLoading).toBe(false))
+  const calls = getPaged.mock.calls.length
+  rerender({ ...initialProps, minAmount: 600, enabled: false })
+  expect(result.current.currentPage).toBe(1)
+  expect(getPaged).toHaveBeenCalledTimes(calls)
+  rerender({ ...initialProps, minAmount: 200 })
+  await waitFor(() => expect(getPaged).toHaveBeenCalledTimes(calls + 1))
+  expect(getPaged).toHaveBeenLastCalledWith('user', expect.objectContaining({ minAmount: 200, maxAmount: 500, modality: 'recurring', lastVisible: undefined }), expect.objectContaining({ signal: expect.any(AbortSignal) }))
+})
+
 test('alterar o intervalo reinicia a página e consulta dados próprios mesmo com cache fresco', async () => {
   const { result, rerender } = renderHook(({ startDate, endDate }) => useTransactions({ startDate, endDate }), {
     initialProps: { startDate: new Date(2026, 0, 1), endDate: new Date(2026, 0, 31) }, wrapper: wrapper(),

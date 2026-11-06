@@ -3,12 +3,15 @@
 import { Pencil, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useCurrentDate } from '@/hooks/use-current-date'
+import { getTransactionDate } from '@/lib/utils/transaction-date'
+import { format } from 'date-fns'
 import {
   formatTransactionAmount,
   formatTransactionDate,
   transactionPresentation,
 } from '@/lib/utils/transaction-presentation'
 import type { Category } from '@/types/category'
+import type { CreditCard } from '@/types/credit-card'
 import type { Transaction } from '@/types/transaction'
 
 interface TransactionTableProps {
@@ -16,6 +19,8 @@ interface TransactionTableProps {
   categoryMap: Map<string, Category>
   showDate?: boolean
   describeActions?: boolean
+  showCardCompetence?: boolean
+  creditCards?: CreditCard[]
   onEdit?: (transaction: Transaction) => void
   onDelete?: (id: string) => void
 }
@@ -26,6 +31,8 @@ export function TransactionTable({
   categoryMap,
   showDate = true,
   describeActions = false,
+  showCardCompetence = false,
+  creditCards = [],
   onEdit,
   onDelete,
 }: TransactionTableProps) {
@@ -60,6 +67,17 @@ export function TransactionTable({
                 {showDate && (
                   <td data-label="Data" className="text-muted-foreground">
                     {formatTransactionDate(tx.date, today)}
+                    {showCardCompetence &&
+                      tx.type === 'expense' &&
+                      tx.creditCardId && (
+                        <p className="text-xs">
+                          Compra · competência{' '}
+                          {format(
+                            getTransactionDate(tx, creditCards),
+                            'MM/yyyy',
+                          )}
+                        </p>
+                      )}
                   </td>
                 )}
                 <td data-label="Descrição">

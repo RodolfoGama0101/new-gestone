@@ -5,6 +5,7 @@ import { LoadError } from '@/components/shared/load-error'
 import * as React from 'react'
 import { useTransactions } from '@/hooks/use-transactions'
 import { useCategories } from '@/hooks/use-categories'
+import { useCreditCards } from '@/hooks/use-credit-cards'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import {
@@ -23,8 +24,9 @@ import { TransactionPageSummary } from '@/components/transactions/transaction-pa
 import { TransactionTable } from '@/components/transactions/transaction-table'
 import { PageHeader } from '@/components/shared/page-header'
 import { Transaction } from '@/types/transaction'
-import { useWorkMonth } from '@/providers/work-month-provider'
-import { workMonthPeriod } from '@/lib/utils/work-month'
+import { useTransactionFilters } from '@/hooks/use-transaction-filters'
+import { TransactionFilters } from '@/components/transactions/transaction-filters'
+import { CsvExportButton } from '@/components/transactions/csv-export-button'
 import {
   Plus,
   Loader2,
@@ -86,7 +88,8 @@ export function TransactionList({
   emptyTitle,
   deleteDescription,
 }: TransactionListProps) {
-  const { month } = useWorkMonth()
+  const { criteria, values, valid } = useTransactionFilters(type)
+  const { creditCards } = useCreditCards()
   const {
     categories,
     error: categoriesError,
@@ -104,7 +107,7 @@ export function TransactionList({
     error,
     refetch,
     isFetching,
-  } = useTransactions({ type, dateBasis: 'competence', ...workMonthPeriod(month) })
+  } = useTransactions({ ...criteria, limitCount: 10 }, valid)
 
   const [isAddOpen, setIsAddOpen] = React.useState(false)
   const [editingTx, setEditingTx] = React.useState<Transaction | null>(null)
@@ -142,22 +145,6 @@ export function TransactionList({
     }
   }, [deletingId, deleteTransaction])
 
-  if (isLoading) {
-    return (
-      <div className="flex min-h-[400px] items-center justify-center">
-        <Loader2 className="text-primary size-8 animate-spin" />
-      </div>
-    )
-  }
-
-  if (error || categoriesError)
-    return (
-      <LoadError
-        error={error || categoriesError}
-        retry={() => Promise.all([refetch(), refetchCategories()])}
-      />
-    )
-
   return (
     <div className="space-y-8">
       {isFetching && <p role="status">Atualizando lançamentos…</p>}
@@ -192,13 +179,39 @@ export function TransactionList({
         }
       />
 
-      <TransactionPageSummary transactions={transactions} type={type} />
+      {valid && !error && (
+        <TransactionPageSummary
+          transactions={transactions}
+          type={type}
+          isLoading={isLoading}
+        />
+      )}
       <TransactionNavigation />
+      <TransactionFilters fixedType={type} />
       {/* Lista de transações */}
-      {transactions.length === 0 ? (
+      {!valid ? (
+        <p role="alert">Corrija os filtros para consultar os lançamentos.</p>
+      ) : error || categoriesError ? (
+        <LoadError
+          error={error || categoriesError}
+          retry={() => Promise.all([refetch(), refetchCategories()])}
+        />
+      ) : isLoading ? (
+        <div
+          className="flex min-h-[280px] items-center justify-center"
+          role="status"
+          aria-label="Buscando lançamentos"
+        >
+          <Loader2 className="text-primary size-8 animate-spin" />
+        </div>
+      ) : transactions.length === 0 ? (
         <EmptyState
           title={hasNextPage ? 'Continue a busca' : emptyTitle}
-          description={hasNextPage ? 'Há mais lançamentos para pesquisar neste mês.' : 'Nenhum lançamento encontrado nesta página do mês de trabalho.'}
+          description={
+            hasNextPage
+              ? 'Há mais lançamentos para pesquisar. Continue a busca ou ajuste os filtros.'
+              : 'Nenhum lançamento atende aos filtros selecionados.'
+          }
           icon={emptyIcon}
         />
       ) : (
@@ -209,6 +222,8 @@ export function TransactionList({
             </p>
             <CardContent className="p-0">
               <TransactionTable
+                showCardCompetence
+                creditCards={creditCards}
                 transactions={transactions}
                 categoryMap={categoryMap}
                 onEdit={handleEdit}
@@ -220,12 +235,19 @@ export function TransactionList({
       )}
 
       {/* A navegação permanece disponível mesmo após uma página ficar vazia. */}
-      {(hasNextPage || hasPreviousPage) && (
+      <div className="flex justify-end">
+        <CsvExportButton
+          filters={criteria}
+          search={values.search}
+          disabled={!valid}
+        />
+      </div>
+      {valid && !error && (hasNextPage || hasPreviousPage) && (
         <div className="flex flex-wrap items-center justify-between gap-2 px-1 pt-2">
           <Button
             variant="outline"
             size="sm"
-            disabled={!hasPreviousPage}
+            disabled={isLoading || !hasPreviousPage}
             onClick={goToPreviousPage}
             className="min-h-11 cursor-pointer gap-1.5 text-sm"
           >
@@ -238,11 +260,13 @@ export function TransactionList({
           <Button
             variant="outline"
             size="sm"
-            disabled={!hasNextPage}
+            disabled={isLoading || !hasNextPage}
             onClick={goToNextPage}
             className="min-h-11 cursor-pointer gap-1.5 text-sm"
           >
-            Próximo
+            {values.search.trim() || transactions.length === 0
+              ? 'Continuar busca'
+              : 'Próximo'}
             <ChevronRight className="size-3.5" />
           </Button>
         </div>

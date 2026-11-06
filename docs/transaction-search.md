@@ -1,5 +1,11 @@
 # Busca no extrato — ROD-111
 
+## Filtros das listas financeiras — issue #33
+
+Extrato, Receitas, Despesas e Investimentos compartilham os filtros de descrição, categoria, período e critério de data; Extrato e Despesas também permitem filtrar cartão. Os filtros avançados aceitam valores em reais com até duas casas decimais e modalidade. Receitas e Investimentos fixam o tipo e não aplicam cartão ou parcelamento, inclusive em links diretos. Na troca de tipo no Extrato, combinações incompatíveis são removidas. O mês de trabalho por competência é o período inicial; um intervalo personalizado ou a data da compra é uma exceção explícita. Os parâmetros ficam na URL, podem ser removidos individualmente e limpar filtros retorna ao mês de trabalho.
+
+Valores inválidos, intervalo invertido e datas inválidas impedem listagem, totais e exportação até serem corrigidos. Os mesmos critérios alimentam o CSV completo. O campo de busca continua disponível e preserva o foco durante carregamento e erro, com espera de 300 ms antes da consulta. Como a competência e os filtros avançados podem exigir varredura de candidatos, uma página vazia pode oferecer continuação mesmo sem busca textual. As compras de cartão mostram a data registrada e o mês de competência; a paginação mantém a política descrita em [recuperação de paginação](transaction-pagination.md).
+
 A busca consulta todo o conjunto definido por tipo, categoria, cartão e intervalo, com continuação por cursor. Não se limita aos dez lançamentos que já estavam na tela e não carrega todo o histórico para pesquisar.
 
 O Firestore não oferece busca nativa por trecho de uma descrição. Por isso, cada página de busca lê no máximo 100 candidatos e um documento adicional para detectar continuação, respeitando os filtros e a ordem por data decrescente. O serviço retorna até o tamanho solicitado de correspondências e guarda o cursor do último candidato consumido. Quando encontra uma página cheia, os documentos lidos além desse cursor continuam disponíveis na próxima consulta; quando não encontra nada no lote, a tela oferece **Continuar busca**, sem afirmar que todo o histórico está vazio. Consultas sem texto preservam o limite comum da lista.

@@ -590,6 +590,46 @@ test('busca global do extrato, reinício da página, CSV e continuação de busc
   await expect(page.getByRole('button', { name: 'Continuar busca', exact: true })).toBeEnabled()
 })
 
+test('filtros combinados e CSV funcionam nas quatro listas', async ({ page }) => {
+  const { uid } = await register(page)
+  const now = Timestamp.fromDate(new Date(2026, 1, 10, 12))
+  const batch = db.batch()
+  for (const type of ['income', 'expense', 'investment']) {
+    for (let i = 0; i < 12; i++) {
+      batch.set(db.doc(`users/${uid}/transactions/${type}-filter-${i}`), {
+        type, description: `Filtro ${type} ${String(i).padStart(2, '0')}`, amount: 1234,
+        categoryId: 'filter-category', date: Timestamp.fromMillis(now.toMillis() - i * 1000),
+        tags: [], notes: null, recurring: true, createdAt: now, updatedAt: now,
+      })
+    }
+  }
+  await batch.commit()
+  await page.setViewportSize({ width: 320, height: 800 })
+  for (const [route, type] of [['transactions', 'expense'], ['income', 'income'], ['expenses', 'expense'], ['investments', 'investment']] as const) {
+    await page.goto(`/${route}?month=2026-02&search=Filtro%20${type}&minAmount=12%2C34&maxAmount=12%2C34&modality=recurring`)
+    await expect(page.getByText(`Filtro ${type} 00`, { exact: true })).toBeVisible()
+    await expect(page.getByText(`Filtro ${type} 11`, { exact: true })).not.toBeVisible()
+    const download = page.waitForEvent('download')
+    await page.getByRole('button', { name: 'Exportar CSV' }).click()
+    const csv = await readFile((await (await download).path())!, 'utf8')
+    expect(csv).toContain(`Filtro ${type} 11`)
+    await page.getByRole('button', { name: 'Continuar busca', exact: true }).click()
+    await expect(page.getByText(`Filtro ${type} 11`, { exact: true })).toBeVisible()
+    const search = page.getByLabel('Buscar por descrição')
+    await search.fill(`Filtro ${type} 01`)
+    await expect(page.getByText(`Filtro ${type} 01`, { exact: true })).toBeVisible()
+    await expect(search).toBeFocused()
+    await expect(page.getByText('Página 2', { exact: true })).not.toBeVisible()
+    await page.getByLabel('Valor mínimo (R$)').fill('13')
+    await expect(page.getByText('O valor mínimo deve ser menor ou igual ao máximo.')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Exportar CSV' })).toBeDisabled()
+    await page.getByRole('button', { name: 'Limpar filtros' }).click()
+    await expect(page).toHaveURL(/month=2026-02/)
+    await expect(search).toHaveValue('')
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+  }
+})
+
 
 test('tema da conta persiste após recarregar e em outro dispositivo, com moeda BRL', async ({ page, browser }) => {
   const { email, uid } = await register(page)

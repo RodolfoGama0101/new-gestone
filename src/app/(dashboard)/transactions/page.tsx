@@ -1,20 +1,17 @@
 'use client'
 
-import { transactionPeriod } from '@/lib/utils/transaction-period'
-import { useWorkMonth } from '@/providers/work-month-provider'
-import { workMonthPeriod } from '@/lib/utils/work-month'
+import { useTransactionFilters } from '@/hooks/use-transaction-filters'
 import { TransactionNavigation } from '@/components/transactions/transaction-navigation'
 import { TransactionPageSummary } from '@/components/transactions/transaction-page-summary'
 import { TransactionTable } from '@/components/transactions/transaction-table'
 import { LoadError } from '@/components/shared/load-error'
 
 import * as React from 'react'
-import { useQueryState } from 'nuqs'
 import { useTransactions } from '@/hooks/use-transactions'
 import { useTransactionTotals } from '@/hooks/use-transaction-totals'
 import { formatMoney } from '@/lib/utils/format-money'
-import type { GetTransactionsFilters } from '@/services/transaction.service'
 import { useCategories } from '@/hooks/use-categories'
+import { useCreditCards } from '@/hooks/use-credit-cards'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import {
@@ -42,36 +39,15 @@ import {
 } from 'lucide-react'
 
 export default function TransactionsPage() {
-  const { month } = useWorkMonth()
+  const { values, criteria, valid } = useTransactionFilters()
+  const { creditCards } = useCreditCards()
   const {
     categories,
     error: categoriesError,
     refetch: refetchCategories,
   } = useCategories()
 
-  // Filtros URL via nuqs
-  const [search] = useQueryState('search', { defaultValue: '' })
-  const [type] = useQueryState('type', { defaultValue: '' })
-  const [categoryId] = useQueryState('categoryId', { defaultValue: '' })
-
-  const [start] = useQueryState('startDate', { defaultValue: '' })
-  const [end] = useQueryState('endDate', { defaultValue: '' })
-  const [creditCardId] = useQueryState('creditCardId', { defaultValue: '' })
-  const [dateBasis] = useQueryState('dateBasis', { defaultValue: 'competence' })
-  const period = transactionPeriod(start, end)
-  const periodFilters = {
-    dateBasis: dateBasis === 'purchase' ? 'purchase' as const : 'competence' as const,
-    startDate: start || end ? period.startDate : workMonthPeriod(month).startDate,
-    endDate: start || end ? period.endDate : workMonthPeriod(month).endDate,
-    creditCardId: creditCardId || undefined,
-  }
-  const criteria: Omit<GetTransactionsFilters, 'lastVisible' | 'limitCount'> = {
-    ...periodFilters,
-    search,
-    type: type === 'income' || type === 'expense' || type === 'investment' ? type : undefined,
-    categoryId: categoryId || undefined,
-  }
-  const totalsQuery = useTransactionTotals(criteria, !period.error)
+  const totalsQuery = useTransactionTotals(criteria, valid)
 
   const {
     transactions,
@@ -90,7 +66,7 @@ export default function TransactionsPage() {
       ...criteria,
       limitCount: 10,
     },
-    !period.error,
+    valid,
   )
 
   // Estados dos Modais
@@ -112,14 +88,6 @@ export default function TransactionsPage() {
       setIsDeleting(false)
     }
   }
-
-  if (error || categoriesError)
-    return (
-      <LoadError
-        error={error || categoriesError}
-        retry={() => Promise.all([refetch(), refetchCategories()])}
-      />
-    )
 
   return (
     <div className="space-y-8">
@@ -156,24 +124,44 @@ export default function TransactionsPage() {
         }
       />
 
-      {!period.error && (
-        <section aria-label="Totais dos resultados filtrados" className="border-border rounded-md border px-6 py-5">
-          <h2 className="text-sm font-medium">Totais dos resultados filtrados</h2>
+      {valid && (
+        <section
+          aria-label="Totais dos resultados filtrados"
+          className="border-border rounded-md border px-6 py-5"
+        >
+          <h2 className="text-sm font-medium">
+            Totais dos resultados filtrados
+          </h2>
           {totalsQuery.isFetching ? (
-            <p role="status" className="text-muted-foreground mt-2 text-sm">Calculando totais…</p>
+            <p role="status" className="text-muted-foreground mt-2 text-sm">
+              Calculando totais…
+            </p>
           ) : totalsQuery.isError ? (
-            <p role="alert" className="mt-2 text-sm">Não foi possível calcular os totais. <Button variant="outline" size="sm" onClick={() => totalsQuery.refetch()}>Tentar novamente</Button></p>
-          ) : totalsQuery.data && (
-            <div className="mt-2 flex flex-wrap gap-x-6 gap-y-2 text-sm tabular-nums">
-              <span>Receitas: {formatMoney(totalsQuery.data.income)}</span>
-              <span>Despesas: {formatMoney(totalsQuery.data.expense)}</span>
-              <span>Investimentos: {formatMoney(totalsQuery.data.investment)}</span>
-              <span>{totalsQuery.data.count} lançamentos</span>
-            </div>
+            <p role="alert" className="mt-2 text-sm">
+              Não foi possível calcular os totais.{' '}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => totalsQuery.refetch()}
+              >
+                Tentar novamente
+              </Button>
+            </p>
+          ) : (
+            totalsQuery.data && (
+              <div className="mt-2 flex flex-wrap gap-x-6 gap-y-2 text-sm tabular-nums">
+                <span>Receitas: {formatMoney(totalsQuery.data.income)}</span>
+                <span>Despesas: {formatMoney(totalsQuery.data.expense)}</span>
+                <span>
+                  Investimentos: {formatMoney(totalsQuery.data.investment)}
+                </span>
+                <span>{totalsQuery.data.count} lançamentos</span>
+              </div>
+            )
           )}
         </section>
       )}
-      {!period.error && (
+      {valid && (
         <TransactionPageSummary
           transactions={transactions}
           isLoading={isLoading}
@@ -184,8 +172,13 @@ export default function TransactionsPage() {
       <TransactionFilters />
 
       {/* Lista do Extrato */}
-      {period.error ? (
-        <p role="alert">Corrija o período para consultar o extrato.</p>
+      {!valid ? (
+        <p role="alert">Corrija os filtros para consultar o extrato.</p>
+      ) : error || categoriesError ? (
+        <LoadError
+          error={error || categoriesError}
+          retry={() => Promise.all([refetch(), refetchCategories()])}
+        />
       ) : isLoading ? (
         <div
           className="flex min-h-[280px] items-center justify-center"
@@ -211,6 +204,8 @@ export default function TransactionsPage() {
           <CardContent className="p-0">
             <TransactionTable
               describeActions
+              showCardCompetence
+              creditCards={creditCards}
               transactions={transactions}
               categoryMap={
                 new Map(categories.map((category) => [category.id, category]))
@@ -226,13 +221,13 @@ export default function TransactionsPage() {
         {' '}
         <CsvImportButton />
         <CsvExportButton
-          disabled={!!period.error}
+          disabled={!valid}
           filters={criteria}
-          search={search}
+          search={values.search}
         />
       </div>
       {/* A navegação permanece acessível mesmo em páginas sem correspondências. */}
-      {(hasNextPage || hasPreviousPage) && (
+      {valid && !error && (hasNextPage || hasPreviousPage) && (
         <div className="flex flex-wrap items-center justify-between gap-2 px-1 pt-2">
           <Button
             variant="outline"
@@ -254,7 +249,9 @@ export default function TransactionsPage() {
             onClick={goToNextPage}
             className="min-h-11 cursor-pointer gap-1.5 text-sm"
           >
-            {search.trim() ? 'Continuar busca' : 'Próximo'}
+            {values.search.trim() || transactions.length === 0
+              ? 'Continuar busca'
+              : 'Próximo'}
             <ChevronRight className="size-3.5" />
           </Button>
         </div>

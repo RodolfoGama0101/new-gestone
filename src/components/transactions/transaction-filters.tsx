@@ -1,15 +1,9 @@
 'use client'
 
-import * as React from 'react'
-import { useQueryState } from 'nuqs'
-import { useCategories } from '@/hooks/use-categories'
-import { useCreditCards } from '@/hooks/use-credit-cards'
-import {
-  parsePeriodDate,
-  transactionPeriod,
-} from '@/lib/utils/transaction-period'
-import { DatePicker } from '@/components/shared/date-picker'
-import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns'
+import { endOfMonth, format, startOfMonth, subMonths } from 'date-fns'
+import { useState } from 'react'
+import { Filter, X } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
   Select,
@@ -18,231 +12,252 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Button } from '@/components/ui/button'
-import { Search, X, Filter } from 'lucide-react'
-import { useWorkMonth } from '@/providers/work-month-provider'
+import { DatePicker } from '@/components/shared/date-picker'
+import { useCategories } from '@/hooks/use-categories'
+import { useCreditCards } from '@/hooks/use-credit-cards'
+import { useTransactionFilters } from '@/hooks/use-transaction-filters'
+import { parsePeriodDate } from '@/lib/utils/transaction-period'
 import { workMonthPeriod } from '@/lib/utils/work-month'
+import type { FinancialType } from '@/lib/utils/transaction-filters'
 
-export function TransactionFilters() {
-  const { month } = useWorkMonth()
-  const { categories } = useCategories()
+export function TransactionFilters({
+  fixedType,
+}: {
+  fixedType?: FinancialType
+}) {
+  const { values, setValues, month, criteria, periodError, amountError } =
+    useTransactionFilters(fixedType)
+  const [advancedOpen, setAdvancedOpen] = useState(
+    () => !!values.minAmount || !!values.maxAmount || !!values.modality,
+  )
+  const {
+    categories,
+    error: categoriesError,
+    refetch: retryCategories,
+  } = useCategories()
   const {
     creditCards,
     error: cardsError,
     refetch: retryCards,
   } = useCreditCards()
-  const [start, setStart] = useQueryState('startDate', { defaultValue: '' })
-  const [end, setEnd] = useQueryState('endDate', { defaultValue: '' })
-  const [card, setCard] = useQueryState('creditCardId', { defaultValue: '' })
-  const [dateBasis, setDateBasis] = useQueryState('dateBasis', { defaultValue: 'competence' })
-  const purchase = dateBasis === 'purchase'
-  const period = transactionPeriod(start, end)
+  const supportsCard = !criteria.type || criteria.type === 'expense'
+  const purchase = criteria.dateBasis === 'purchase'
   const defaultPeriod = workMonthPeriod(month)
-  const preset = (offset: number) => {
-    const month = subMonths(new Date(), offset)
-    void setStart(format(startOfMonth(month), 'yyyy-MM-dd'))
-    void setEnd(format(endOfMonth(month), 'yyyy-MM-dd'))
-  }
-
-  const [search, setSearch] = useQueryState('search', { defaultValue: '' })
-  const [type, setType] = useQueryState('type', { defaultValue: '' })
-  const [categoryId, setCategoryId] = useQueryState('categoryId', {
-    defaultValue: '',
-  })
-
-  const handleClearFilters = async () => {
-    await Promise.all([setStart(''), setEnd(''), setCard(''), setDateBasis('competence')])
-    await setSearch('')
-    await setType('')
-    await setCategoryId('')
-  }
-
-  const hasActiveFilters = search || type || categoryId || start || end || card || purchase
-
-  // Converte "all" para vazio para limpar o filtro na URL e no select
-  const handleTypeChange = async (val: string | null) => {
-    await setType(!val || val === 'all' ? '' : val)
-  }
-
-  const handleCategoryChange = async (val: string | null) => {
-    await setCategoryId(!val || val === 'all' ? '' : val)
-  }
-
-  const typeSelectItems = React.useMemo(
-    () => [
-      { value: 'all', label: 'Todos os tipos' },
-      { value: 'income', label: 'Receitas (Entradas)' },
-      { value: 'expense', label: 'Despesas (Saídas)' },
-      { value: 'investment', label: 'Investimentos' },
-    ],
-    [],
+  const options = (
+    items: { value: string; label: string }[],
+    value: string,
+    label: string,
+    onChange: (value: string) => void,
+  ) => (
+    <Select
+      value={value || 'all'}
+      onValueChange={(v) => onChange(v === 'all' || !v ? '' : v)}
+      items={items}
+    >
+      <SelectTrigger aria-label={label} className="w-full min-w-0">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {items.map((item) => (
+          <SelectItem key={item.value} value={item.value}>
+            {item.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   )
-
-  const categorySelectItems = React.useMemo(() => {
-    return [
-      { value: 'all', label: 'Todas as categorias' },
-      ...categories.map((c) => ({ value: c.id, label: c.name })),
-    ]
-  }, [categories])
+  const active = [
+    {
+      key: 'search' as const,
+      label: `Busca: ${values.search}`,
+      show: !!values.search,
+    },
+    {
+      key: 'type' as const,
+      label: `Tipo: ${criteria.type ? { income: 'Receita', expense: 'Despesa', investment: 'Investimento' }[criteria.type] : values.type}`,
+      show: !fixedType && !!values.type,
+    },
+    {
+      key: 'categoryId' as const,
+      label: `Categoria: ${categories.find((c) => c.id === values.categoryId)?.name ?? values.categoryId}`,
+      show: !!values.categoryId,
+    },
+    {
+      key: 'creditCardId' as const,
+      label: `Cartão: ${creditCards.find((c) => c.id === values.creditCardId)?.name ?? values.creditCardId}`,
+      show: supportsCard && !!values.creditCardId,
+    },
+    {
+      key: 'startDate' as const,
+      label: `Início: ${values.startDate}`,
+      show: !!values.startDate,
+    },
+    {
+      key: 'endDate' as const,
+      label: `Fim: ${values.endDate}`,
+      show: !!values.endDate,
+    },
+    { key: 'dateBasis' as const, label: 'Data da compra', show: purchase },
+    {
+      key: 'minAmount' as const,
+      label: `Mínimo: ${values.minAmount}`,
+      show: !!values.minAmount,
+    },
+    {
+      key: 'maxAmount' as const,
+      label: `Máximo: ${values.maxAmount}`,
+      show: !!values.maxAmount,
+    },
+    {
+      key: 'modality' as const,
+      label: `Modalidade: ${{ single: 'Avulso', recurring: 'Recorrente', installment: 'Parcelado' }[values.modality] ?? values.modality}`,
+      show: !!criteria.modality,
+    },
+  ].filter((item) => item.show)
 
   return (
-    <div className="border-border bg-card flex flex-col gap-6 rounded-md border p-6">
-      <div className="text-foreground flex items-center gap-2 text-sm font-medium">
-        <Filter className="text-muted-foreground size-3.5" />
-        Filtros de Busca
-      </div>
-
-      <div className="grid min-w-0 grid-cols-1 gap-4 lg:grid-cols-3 [&_input]:min-w-0 [&>*]:min-w-0">
-        {/* Busca Textual */}
-        <div className="relative">
-          <Search className="text-muted-foreground absolute top-1/2 left-3 size-3.5 -translate-y-1/2" />
+    <section
+      aria-label="Filtros de busca"
+      className="border-border bg-card flex min-w-0 flex-col gap-5 rounded-md border p-4 sm:p-6"
+    >
+      <h2 className="flex items-center gap-2 text-sm font-medium">
+        <Filter className="text-muted-foreground size-4" aria-hidden="true" />
+        Filtros de busca
+      </h2>
+      <div className="grid min-w-0 gap-4 sm:grid-cols-2 lg:grid-cols-3 [&>*]:min-w-0">
+        <label className="space-y-1 text-sm">
+          Descrição
           <Input
             aria-label="Buscar por descrição"
             placeholder="Buscar por descrição..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value || '')}
-            className="bg-background border-border min-h-11 w-full min-w-0 rounded-md pl-9 text-sm"
+            value={values.search}
+            onChange={(e) => void setValues({ search: e.target.value })}
           />
-        </div>
-
-        {/* Tipo */}
-        <Select
-          value={type || 'all'}
-          onValueChange={handleTypeChange}
-          items={typeSelectItems}
-        >
-          <SelectTrigger
-            aria-label="Filtrar por tipo"
-            className="bg-background border-border min-h-11 w-full min-w-0 rounded-md text-sm"
-          >
-            <SelectValue placeholder="Tipo de lançamento" />
-          </SelectTrigger>
-          <SelectContent className="rounded-md">
-            <SelectItem value="all" className="rounded-md">
-              Todos os tipos
-            </SelectItem>
-            <SelectItem value="income" className="rounded-md">
-              Receitas (Entradas)
-            </SelectItem>
-            <SelectItem value="expense" className="rounded-md">
-              Despesas (Saídas)
-            </SelectItem>
-            <SelectItem value="investment" className="rounded-md">
-              Investimentos
-            </SelectItem>
-          </SelectContent>
-        </Select>
-
-        {/* Categoria */}
-        <Select
-          value={categoryId || 'all'}
-          onValueChange={handleCategoryChange}
-          items={categorySelectItems}
-        >
-          <SelectTrigger
-            aria-label="Filtrar por categoria"
-            className="bg-background border-border min-h-11 w-full min-w-0 rounded-md text-sm"
-          >
-            <SelectValue placeholder="Categoria" />
-          </SelectTrigger>
-          <SelectContent className="rounded-md">
-            <SelectItem value="all" className="rounded-md">
-              Todas as categorias
-            </SelectItem>
-            {categories.map((cat) => (
-              <SelectItem
-                key={cat.id}
-                value={cat.id}
-                className="rounded-md"
-              >
-                {cat.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-3 [&>*]:min-w-0">
+        </label>
+        {!fixedType && (
+          <label className="space-y-1 text-sm">
+            Tipo
+            {options(
+              [
+                { value: 'all', label: 'Todos os tipos' },
+                { value: 'income', label: 'Receitas (Entradas)' },
+                { value: 'expense', label: 'Despesas (Saídas)' },
+                { value: 'investment', label: 'Investimentos' },
+              ],
+              values.type,
+              'Filtrar por tipo',
+              (type) =>
+                void setValues({
+                  type,
+                  ...(type &&
+                  categories.some(
+                    (category) =>
+                      category.id === values.categoryId &&
+                      category.type !== type &&
+                      category.type !== 'both',
+                  )
+                    ? { categoryId: '' }
+                    : {}),
+                  ...(type && type !== 'expense'
+                    ? {
+                        creditCardId: '',
+                        ...(values.modality === 'installment'
+                          ? { modality: '' }
+                          : {}),
+                      }
+                    : {}),
+                }),
+            )}
+          </label>
+        )}
+        <label className="space-y-1 text-sm">
+          Categoria
+          {options(
+            [
+              { value: 'all', label: 'Todas as categorias' },
+              ...categories.map((c) => ({
+                value: c.id,
+                label: `${c.name}${c.archived ? ' (arquivada)' : ''}`,
+              })),
+            ],
+            values.categoryId,
+            'Filtrar por categoria',
+            (categoryId) => void setValues({ categoryId }),
+          )}
+        </label>
+        {supportsCard && (
+          <label className="space-y-1 text-sm">
+            Cartão
+            {options(
+              [
+                { value: 'all', label: 'Todos os cartões' },
+                ...creditCards.map((c) => ({
+                  value: c.id,
+                  label: `${c.name} · ${c.bankName}${c.archived ? ' (arquivado)' : ''}`,
+                })),
+              ],
+              values.creditCardId,
+              'Cartão',
+              (creditCardId) => void setValues({ creditCardId }),
+            )}
+          </label>
+        )}
         <label className="space-y-1 text-sm">
           Critério de data
-          <Select
-            value={purchase ? 'purchase' : 'competence'}
-            onValueChange={(value) => void setDateBasis(value === 'purchase' ? 'purchase' : 'competence')}
-            items={[
+          {options(
+            [
               { value: 'competence', label: 'Competência' },
               { value: 'purchase', label: 'Data da compra' },
-            ]}
-          >
-            <SelectTrigger aria-label="Critério de data" className="w-full min-w-0">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="competence">Competência</SelectItem>
-              <SelectItem value="purchase">Data da compra</SelectItem>
-            </SelectContent>
-          </Select>
+            ],
+            criteria.dateBasis ?? 'competence',
+            'Critério de data',
+            (dateBasis) =>
+              void setValues({ dateBasis: dateBasis || 'competence' }),
+          )}
         </label>
-        <label className="space-y-1 text-sm">
-          Data inicial {purchase ? 'da compra' : 'da competência'}
-          <DatePicker
-            aria-label={purchase ? 'Data inicial da compra' : 'Data inicial da competência'}
-            date={start || end ? parsePeriodDate(start) : defaultPeriod.startDate}
-            setDate={(date) => {
-              if (!start && !end) void setEnd(format(defaultPeriod.endDate, 'yyyy-MM-dd'))
-              void setStart(date ? format(date, 'yyyy-MM-dd') : '')
-            }}
-            dateFormat="dd/MM/yyyy"
-            clearable
-            aria-invalid={!!period.error}
-            aria-describedby={period.error ? 'period-error' : undefined}
-          />
-        </label>
-        <label className="space-y-1 text-sm">
-          Data final {purchase ? 'da compra' : 'da competência'}
-          <DatePicker
-            aria-label={purchase ? 'Data final da compra' : 'Data final da competência'}
-            date={start || end ? parsePeriodDate(end) : defaultPeriod.endDate}
-            setDate={(date) => {
-              if (!start && !end) void setStart(format(defaultPeriod.startDate, 'yyyy-MM-dd'))
-              void setEnd(date ? format(date, 'yyyy-MM-dd') : '')
-            }}
-            dateFormat="dd/MM/yyyy"
-            clearable
-            aria-invalid={!!period.error}
-            aria-describedby={period.error ? 'period-error' : undefined}
-          />
-        </label>
-        <label className="space-y-1 text-sm">
-          Cartão
-          <Select
-            value={card || 'all'}
-            onValueChange={(value) =>
-              void setCard(value && value !== 'all' ? value : '')
-            }
-            items={[
-              { value: 'all', label: 'Todos os cartões' },
-              ...creditCards.map((c) => ({
-                value: c.id,
-                label: `${c.name} · ${c.bankName}${c.archived ? ' (arquivado)' : ''}`,
-              })),
-            ]}
-          >
-            <SelectTrigger aria-label="Cartão" className="w-full min-w-0">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos os cartões</SelectItem>
-              {creditCards.map((c) => (
-                <SelectItem key={c.id} value={c.id}>
-                  {c.name} · {c.bankName}
-                  {c.archived ? ' (arquivado)' : ''}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </label>
+        {(['startDate', 'endDate'] as const).map((key) => (
+          <label key={key} className="space-y-1 text-sm">
+            {key === 'startDate' ? 'Data inicial' : 'Data final'}{' '}
+            {purchase ? 'da compra' : 'da competência'}
+            <DatePicker
+              aria-label={`${key === 'startDate' ? 'Data inicial' : 'Data final'} ${purchase ? 'da compra' : 'da competência'}`}
+              date={
+                values.startDate || values.endDate
+                  ? parsePeriodDate(values[key])
+                  : defaultPeriod[key]
+              }
+              setDate={(date) =>
+                void setValues({
+                  ...(!values.startDate && !values.endDate
+                    ? {
+                        [key === 'startDate' ? 'endDate' : 'startDate']: format(
+                          defaultPeriod[
+                            key === 'startDate' ? 'endDate' : 'startDate'
+                          ],
+                          'yyyy-MM-dd',
+                        ),
+                      }
+                    : {}),
+                  [key]: date ? format(date, 'yyyy-MM-dd') : '',
+                })
+              }
+              dateFormat="dd/MM/yyyy"
+              clearable
+              aria-invalid={!!periodError}
+              aria-describedby={periodError ? 'period-error' : undefined}
+            />
+          </label>
+        ))}
       </div>
-      {cardsError && (
+      {categoriesError && (
+        <p role="alert">
+          Não foi possível carregar categorias.{' '}
+          <Button variant="outline" onClick={() => retryCategories()}>
+            Tentar novamente
+          </Button>
+        </p>
+      )}
+      {supportsCard && cardsError && (
         <p role="alert">
           Não foi possível carregar cartões.{' '}
           <Button variant="outline" onClick={() => retryCards()}>
@@ -250,36 +265,134 @@ export function TransactionFilters() {
           </Button>
         </p>
       )}
-      {period.error && (
+      {periodError && (
         <p id="period-error" role="alert" className="text-destructive text-sm">
-          {period.error}
+          {periodError}
         </p>
       )}
       <p className="text-muted-foreground text-sm">
-        Período: {start || end ? `${start || 'sem início'} a ${end || 'sem fim'} (personalizado)` : `mês de trabalho ${month}`}.{' '}
-        {purchase ? 'Filtro pela data da compra.' : 'Filtro pela competência; a data da compra pode ser diferente.'}
+        Período:{' '}
+        {values.startDate || values.endDate
+          ? `${values.startDate || 'sem início'} a ${values.endDate || 'sem fim'} (personalizado)`
+          : `mês de trabalho ${month}`}
+        .{' '}
+        {purchase
+          ? 'Filtro pela data da compra.'
+          : 'Filtro pela competência; a data da compra pode ser diferente.'}
       </p>
       <div className="flex flex-wrap gap-2">
-        <Button variant="outline" onClick={() => preset(0)}>
-          Este mês
-        </Button>
-        <Button variant="outline" onClick={() => preset(1)}>
-          Mês anterior
-        </Button>
+        {[
+          ['Este mês', 0],
+          ['Mês anterior', 1],
+        ].map(([label, offset]) => (
+          <Button
+            key={label}
+            variant="outline"
+            onClick={() => {
+              const date = subMonths(new Date(), Number(offset))
+              void setValues({
+                startDate: format(startOfMonth(date), 'yyyy-MM-dd'),
+                endDate: format(endOfMonth(date), 'yyyy-MM-dd'),
+              })
+            }}
+          >
+            {label}
+          </Button>
+        ))}
       </div>
-      {hasActiveFilters && (
-        <div className="flex justify-end">
+      <details
+        open={advancedOpen}
+        onToggle={(event) => setAdvancedOpen(event.currentTarget.open)}
+      >
+        <summary className="cursor-pointer text-sm font-medium">
+          Filtros avançados
+        </summary>
+        <div className="mt-4 grid min-w-0 gap-4 sm:grid-cols-3 [&>*]:min-w-0">
+          {(['minAmount', 'maxAmount'] as const).map((key) => (
+            <label key={key} className="space-y-1 text-sm">
+              {key === 'minAmount' ? 'Valor mínimo (R$)' : 'Valor máximo (R$)'}
+              <Input
+                inputMode="decimal"
+                value={values[key]}
+                onChange={(e) => void setValues({ [key]: e.target.value })}
+                aria-invalid={!!amountError}
+                aria-describedby={amountError ? 'amount-error' : undefined}
+                placeholder="0,00"
+              />
+            </label>
+          ))}
+          <label className="space-y-1 text-sm">
+            Modalidade
+            {options(
+              [
+                { value: 'all', label: 'Todas as modalidades' },
+                { value: 'single', label: 'Avulso' },
+                { value: 'recurring', label: 'Recorrente' },
+                ...(supportsCard
+                  ? [{ value: 'installment', label: 'Parcelado' }]
+                  : []),
+              ],
+              criteria.modality ?? '',
+              'Modalidade',
+              (modality) => void setValues({ modality }),
+            )}
+          </label>
+        </div>
+        {amountError && (
+          <p
+            id="amount-error"
+            role="alert"
+            className="text-destructive mt-2 text-sm"
+          >
+            {amountError}
+          </p>
+        )}
+      </details>
+      {active.length > 0 && (
+        <div
+          className="flex flex-wrap items-center gap-2"
+          aria-label="Filtros ativos"
+        >
+          <span className="text-muted-foreground text-sm">Filtros ativos:</span>
+          {active.map(({ key, label }) => (
+            <Button
+              key={key}
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                void setValues({
+                  [key]: key === 'dateBasis' ? 'competence' : '',
+                })
+              }
+              aria-label={`Remover ${label}`}
+              className="h-auto min-h-9 max-w-full [overflow-wrap:anywhere] whitespace-normal"
+            >
+              {label}
+              <X className="size-3 shrink-0" aria-hidden="true" />
+            </Button>
+          ))}
           <Button
             variant="ghost"
             size="sm"
-            onClick={handleClearFilters}
-            className="text-muted-foreground hover:text-foreground min-h-10 gap-2 rounded-md text-sm"
+            onClick={() =>
+              void setValues({
+                search: '',
+                type: '',
+                categoryId: '',
+                creditCardId: '',
+                startDate: '',
+                endDate: '',
+                dateBasis: 'competence',
+                minAmount: '',
+                maxAmount: '',
+                modality: '',
+              })
+            }
           >
-            <X className="size-3" />
-            Limpar Filtros
+            Limpar filtros
           </Button>
         </div>
       )}
-    </div>
+    </section>
   )
 }
