@@ -247,3 +247,14 @@ test('parcelamento não aceita término que descarte parte do total e recorrênc
       .success,
   ).toBe(false)
 })
+
+test('contrato MCP preserva percentuais numéricos quando não há base e não expõe recentes internos', () => {
+  const summary = financialSummary([], [], '2026-12', '2026-12-22')
+  expect(summary).toMatchObject({
+    incomeChangePercent: 0,
+    expenseChangePercent: 0,
+    investmentChangePercent: 0,
+    balanceChangePercent: 0,
+  })
+  expect(summary).not.toHaveProperty('currentTransactions')
+})

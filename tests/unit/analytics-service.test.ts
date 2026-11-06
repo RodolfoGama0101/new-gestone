@@ -367,3 +367,19 @@ describe('saldo mensal e reservas sem dupla dedução', () => {
     }
   })
 })
+
+test('comparações sem base anterior são nulas e uma base válida mantém zero por cento', () => {
+  const noBase = AnalyticsService.calculateSummary([julyIncome], july, [], july)
+  expect(noBase.incomeChangePercent).toBeNull()
+  expect(noBase.expenseChangePercent).toBeNull()
+  expect(noBase.investmentChangePercent).toBeNull()
+  expect(noBase.balanceChangePercent).toBeNull()
+  const same = AnalyticsService.calculateSummary(
+    [julyIncome, transaction('income', 100000, new Date(2026, 5, 1))],
+    july,
+    [],
+    july,
+  )
+  expect(same.incomeChangePercent).toBe(0)
+  expect(same.balanceChangePercent).toBe(0)
+})

@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/card'
 import type { CategoryShare } from '@/lib/utils/analytics-helper'
 import { GeistChartTooltip } from './geist-chart-tooltip'
+import Link from 'next/link'
 
 const COLORS = [
   'var(--chart-1)',
@@ -24,10 +25,12 @@ export function CategoryDonutChart({
   data,
   type = 'expense',
   description,
+  categoryHref,
 }: {
   data: CategoryShare[]
   type?: 'expense' | 'investment' | 'income'
   description?: string
+  categoryHref?: (item: CategoryShare) => string
 }) {
   const labels = {
     expense: {
@@ -138,7 +141,16 @@ export function CategoryDonutChart({
                         aria-hidden="true"
                       />
                       <span className="min-w-0 flex-1 [overflow-wrap:anywhere]">
-                        {item.name}
+                        {categoryHref ? (
+                          <Link
+                            className="underline underline-offset-4"
+                            href={categoryHref(item)}
+                          >
+                            {item.name}
+                          </Link>
+                        ) : (
+                          item.name
+                        )}
                       </span>
                     </div>
                     <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-sm tabular-nums">

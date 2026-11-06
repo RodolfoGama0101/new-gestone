@@ -3,7 +3,7 @@
 import { LoadError } from '@/components/shared/load-error'
 
 import * as React from 'react'
-import { useTransactions } from '@/hooks/use-transactions'
+import type { Transaction } from '@/types/transaction'
 import { useCategories } from '@/hooks/use-categories'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { EmptyState } from '@/components/shared/empty-state'
@@ -14,18 +14,20 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useWorkMonth } from '@/providers/work-month-provider'
 import { workMonthHref } from '@/lib/utils/work-month'
 
-export function RecentTransactions() {
+export function RecentTransactions({
+  transactions,
+  isLoading = false,
+}: {
+  transactions: Transaction[]
+  isLoading?: boolean
+}) {
   const { month } = useWorkMonth()
   const {
     categories,
+    isLoading: categoriesLoading,
     error: categoriesError,
     refetch: refetchCategories,
   } = useCategories()
-
-  // Busca os lançamentos mais recentes
-  const { transactions, isLoading, error, refetch } = useTransactions({
-    limitCount: 5,
-  })
 
   const recent = transactions.slice(0, 5)
 
@@ -35,15 +37,10 @@ export function RecentTransactions() {
     [categories],
   )
 
-  if (error || categoriesError)
-    return (
-      <LoadError
-        error={error || categoriesError}
-        retry={() => Promise.all([refetch(), refetchCategories()])}
-      />
-    )
+  if (categoriesError)
+    return <LoadError error={categoriesError} retry={refetchCategories} />
 
-  if (isLoading) {
+  if (isLoading || categoriesLoading) {
     return (
       <Card className="h-full">
         <CardHeader className="border-border flex flex-row flex-wrap items-center justify-between gap-4 border-b pb-6">
@@ -90,7 +87,7 @@ export function RecentTransactions() {
         {recent.length === 0 ? (
           <EmptyState
             title="Nenhuma movimentação"
-            description="Você ainda não registrou lançamentos financeiros nesta conta."
+            description="Nenhum lançamento na competência selecionada."
             icon={Wallet}
             compact
           />
@@ -98,7 +95,7 @@ export function RecentTransactions() {
           <TransactionTable
             transactions={recent}
             categoryMap={categoryMap}
-            showDate={false}
+            showDate
           />
         )}
       </CardContent>

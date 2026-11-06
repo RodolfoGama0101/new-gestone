@@ -7,6 +7,8 @@
 
 ## Funcionalidades
 
+- [Dashboard mensal](features/dashboard.md)
+
 - [Paridade financeira do MCP](features/mcp-parity.md)
 
 - [MCP privado — validação inicial](features/mcp.md)

@@ -115,6 +115,11 @@ export function financialSummary(
   }
   return {
     ...result,
+    // O contrato MCP mantém zero quando não há base anterior; o painel usa null.
+    incomeChangePercent: result.incomeChangePercent ?? 0,
+    expenseChangePercent: result.expenseChangePercent ?? 0,
+    investmentChangePercent: result.investmentChangePercent ?? 0,
+    balanceChangePercent: result.balanceChangePercent ?? 0,
     balance: safeMoney(result.balance),
     availableBalance: safeMoney(result.availableBalance),
     reservationReferenceDate: calendarDay(result.reservationReferenceDate),

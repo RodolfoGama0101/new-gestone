@@ -13,7 +13,7 @@ describe('explicação do saldo mensal', () => {
         selectedMonth={new Date(2026, 9, 1)}
       />,
     )
-    const chart = screen.getByRole('img', { name: /Evolução do saldo/ })
+    const chart = screen.getByRole('img', { name: /Evolução do resultado/ })
     expect(chart.querySelector('path[stroke="var(--link)"]')).toHaveAttribute(
       'd',
       'M0 20H600',
@@ -45,7 +45,7 @@ describe('explicação do saldo mensal', () => {
         data={[]}
       />,
     )
-    expect(screen.getByText('Saldo do mês')).toBeVisible()
+    expect(screen.getByText('Resultado projetado do mês')).toBeVisible()
     fireEvent.click(screen.getByText('Sobre a projeção'))
     expect(screen.getByText(/Inclui a fatura deste mês/)).toBeInTheDocument()
     expect(

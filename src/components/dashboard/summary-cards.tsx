@@ -1,130 +1,85 @@
 'use client'
 
+import Link from 'next/link'
 import { formatMoney } from '@/lib/utils/format-money'
-
-import * as React from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ArrowUpCircle, ArrowDownCircle, Coins } from 'lucide-react'
+import { workMonthHref } from '@/lib/utils/work-month'
+import { useWorkMonth } from '@/providers/work-month-provider'
+import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 
+export function formatDashboardChange(value: number | null) {
+  if (value === null || !Number.isFinite(value)) return 'Sem base de comparação'
+  return `${value > 0 ? '+' : ''}${value.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}% vs. mês anterior`
+}
+
 interface SummaryCardsProps {
-  income: number // em centavos (ex: 1000 = R$ 10,00)
-  incomeChange: number
-  expense: number // em centavos
-  expenseChange: number
-  investment: number // em centavos (NOVO)
-  investmentChange: number // (NOVO)
+  income: number
+  incomeChange: number | null
+  expense: number
+  expenseChange: number | null
+  investment: number
+  investmentChange: number | null
   incomeCount?: number
   expenseCount?: number
   investmentCount?: number
   isLoading?: boolean
 }
 
-export function SummaryCards({
-  income,
-  incomeChange,
-  expense,
-  expenseChange,
-  investment,
-  investmentChange,
-  incomeCount = 0,
-  expenseCount = 0,
-  investmentCount = 0,
-  isLoading = false,
-}: SummaryCardsProps) {
-  const formatBRL = (cents: number) => {
-    return formatMoney(cents)
-  }
-
-  const formatChange = (value: number) => {
-    if (!Number.isFinite(value)) return 'Sem base anterior'
-    const sign = value > 0 ? '+' : ''
-    return `${sign}${value.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}% vs. mês anterior`
-  }
-
-  if (isLoading) {
-    return (
-      <div className="grid gap-4 min-[1100px]:grid-cols-3">
-        {[1, 2, 3].map((i) => (
-          <Card key={i} className="min-h-36 justify-between p-6">
-            <div className="flex items-center justify-between">
-              <Skeleton className="h-3 w-14" />
-              <Skeleton className="size-5 rounded-md" />
-            </div>
-            <div className="mt-2 flex items-baseline justify-between gap-2">
-              <Skeleton className="h-6 w-28" />
-              <Skeleton className="h-4.5 w-10 rounded-full" />
-            </div>
-          </Card>
-        ))}
-      </div>
-    )
-  }
-
+export function SummaryCards(props: SummaryCardsProps) {
+  const { month } = useWorkMonth()
+  const items = [
+    {
+      title: 'Receitas',
+      amount: props.income,
+      change: props.incomeChange,
+      count: props.incomeCount ?? 0,
+      path: '/income',
+      color: 'text-income',
+    },
+    {
+      title: 'Despesas',
+      amount: props.expense,
+      change: props.expenseChange,
+      count: props.expenseCount ?? 0,
+      path: '/expenses',
+      color: 'text-expense',
+    },
+    {
+      title: 'Aportes',
+      amount: props.investment,
+      change: props.investmentChange,
+      count: props.investmentCount ?? 0,
+      path: '/investments',
+      color: 'text-foreground',
+    },
+  ]
   return (
     <div className="grid gap-4 min-[1100px]:grid-cols-3">
-      {/* Income Card */}
-      <Card className="gap-0 py-5">
-        <CardHeader className="flex min-w-0 flex-row-reverse flex-wrap items-center justify-end gap-2 border-0 py-0">
-          <CardTitle className="text-muted-foreground min-w-0 text-sm font-normal [overflow-wrap:anywhere]">
-            Receitas
-          </CardTitle>
-          <div className="flex items-center justify-center">
-            <ArrowUpCircle className="text-muted-foreground size-4" />
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-2 pt-3 pb-0">
-          <span className="text-foreground text-2xl font-medium tracking-tight break-all tabular-nums">
-            {formatBRL(income)}
-          </span>
-          <p className="text-muted-foreground mt-1 text-xs">
-            {incomeCount} {incomeCount === 1 ? 'recebimento' : 'recebimentos'} ·{' '}
-            {formatChange(incomeChange)}
-          </p>
-        </CardContent>
-      </Card>
-
-      {/* Expense Card */}
-      <Card className="gap-0 py-5">
-        <CardHeader className="flex min-w-0 flex-row-reverse flex-wrap items-center justify-end gap-2 border-0 py-0">
-          <CardTitle className="text-muted-foreground min-w-0 text-sm font-normal [overflow-wrap:anywhere]">
-            Despesas
-          </CardTitle>
-          <div className="flex items-center justify-center">
-            <ArrowDownCircle className="text-muted-foreground size-4" />
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-2 pt-3 pb-0">
-          <span className="text-foreground text-2xl font-medium tracking-tight break-all tabular-nums">
-            {formatBRL(expense)}
-          </span>
-          <p className="text-muted-foreground mt-1 text-xs">
-            {expenseCount} {expenseCount === 1 ? 'pagamento' : 'pagamentos'} ·{' '}
-            {formatChange(expenseChange)}
-          </p>
-        </CardContent>
-      </Card>
-
-      {/* Investment Card */}
-      <Card className="gap-0 py-5">
-        <CardHeader className="flex min-w-0 flex-row-reverse flex-wrap items-center justify-end gap-2 border-0 py-0">
-          <CardTitle className="text-muted-foreground min-w-0 text-sm font-normal [overflow-wrap:anywhere]">
-            Investimentos
-          </CardTitle>
-          <div className="flex items-center justify-center">
-            <Coins className="text-muted-foreground size-4" />
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-2 pt-3 pb-0">
-          <span className="text-foreground text-2xl font-medium tracking-tight break-all tabular-nums">
-            {formatBRL(investment)}
-          </span>
-          <p className="text-muted-foreground mt-1 text-xs">
-            {investmentCount} {investmentCount === 1 ? 'aporte' : 'aportes'} ·{' '}
-            {formatChange(investmentChange)}
-          </p>
-        </CardContent>
-      </Card>
+      {items.map((item) => (
+        <Card key={item.path} className="min-w-0 gap-0 p-5 sm:p-6">
+          {props.isLoading ? (
+            <Skeleton className="h-24 w-full" />
+          ) : (
+            <>
+              <Link
+                href={workMonthHref(item.path, month)}
+                className="text-muted-foreground focus-visible:outline-ring w-fit py-1 text-sm underline-offset-4 hover:underline"
+              >
+                {item.title}
+              </Link>
+              <p
+                className={`mt-2 text-2xl font-medium tracking-tight [overflow-wrap:anywhere] tabular-nums ${item.color}`}
+              >
+                {formatMoney(item.amount)}
+              </p>
+              <p className="text-muted-foreground mt-2 text-xs">
+                {item.count} {item.count === 1 ? 'lançamento' : 'lançamentos'} ·{' '}
+                {formatDashboardChange(item.change)}
+              </p>
+            </>
+          )}
+        </Card>
+      ))}
     </div>
   )
 }

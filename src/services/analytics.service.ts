@@ -11,7 +11,6 @@ import {
 import { parseFirestoreDate as parseToDate } from '@/lib/utils/parse-date'
 import { getTransactionDate } from '@/lib/utils/transaction-date'
 
-
 export interface DailyBalancePoint {
   date: string // Formato "dd/MM"
   balance: number // Valor acumulado em centavos
@@ -22,10 +21,10 @@ export interface PeriodSummary {
   expense: number // em centavos
   investment: number // em centavos
   balance: number // em centavos
-  incomeChangePercent: number
-  expenseChangePercent: number
-  investmentChangePercent: number
-  balanceChangePercent: number
+  incomeChangePercent: number | null
+  expenseChangePercent: number | null
+  investmentChangePercent: number | null
+  balanceChangePercent: number | null
   futureCardExpenses: number // Compras realizadas até a referência, faturadas após o mês selecionado
   availableBalance: number // Saldo projetado do mês menos reservas para faturas de meses posteriores
   reservationReferenceDate: Date // Menor data entre a referência informada e o fim do mês selecionado
@@ -102,7 +101,8 @@ export const AnalyticsService = {
       // Faturas do mês já fazem parte de expense. Reserve somente compras conhecidas
       // na referência cuja competência é posterior, sem misturar o mês com "hoje".
       if (
-        reservationTransactions === transactions && isCardExpense &&
+        reservationTransactions === transactions &&
+        isCardExpense &&
         effectiveDate > endOfCurrent &&
         txDate <= reservationReferenceDate
       ) {
@@ -111,10 +111,17 @@ export const AnalyticsService = {
     })
 
     if (reservationTransactions !== transactions) {
-      futureCardExpenses = reservationTransactions.reduce((sum, tx) => sum + (
-        tx.type === 'expense' && tx.creditCardId && parseToDate(tx.date) <= reservationReferenceDate
-        && getTransactionDate(tx, creditCards) > endOfCurrent ? tx.amount : 0
-      ), 0)
+      futureCardExpenses = reservationTransactions.reduce(
+        (sum, tx) =>
+          sum +
+          (tx.type === 'expense' &&
+          tx.creditCardId &&
+          parseToDate(tx.date) <= reservationReferenceDate &&
+          getTransactionDate(tx, creditCards) > endOfCurrent
+            ? tx.amount
+            : 0),
+        0,
+      )
     }
 
     const balance = income - expense - investment
@@ -122,8 +129,11 @@ export const AnalyticsService = {
     const availableBalance = balance - futureCardExpenses
 
     // Calcula a variação percentual
-    const calculateChange = (current: number, previous: number): number => {
-      if (previous === 0) return 0
+    const calculateChange = (
+      current: number,
+      previous: number,
+    ): number | null => {
+      if (previous === 0) return null
       return Math.round(((current - previous) / previous) * 100)
     }
 

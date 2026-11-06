@@ -1,11 +1,19 @@
 import { Transaction } from '@/types/transaction'
 import { Category } from '@/types/category'
-import { subMonths, format, startOfMonth, endOfMonth, isWithinInterval, eachMonthOfInterval } from 'date-fns'
+import {
+  subMonths,
+  format,
+  startOfMonth,
+  endOfMonth,
+  isWithinInterval,
+  eachMonthOfInterval,
+} from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import type { CreditCard } from '@/types/credit-card'
 import { getTransactionDate } from './transaction-date'
 
 export interface CategoryShare {
+  categoryId?: string
   name: string
   value: number // valor acumulado em centavos (ex: 1550 = R$ 15,50)
   color: string
@@ -24,7 +32,8 @@ export const AnalyticsHelper = {
   getCategoryShare(
     transactions: Transaction[],
     categories: Category[],
-    type: 'income' | 'expense' | 'investment' = 'expense'
+    type: 'income' | 'expense' | 'investment' = 'expense',
+    includeIds = false,
   ): CategoryShare[] {
     const sumMap = new Map<string, number>()
 
@@ -42,7 +51,10 @@ export const AnalyticsHelper = {
     sumMap.forEach((amount, catId) => {
       const cat = categories.find((c) => c.id === catId)
       shares.push({
-        name: cat ? `${cat.name}${cat.archived ? ' (arquivada)' : ''}` : 'Categoria indisponível',
+        ...(includeIds ? { categoryId: catId } : {}),
+        name: cat
+          ? `${cat.name}${cat.archived ? ' (arquivada)' : ''}`
+          : 'Categoria indisponível',
         value: amount,
         color: cat?.color ?? '#6b7280',
       })
@@ -56,7 +68,7 @@ export const AnalyticsHelper = {
     transactions: Transaction[],
     monthsCount: number,
     referenceDate: Date = new Date(),
-    creditCards: CreditCard[] = []
+    creditCards: CreditCard[] = [],
   ): MonthlySummary[] {
     const startDate = startOfMonth(subMonths(referenceDate, monthsCount - 1))
     const endDate = endOfMonth(referenceDate)
@@ -66,7 +78,7 @@ export const AnalyticsHelper = {
     const monthlySummaryMap = new Map<string, MonthlySummary>()
     months.forEach((month) => {
       const key = format(month, 'yyyy-MM')
-      const label = format(month, "MMM/yy", { locale: ptBR })
+      const label = format(month, 'MMM/yy', { locale: ptBR })
       monthlySummaryMap.set(key, {
         monthLabel: label,
         income: 0,

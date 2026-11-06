@@ -2,6 +2,10 @@
 
 import { formatMoney } from '@/lib/utils/format-money'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import Link from 'next/link'
+import { workMonthHref } from '@/lib/utils/work-month'
+import { format } from 'date-fns'
+import { formatDashboardChange } from './summary-cards'
 import { Skeleton } from '@/components/ui/skeleton'
 
 interface DailyPoint {
@@ -10,7 +14,7 @@ interface DailyPoint {
 }
 interface BalanceCardProps {
   balance: number
-  changePercent: number
+  changePercent: number | null
   data: DailyPoint[]
   isLoading?: boolean
   futureCardExpenses?: number
@@ -66,14 +70,22 @@ export function BalanceCard({
           points[points.length - 1],
         ]
       : points
-  const changeLabel = Number.isFinite(changePercent)
-    ? `${changePercent > 0 ? '+' : ''}${changePercent.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}% vs. mês anterior`
-    : 'Sem base anterior'
+  const changeLabel = formatDashboardChange(changePercent)
 
   return (
     <Card>
       <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">
-        <CardTitle>Saldo do mês</CardTitle>
+        <CardTitle>
+          <Link
+            className="underline-offset-4 hover:underline"
+            href={workMonthHref(
+              '/transactions',
+              format(selectedMonth ?? new Date(), 'yyyy-MM'),
+            )}
+          >
+            Resultado projetado do mês
+          </Link>
+        </CardTitle>
         {selectedMonth && (
           <span className="bg-accent text-muted-foreground rounded-full px-2.5 py-1 text-xs">
             {selectedMonth.toLocaleDateString('pt-BR', {
@@ -84,13 +96,15 @@ export function BalanceCard({
         )}
       </CardHeader>
       <CardContent>
-        <p className="text-4xl leading-10 font-medium tracking-tight break-all tabular-nums">
+        <p className="text-3xl leading-10 font-medium tracking-tight break-all tabular-nums">
           {formatMoney(balance)}
         </p>
         <p className="text-muted-foreground mt-2 text-[13px]">
-          Receitas − despesas − investimentos
+          Receitas − despesas − aportes
         </p>
-        <p className="sr-only">{changeLabel}. Inclui a fatura deste mês.</p>
+        <p className="text-muted-foreground mt-2 text-xs">
+          {changeLabel}. Inclui a fatura deste mês.
+        </p>
         {path ? (
           <>
             <svg
@@ -98,7 +112,7 @@ export function BalanceCard({
               viewBox="0 0 600 180"
               preserveAspectRatio="none"
               role="img"
-              aria-label={`Evolução do saldo do mês. Saldo projetado: ${formatMoney(balance)}`}
+              aria-label={`Evolução do resultado do mês. Resultado projetado: ${formatMoney(balance)}`}
             >
               <path
                 d="M0 20H600 M0 65H600 M0 110H600 M0 155H600"
@@ -125,6 +139,22 @@ export function BalanceCard({
             Sem dados de evolução para este mês.
           </p>
         )}
+        <details className="text-muted-foreground mt-4 text-sm">
+          <summary className="focus-visible:outline-ring cursor-pointer py-2">
+            Ver resultado acumulado por dia
+          </summary>
+          <dl>
+            {points.map((point) => (
+              <div
+                key={point.date}
+                className="flex flex-wrap justify-between gap-2 py-1"
+              >
+                <dt>{point.date}</dt>
+                <dd className="tabular-nums">{formatMoney(point.balance)}</dd>
+              </div>
+            ))}
+          </dl>
+        </details>
         <dl className="mt-2 text-[13px]">
           <div className="border-border flex flex-wrap items-center justify-between gap-3 border-b py-4">
             <dt className="text-muted-foreground">
@@ -141,15 +171,20 @@ export function BalanceCard({
             </dd>
           </div>
         </dl>
+        <p className="text-muted-foreground text-xs">
+          Reservas de compras realizadas{' '}
+          {referenceDate
+            ? `até ${referenceDate.toLocaleDateString('pt-BR')}`
+            : 'até a referência'}
+          , com competência posterior ao mês. Disponível = resultado − reservas.
+        </p>
         <details className="text-muted-foreground text-xs">
           <summary className="focus-visible:outline-ring cursor-pointer py-2">
             Sobre a projeção
           </summary>
           <p>
-            {referenceDate
-              ? `Reservas de compras realizadas até ${referenceDate.toLocaleDateString('pt-BR')}.`
-              : 'Reservas de compras realizadas para faturas dos próximos meses.'}{' '}
-            Projeção dos lançamentos cadastrados. {changeLabel}.
+            Projeção dos lançamentos cadastrados, sem conciliação de saldo
+            bancário. {changeLabel}.
           </p>
         </details>
       </CardContent>

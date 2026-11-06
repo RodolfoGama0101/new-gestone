@@ -168,13 +168,13 @@ test('superfícies Geist preservam conteúdo e reflow nos dois temas', async ({
           await expect(page.getByRole('progressbar')).toHaveCount(2)
         if (route === '/') {
           await expect(
-            page.getByRole('img', { name: /Evolução do saldo/ }),
+            page.getByRole('img', { name: /Evolução do resultado/ }),
           ).toBeVisible()
           await expect(
             page.getByRole('columnheader', { name: 'Descrição' }),
           ).toHaveCount(1)
           await expect(
-            page.getByRole('img', { name: /Evolução do saldo/ }),
+            page.getByRole('img', { name: /Evolução do resultado/ }),
           ).toHaveCSS('height', '180px')
           if (width === 1280)
             await expect(page.locator('aside')).toHaveCSS('width', '200px')

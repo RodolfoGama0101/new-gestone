@@ -3,7 +3,11 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import DashboardPage from '@/app/(dashboard)/page'
 import { useAnalytics } from '@/hooks/use-analytics'
 jest.mock('@/providers/work-month-provider', () => ({
-  useWorkMonth: () => ({ month: '2026-11', date: new Date(2026, 10, 1), setMonth: jest.fn() }),
+  useWorkMonth: () => ({
+    month: '2026-11',
+    date: new Date(2026, 10, 1),
+    setMonth: jest.fn(),
+  }),
 }))
 jest.mock('@/contexts/auth-context', () => ({
   useAuth: () => ({ user: { displayName: 'Pessoa' } }),
@@ -24,16 +28,25 @@ jest.mock('@/components/dashboard/recent-transactions', () => ({
 
 test('falha de resumo não apresenta saldo zero e permite tentar novamente', () => {
   const retry = jest.fn()
-  jest
-    .mocked(useAnalytics)
-    .mockReturnValue({
-      summary: undefined,
-      isLoading: false,
-      error: new Error('internal'),
-      refetch: retry,
-    } as never)
+  jest.mocked(useAnalytics).mockReturnValue({
+    summary: undefined,
+    isLoading: false,
+    error: new Error('internal'),
+    refetch: retry,
+  } as never)
   render(<DashboardPage />)
   expect(screen.queryByText('Saldo zero indevido')).toBeNull()
+  expect(screen.getByText('Cartões independentes')).toBeTruthy()
+  expect(screen.getByText('Meta independente')).toBeTruthy()
   fireEvent.click(screen.getByRole('button', { name: 'Tentar novamente' }))
   expect(retry).toHaveBeenCalledTimes(1)
 })
+
+jest.mock('@/components/credit-cards/card-consolidated', () => ({
+  CardConsolidated: () => <p>Cartões independentes</p>,
+}))
+jest.mock('@/components/dashboard/monthly-insights', () => ({
+  MonthlyGoal: () => <p>Meta independente</p>,
+  MonthlyExpenseCategories: () => null,
+  MonthlyFlow: () => null,
+}))
