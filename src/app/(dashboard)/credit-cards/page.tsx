@@ -38,6 +38,8 @@ import {
   useManagementFilters,
 } from '@/components/shared/management-filters'
 import { matchesCard } from '@/lib/utils/management-filters'
+import { CardConsolidated } from '@/components/credit-cards/card-consolidated'
+import { parseAsString, useQueryState } from 'nuqs'
 
 export default function CreditCardsPage() {
   const { values, setValues } = useManagementFilters()
@@ -51,12 +53,18 @@ export default function CreditCardsPage() {
     deleteCreditCard,
   } = useCreditCards()
 
-  const [invoiceMonth, setInvoiceMonth] = React.useState<Date | null>(null)
+  const [invoiceCard, setInvoiceCard] = useQueryState(
+    'invoiceCard',
+    parseAsString.withOptions({ history: 'push' }),
+  )
+  const invoiceMonth = invoiceCard ? workDate : null
   const returnFocus = React.useRef<{
     label: string | null
     text: string | null
   } | null>(null)
+  const returnScroll = React.useRef<number | null>(null)
   const openInvoice = (month: Date) => {
+    returnScroll.current = window.scrollY
     const active = document.activeElement
     returnFocus.current =
       active instanceof HTMLElement
@@ -64,7 +72,7 @@ export default function CreditCardsPage() {
         : null
     const selected = format(month, 'yyyy-MM')
     if (selected !== workMonth) setMonth(selected)
-    setInvoiceMonth(month)
+    if (selectedCard) void setInvoiceCard(selectedCard.id)
   }
   const [isAddOpen, setIsAddOpen] = React.useState(false)
   const [selectedCardId, setSelectedCardId] = React.useState<string | null>(
@@ -94,6 +102,11 @@ export default function CreditCardsPage() {
           : candidate.textContent === saved.text,
       ) ?? buttons.find((candidate) => candidate.textContent === 'Ver fatura')
     button?.focus()
+    if (returnScroll.current !== null) {
+      const top = returnScroll.current
+      returnScroll.current = null
+      requestAnimationFrame(() => window.scrollTo({ top, behavior: 'auto' }))
+    }
   }, [invoiceMonth])
 
   const handleDeleteConfirm = async () => {
@@ -120,12 +133,11 @@ export default function CreditCardsPage() {
   }
 
   const filteredCards = creditCards.filter((card) => matchesCard(card, values))
-  const selectedCard =
-    (invoiceMonth ? creditCards : filteredCards).find(
-      (card) => card.id === selectedCardId,
-    ) ??
-    filteredCards[0] ??
-    null
+  const selectedCard = invoiceCard
+    ? (creditCards.find((card) => card.id === invoiceCard) ?? null)
+    : (filteredCards.find((card) => card.id === selectedCardId) ??
+      filteredCards[0] ??
+      null)
 
   const handleArchiveConfirm = async () => {
     if (!archivingId) return
@@ -162,7 +174,13 @@ export default function CreditCardsPage() {
         }
         action={
           invoiceMonth ? (
-            <Button variant="outline" onClick={() => setInvoiceMonth(null)}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSelectedCardId(invoiceCard)
+                void setInvoiceCard(null)
+              }}
+            >
               Voltar aos cartões
             </Button>
           ) : (
@@ -177,6 +195,26 @@ export default function CreditCardsPage() {
         }
       />
 
+      {!invoiceMonth && (
+        <CardConsolidated
+          month={workDate}
+          visibleCards={filteredCards}
+          filtersActive={!!(values.search.trim() || values.status)}
+          onOpen={(card) => {
+            setSelectedCardId(card.id)
+            returnScroll.current = window.scrollY
+            const active = document.activeElement
+            returnFocus.current =
+              active instanceof HTMLElement
+                ? {
+                    label: active.getAttribute('aria-label'),
+                    text: active.textContent,
+                  }
+                : null
+            void setInvoiceCard(card.id)
+          }}
+        />
+      )}
       {!invoiceMonth && (
         <ManagementFilters
           values={values}
@@ -200,6 +238,12 @@ export default function CreditCardsPage() {
         <EmptyState
           title="Nenhum cartão cadastrado"
           description="Você ainda não adicionou nenhum cartão de crédito. Adicione um para gerenciar suas faturas e despesas futuras."
+          icon={CardIcon}
+        />
+      ) : invoiceMonth && !selectedCard ? (
+        <EmptyState
+          title="Cartão não encontrado"
+          description="Volte aos cartões para consultar uma fatura disponível."
           icon={CardIcon}
         />
       ) : invoiceMonth && selectedCard ? (

@@ -118,7 +118,9 @@ test('telas financeiras preservam textos longos, valores e ações em telas estr
             page.getByText(description, { exact: true }).first(),
           ).toBeVisible()
           await expect(
-            page.getByText(name, { exact: true }).first(),
+            route === '/credit-cards'
+              ? page.getByRole('cell', { name, exact: true })
+              : page.getByText(name, { exact: true }).first(),
           ).toBeVisible()
         }
         for (const zoom of [1, 2]) {

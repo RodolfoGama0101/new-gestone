@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/dialog'
 import { TransactionForm } from '@/components/transactions/transaction-form'
 import { useWorkMonth } from '@/providers/work-month-provider'
+import { CardConsolidated } from '@/components/credit-cards/card-consolidated'
 
 export default function DashboardPage() {
   const [isAddOpen, setIsAddOpen] = React.useState(false)
@@ -77,6 +78,7 @@ export default function DashboardPage() {
             availableBalance={summary?.availableBalance ?? 0}
             referenceDate={summary?.reservationReferenceDate}
           />
+          <CardConsolidated month={selectedDate} compact />
         </div>
 
         {/* Histórico após os resumos e a projeção. */}

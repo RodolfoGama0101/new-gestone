@@ -10,7 +10,7 @@ export function useCardInvoice(card: CreditCard, month: Date) {
   const client = useQueryClient()
   const invoice = useQuery({
     queryKey: ['transactions', user?.uid, 'invoice', card.id, format(month, 'yyyy-MM'), card.closingDay],
-    queryFn: () => TransactionService.getInvoice(user!.uid, card, month),
+    queryFn: ({ signal }) => TransactionService.getInvoice(user!.uid, card, month, signal),
     enabled: !!user,
   })
   const deletion = useMutation({

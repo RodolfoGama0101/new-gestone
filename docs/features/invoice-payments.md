@@ -14,3 +14,11 @@ competência escolhida em largura total; “Voltar aos cartões” preserva o ca
 selecionado. O detalhe mostra total, valor registrado de quitação e saldo a pagar.
 Quando o total muda após a quitação, o saldo pede revisão do registro, mantendo
 as regras de quitação integral e estorno descritas acima.
+
+## Consolidado e detalhe por competência — issue #37
+
+A tela Cartões apresenta a soma das faturas da competência de todos os cartões, inclusive arquivados, e o total dos cartões visíveis quando a busca ou situação restringem a lista. Cada linha mostra fechamento, vencimento e quitação. Um cartão abre sua fatura em largura integral com `invoiceCard` e `month` na URL; voltar preserva o cartão, os filtros de gestão e a posição da página durante a navegação. A mesma soma é exibida no painel e nos relatórios para o mês global.
+
+O total integral permanece independente da paginação e dos filtros do detalhe. Descrição, categoria, modalidade, valores e intervalo por data da compra ou competência restringem somente as compras da fatura, seu subtotal e a distribuição por categoria. O pagamento integral continua usando o total de todas as compras. Exclusões invalidam as consultas compartilhadas; uma quitação com valor diferente passa a ser identificada como alterada.
+
+Cada fatura usa a consulta completa existente, inclusive compras após fechamento, parcelas e cartões arquivados. O consolidado aguarda todas as consultas e não publica um valor parcial se alguma falhar. A leitura cresce com o número de cartões e o histórico de candidatos; as consultas por usuário, cartão e mês são compartilhadas pelo cache. Não há migração nem novas gravações financeiras.

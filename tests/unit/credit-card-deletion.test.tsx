@@ -45,6 +45,13 @@ jest.mock('@/providers/work-month-provider', () => ({
 jest.mock('@/components/credit-cards/credit-card-bill-summary', () => ({
   CreditCardBillSummary: () => null,
 }))
+jest.mock('@/components/credit-cards/card-consolidated', () => ({
+  CardConsolidated: () => null,
+}))
+jest.mock('nuqs', () => ({
+  parseAsString: { withOptions: () => null },
+  useQueryState: () => [null, jest.fn()],
+}))
 jest.mock('@/components/credit-cards/upcoming-invoices', () => ({
   UpcomingInvoices: () => null,
 }))

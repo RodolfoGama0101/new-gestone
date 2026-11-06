@@ -947,7 +947,7 @@ test('quitação integral e estorno não criam despesa nem mudam indicadores', a
   const payment = db.doc(`users/${uid}/creditCards/paid-card/payments/${month}`)
   expect((await payment.get()).data()?.amount).toBe(10000)
   await page.reload()
-  await page.getByRole('button', { name: 'Ver fatura', exact: true }).click()
+  await expect(page).toHaveURL(/invoiceCard=/)
   await expect(page.getByText('Status: Quitada', { exact: true })).toBeVisible()
   expect((await db.collection(`users/${uid}/transactions`).get()).docs.map(d => d.data())).toEqual(before)
   await page.getByRole('button', { name: 'Estornar quitação' }).click()
@@ -998,4 +998,57 @@ test('totais completos preservam competência, filtros, paginação e exclusão'
   await expect(filtered).toContainText('2,50')
   await page.goto('/expenses?month=2026-11')
   await expect(page.getByRole('region', { name: 'Mês completo por competência — 2026-11' })).toContainText('2,50')
+})
+
+test('consolida cartões, preserva filtros e quitação ao detalhar e excluir compra', async ({ page }) => {
+  const { uid } = await register(page)
+  const now = Timestamp.now()
+  const category = (await db.collection(`users/${uid}/categories`).where('type', '==', 'expense').get()).docs[0]
+  const batch = db.batch()
+  const cardBase = { brand: 'visa', holderName: 'Teste', color: '#000000', createdAt: now, updatedAt: now }
+  batch.set(db.doc(`users/${uid}/creditCards/card-a`), { ...cardBase, name: 'Alpha', bankName: 'Banco A', closingDay: 15, dueDay: 5, isActive: true })
+  batch.set(db.doc(`users/${uid}/creditCards/card-b`), { ...cardBase, name: 'Beta', bankName: 'Banco B', closingDay: 15, isActive: false, archived: true })
+  for (let i = 0; i < 21; i++) batch.set(db.doc(`users/${uid}/transactions/overview-${i}`), {
+    type: 'expense', amount: 100, description: i === 0 ? 'Compra exclusiva' : `Compra Alpha ${i}`,
+    categoryId: category.id, date: Timestamp.fromDate(new Date(2025, 1, 10, 12)), creditCardId: 'card-a', cardClosingDay: 15,
+    tags: [], notes: null, recurring: false, createdAt: now, updatedAt: now,
+  })
+  batch.set(db.doc(`users/${uid}/transactions/overview-archived`), {
+    type: 'expense', amount: 500, description: 'Compra arquivada após fechamento', categoryId: category.id,
+    date: Timestamp.fromDate(new Date(2025, 0, 20, 12)), creditCardId: 'card-b', cardClosingDay: 15,
+    tags: [], notes: null, recurring: false, createdAt: now, updatedAt: now,
+  })
+  batch.set(db.doc(`users/${uid}/creditCards/card-a/payments/2025-02`), { amount: 2100, paidAt: now })
+  await batch.commit()
+  await page.goto('/credit-cards?month=2025-02')
+  const overview = page.getByRole('region', { name: 'Consolidado dos cartões' })
+  await expect(overview).toContainText('26,00')
+  await expect(overview).toContainText('Beta · Banco B · Arquivado')
+  await expect(overview).toContainText('Quitada')
+  await page.getByLabel('Buscar por nome ou banco').fill('Alpha')
+  await expect(overview).toContainText('Cartões filtrados: R$ 21,00')
+  await overview.getByRole('button', { name: 'Abrir fatura de Alpha · Banco A' }).click()
+  await expect(page).toHaveURL(/invoiceCard=card-a/)
+  await expect(page.getByText(/Total:.*21,00.*21 compras/)).toBeVisible()
+  await page.getByLabel('Descrição', { exact: true }).fill('Compra exclusiva')
+  await expect(page.getByText(/Compras filtradas:/)).toContainText('1,00')
+  await expect(page.getByText(/Total:.*21,00.*21 compras/)).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Estornar quitação' })).toBeVisible()
+  await page.getByRole('button', { name: 'Excluir lançamento', exact: true }).click()
+  await page.getByRole('dialog', { name: 'Excluir compra?' }).getByRole('button', { name: 'Excluir', exact: true }).click()
+  await expect(page.getByText(/Total:.*20,00.*20 compras/)).toBeVisible()
+  await expect(page.getByText(/Alterada após quitação/)).toBeVisible()
+  await page.getByRole('button', { name: 'Voltar aos cartões' }).click()
+  await expect(page.getByLabel('Buscar por nome ou banco')).toHaveValue('Alpha')
+  await expect(overview).toContainText('25,00')
+  await expect(overview).toContainText('Cartões filtrados: R$ 20,00')
+  await page.goto('/credit-cards?month=2025-02&invoiceCard=card-b')
+  await expect(page.getByText('Compra arquivada após fechamento')).toBeVisible()
+  await expect(page.getByText(/Total:.*5,00.*1 compras/)).toBeVisible()
+  await page.getByRole('button', { name: 'Voltar aos cartões' }).click()
+  await expect(page.getByRole('button', { name: 'Selecionar cartão Beta · Banco B' })).toHaveAttribute('aria-pressed', 'true')
+  await page.goto('/?month=2025-02')
+  await expect(page.getByRole('region', { name: 'Consolidado dos cartões' })).toContainText('25,00')
+  await page.goto('/analytics?month=2025-02')
+  await expect(page.getByRole('region', { name: 'Consolidado dos cartões' })).toContainText('25,00')
 })

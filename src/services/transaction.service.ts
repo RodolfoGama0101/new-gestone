@@ -21,10 +21,10 @@ import { db } from '@/lib/firebase/config'
 import { Transaction } from '@/types/transaction'
 import type { CreditCard } from '@/types/credit-card'
 import { startOfMonth, endOfMonth } from 'date-fns'
-import { getTransactionDate } from '@/lib/utils/transaction-date'
-import { parseFirestoreDate } from '@/lib/utils/parse-date'
 import { CreditCardService } from './credit-card.service'
-import { matchesTransactionSearch, normalizeTransactionSearch } from '@/lib/utils/transaction-search'
+import { normalizeTransactionSearch } from '@/lib/utils/transaction-search'
+import { matchesTransactionFilters } from '@/lib/utils/transaction-query'
+export { matchesTransactionFilters } from '@/lib/utils/transaction-query'
 
 // Uma busca lê no máximo 100 candidatos e um documento de lookahead por página.
 // O cursor permite continuar mesmo se esse lote não contiver correspondências.
@@ -49,23 +49,6 @@ type TransactionQueryOptions = { signal?: AbortSignal; cards?: CreditCard[] }
 
 function throwIfAborted(signal?: AbortSignal) {
   if (signal?.aborted) throw new DOMException('Consulta cancelada.', 'AbortError')
-}
-
-export function matchesTransactionFilters(transaction: Transaction, filters: GetTransactionsFilters, cards: CreditCard[] = []) {
-  if (filters.type && transaction.type !== filters.type) return false
-  if (filters.categoryId && transaction.categoryId !== filters.categoryId) return false
-  if (filters.creditCardId && transaction.creditCardId !== filters.creditCardId) return false
-  if (!matchesTransactionSearch(transaction.description, filters.search ?? '')) return false
-  if (filters.minAmount != null && transaction.amount < filters.minAmount) return false
-  if (filters.maxAmount != null && transaction.amount > filters.maxAmount) return false
-  const modality = transaction.installmentTotal != null ? 'installment' : transaction.recurring ? 'recurring' : 'single'
-  if (filters.modality && filters.modality !== 'all' && filters.modality !== modality) return false
-  if (filters.startDate || filters.endDate) {
-    const date = filters.dateBasis === 'competence' ? getTransactionDate(transaction, cards) : parseFirestoreDate(transaction.date)
-    if (filters.startDate && date < filters.startDate) return false
-    if (filters.endDate && date > filters.endDate) return false
-  }
-  return true
 }
 
 function checkedAdd(sum: number, amount: number) {
@@ -204,8 +187,8 @@ export const TransactionService = {
     return totals
   },
 
-  async getInvoice(userId: string, card: CreditCard, month: Date) {
-    return this.getAll(userId, { type: 'expense', creditCardId: card.id, dateBasis: 'competence', startDate: startOfMonth(month), endDate: endOfMonth(month) }, { cards: [card] })
+  async getInvoice(userId: string, card: CreditCard, month: Date, signal?: AbortSignal) {
+    return this.getAll(userId, { type: 'expense', creditCardId: card.id, dateBasis: 'competence', startDate: startOfMonth(month), endDate: endOfMonth(month) }, { cards: [card], ...(signal ? { signal } : {}) })
   },
 
   async getCardClosingDay(userId: string, cardId: string, preserveExistingLink = false): Promise<number> {

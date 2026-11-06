@@ -25,6 +25,12 @@ import {
 import { Button } from '@/components/ui/button'
 import { Loader2, Receipt } from 'lucide-react'
 import { toast } from 'sonner'
+import { Input } from '@/components/ui/input'
+import { CategoryDonutChart } from '@/components/charts/category-donut-chart'
+import { AnalyticsHelper } from '@/lib/utils/analytics-helper'
+import { parseFilterAmount } from '@/lib/utils/transaction-filters'
+import { transactionPeriod } from '@/lib/utils/transaction-period'
+import { matchesTransactionFilters } from '@/lib/utils/transaction-query'
 
 export function CreditCardBillSummary({
   card,
@@ -72,6 +78,20 @@ export function CreditCardBillSummary({
     }
   }
   const [page, setPage] = React.useState(1)
+  const [filters, setFilters] = React.useState({
+    search: '',
+    categoryId: '',
+    minAmount: '',
+    maxAmount: '',
+    modality: '',
+    dateBasis: 'competence',
+    startDate: '',
+    endDate: '',
+  })
+  const updateFilter = (key: keyof typeof filters, value: string) => {
+    setFilters((current) => ({ ...current, [key]: value }))
+    setPage(1)
+  }
   const [deletingTransaction, setDeletingTransaction] =
     React.useState<Transaction | null>(null)
   const [isDeleting, setIsDeleting] = React.useState(false)
@@ -80,7 +100,55 @@ export function CreditCardBillSummary({
   const invoice = useCardInvoice(card, month)
   const transactions = invoice.data ?? []
   const total = transactions.reduce((sum, tx) => sum + tx.amount, 0)
-  const pages = Math.max(1, Math.ceil(transactions.length / 20))
+  const invoiceLoading = invoice.isPending || invoice.isFetching
+  const invoiceError = invoice.isError || !Number.isSafeInteger(total)
+  const minAmount = parseFilterAmount(filters.minAmount)
+  const maxAmount = parseFilterAmount(filters.maxAmount)
+  const period = transactionPeriod(filters.startDate, filters.endDate)
+  const invalid =
+    !!period.error ||
+    minAmount === null ||
+    maxAmount === null ||
+    (minAmount !== undefined &&
+      minAmount !== null &&
+      maxAmount !== undefined &&
+      maxAmount !== null &&
+      minAmount > maxAmount)
+  const hasFilters = !!(
+    filters.search.trim() ||
+    filters.categoryId ||
+    filters.minAmount ||
+    filters.maxAmount ||
+    filters.modality ||
+    filters.startDate ||
+    filters.endDate ||
+    filters.dateBasis === 'purchase'
+  )
+  const filteredTransactions = invalid
+    ? []
+    : transactions.filter((tx) =>
+        matchesTransactionFilters(
+          tx,
+          {
+            search: filters.search,
+            categoryId: filters.categoryId || undefined,
+            minAmount: minAmount ?? undefined,
+            maxAmount: maxAmount ?? undefined,
+            modality: (filters.modality || undefined) as
+              'single' | 'recurring' | 'installment' | undefined,
+            dateBasis:
+              filters.dateBasis === 'purchase' ? 'purchase' : 'competence',
+            startDate: period.startDate,
+            endDate: period.endDate,
+          },
+          [card],
+        ),
+      )
+  const filteredTotal = filteredTransactions.reduce(
+    (sum, tx) => sum + tx.amount,
+    0,
+  )
+  const pages = Math.max(1, Math.ceil(filteredTransactions.length / 20))
   const currentPage = Math.min(page, pages)
   const changeMonth = (offset: number) => {
     const next = addMonths(month, offset)
@@ -117,9 +185,9 @@ export function CreditCardBillSummary({
           <p className="text-muted-foreground text-sm capitalize">
             {format(month, 'MMMM yyyy', { locale: ptBR })}
           </p>
-          {invoice.isPending ? (
+          {invoiceLoading ? (
             <p role="status">Carregando fatura…</p>
-          ) : invoice.isError ? (
+          ) : invoiceError ? (
             <div role="alert">
               Não foi possível carregar a fatura.{' '}
               <Button variant="outline" onClick={() => void invoice.refetch()}>
@@ -132,17 +200,21 @@ export function CreditCardBillSummary({
             </p>
           )}
           <span className="bg-accent text-muted-foreground inline-flex rounded-full px-2.5 py-1 text-xs">
-            {payment.isPending
-              ? 'Carregando quitação…'
-              : payment.error
-                ? 'Quitação indisponível'
-                : payment.data
-                  ? payment.data.amount === total
-                    ? 'Quitada'
-                    : 'Alterada após quitação'
-                  : today <= cycle.closesAt
-                    ? 'Em aberto'
-                    : 'Fechada'}
+            {invoiceLoading
+              ? 'Carregando fatura…'
+              : invoiceError
+                ? 'Fatura indisponível'
+                : payment.isPending
+                  ? 'Carregando quitação…'
+                  : payment.error
+                    ? 'Quitação indisponível'
+                    : payment.data
+                      ? payment.data.amount === total
+                        ? 'Quitada'
+                        : 'Alterada após quitação'
+                      : today <= cycle.closesAt
+                        ? 'Em aberto'
+                        : 'Fechada'}
           </span>
           <div className="border-border flex flex-wrap justify-between gap-3 border-t pt-4 text-sm">
             <span className="text-muted-foreground">Vencimento</span>
@@ -182,7 +254,7 @@ export function CreditCardBillSummary({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {!invoice.isPending && !invoice.isError && (
+        {!invoiceLoading && !invoiceError && (
           <div className="mb-6 grid gap-4 lg:grid-cols-3">
             <div className="border-border rounded-md border p-5">
               <p className="text-muted-foreground mb-3 text-xs">
@@ -234,17 +306,21 @@ export function CreditCardBillSummary({
           </p>
           <p>
             Status:{' '}
-            {payment.isPending
-              ? 'Carregando quitação…'
-              : payment.error
-                ? 'Quitação indisponível'
-                : payment.data
-                  ? payment.data.amount === total
-                    ? 'Quitada'
-                    : 'Alterada após quitação — revise e estorne o registro'
-                  : today <= cycle.closesAt
-                    ? 'Aberta'
-                    : 'Fechada'}
+            {invoiceLoading
+              ? 'Carregando fatura…'
+              : invoiceError
+                ? 'Fatura indisponível'
+                : payment.isPending
+                  ? 'Carregando quitação…'
+                  : payment.error
+                    ? 'Quitação indisponível'
+                    : payment.data
+                      ? payment.data.amount === total
+                        ? 'Quitada'
+                        : 'Alterada após quitação — revise e estorne o registro'
+                      : today <= cycle.closesAt
+                        ? 'Aberta'
+                        : 'Fechada'}
           </p>
           <p className="text-muted-foreground">
             Quitação integral apenas. O registro não cria nova despesa nem
@@ -256,8 +332,8 @@ export function CreditCardBillSummary({
               Tentar carregar quitação
             </Button>
           )}
-          {!invoice.isPending &&
-            !invoice.error &&
+          {!invoiceLoading &&
+            !invoiceError &&
             !payment.error &&
             !payment.isPending && (
               <Button
@@ -276,12 +352,12 @@ export function CreditCardBillSummary({
               </Button>
             )}
         </div>
-        {invoice.isPending ? (
+        {invoiceLoading ? (
           <Loader2
             className="size-6 animate-spin"
             aria-label="Carregando fatura"
           />
-        ) : invoice.isError ? (
+        ) : invoiceError ? (
           <div role="alert">
             Não foi possível carregar a fatura.{' '}
             <Button onClick={() => void invoice.refetch()}>
@@ -290,34 +366,165 @@ export function CreditCardBillSummary({
           </div>
         ) : (
           <>
-            {transactions.length === 0 ? (
-              <EmptyState
-                title="Sem compras registradas"
-                description="Nenhuma compra pertence a este ciclo."
-                icon={Receipt}
-                compact
-              />
-            ) : (
-              <div className="border-border -mx-6 border-y">
-                <TransactionTable
-                  transactions={transactions.slice(
-                    (currentPage - 1) * 20,
-                    currentPage * 20,
-                  )}
-                  categoryMap={
-                    new Map(
-                      categories.map((category) => [category.id, category]),
-                    )
-                  }
-                  onEdit={onEditTransaction}
-                  onDelete={(id) =>
-                    setDeletingTransaction(
-                      transactions.find((tx) => tx.id === id) ?? null,
-                    )
-                  }
+            <section
+              aria-label="Filtros das compras"
+              className="border-border mb-6 grid min-w-0 gap-3 rounded-md border p-4 sm:grid-cols-2 lg:grid-cols-3 [&>*]:min-w-0"
+            >
+              <h2 className="font-medium sm:col-span-2 lg:col-span-3">
+                Filtrar compras da fatura
+              </h2>
+              <label className="grid gap-1 text-sm">
+                Descrição
+                <Input
+                  value={filters.search}
+                  onChange={(e) => updateFilter('search', e.target.value)}
                 />
-              </div>
-            )}
+              </label>
+              <label className="grid gap-1 text-sm">
+                Categoria
+                <select
+                  className="border-input bg-background min-h-10 w-full min-w-0 rounded-md border px-3"
+                  value={filters.categoryId}
+                  onChange={(e) => updateFilter('categoryId', e.target.value)}
+                >
+                  <option value="">Todas as categorias</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                      {category.archived ? ' (arquivada)' : ''}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="grid gap-1 text-sm">
+                Modalidade
+                <select
+                  className="border-input bg-background min-h-10 w-full min-w-0 rounded-md border px-3"
+                  value={filters.modality}
+                  onChange={(e) => updateFilter('modality', e.target.value)}
+                >
+                  <option value="">Todas</option>
+                  <option value="single">Avulso</option>
+                  <option value="recurring">Recorrente</option>
+                  <option value="installment">Parcelado</option>
+                </select>
+              </label>
+              <label className="grid gap-1 text-sm">
+                Valor mínimo (R$)
+                <Input
+                  inputMode="decimal"
+                  value={filters.minAmount}
+                  onChange={(e) => updateFilter('minAmount', e.target.value)}
+                />
+              </label>
+              <label className="grid gap-1 text-sm">
+                Valor máximo (R$)
+                <Input
+                  inputMode="decimal"
+                  value={filters.maxAmount}
+                  onChange={(e) => updateFilter('maxAmount', e.target.value)}
+                />
+              </label>
+              <label className="grid gap-1 text-sm">
+                Critério de data
+                <select
+                  className="border-input bg-background min-h-10 w-full min-w-0 rounded-md border px-3"
+                  value={filters.dateBasis}
+                  onChange={(e) => updateFilter('dateBasis', e.target.value)}
+                >
+                  <option value="competence">Competência</option>
+                  <option value="purchase">Data da compra</option>
+                </select>
+              </label>
+              <label className="grid gap-1 text-sm">
+                Data inicial
+                <Input
+                  type="date"
+                  value={filters.startDate}
+                  onChange={(e) => updateFilter('startDate', e.target.value)}
+                />
+              </label>
+              <label className="grid gap-1 text-sm">
+                Data final
+                <Input
+                  type="date"
+                  value={filters.endDate}
+                  onChange={(e) => updateFilter('endDate', e.target.value)}
+                />
+              </label>
+              {hasFilters && (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setFilters({
+                      search: '',
+                      categoryId: '',
+                      minAmount: '',
+                      maxAmount: '',
+                      modality: '',
+                      dateBasis: 'competence',
+                      startDate: '',
+                      endDate: '',
+                    })
+                    setPage(1)
+                  }}
+                >
+                  Limpar filtros das compras
+                </Button>
+              )}
+              {invalid ? (
+                <p role="alert" className="text-destructive text-sm">
+                  {period.error ||
+                    'Informe valores válidos e um mínimo menor ou igual ao máximo.'}
+                </p>
+              ) : (
+                hasFilters && (
+                  <p className="text-sm">
+                    Compras filtradas: {formatMoney(filteredTotal)} ·{' '}
+                    {filteredTransactions.length} compras
+                  </p>
+                )
+              )}
+            </section>
+            {!invalid &&
+              (filteredTransactions.length === 0 ? (
+                <EmptyState
+                  title={
+                    hasFilters
+                      ? 'Nenhuma compra encontrada'
+                      : 'Sem compras registradas'
+                  }
+                  description={
+                    hasFilters
+                      ? 'Nenhuma compra da fatura atende aos filtros.'
+                      : 'Nenhuma compra pertence a este ciclo.'
+                  }
+                  icon={Receipt}
+                  compact
+                />
+              ) : (
+                <div className="border-border -mx-6 border-y">
+                  <TransactionTable
+                    showCardCompetence
+                    creditCards={[card]}
+                    transactions={filteredTransactions.slice(
+                      (currentPage - 1) * 20,
+                      currentPage * 20,
+                    )}
+                    categoryMap={
+                      new Map(
+                        categories.map((category) => [category.id, category]),
+                      )
+                    }
+                    onEdit={onEditTransaction}
+                    onDelete={(id) =>
+                      setDeletingTransaction(
+                        transactions.find((tx) => tx.id === id) ?? null,
+                      )
+                    }
+                  />
+                </div>
+              ))}
             <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
               <Button
                 disabled={currentPage === 1}
@@ -335,6 +542,17 @@ export function CreditCardBillSummary({
                 Mais compras
               </Button>
             </div>
+            {!invalid && filteredTransactions.length > 0 && (
+              <div className="mt-6">
+                <CategoryDonutChart
+                  data={AnalyticsHelper.getCategoryShare(
+                    filteredTransactions,
+                    categories,
+                    'expense',
+                  )}
+                />
+              </div>
+            )}
           </>
         )}
       </CardContent>

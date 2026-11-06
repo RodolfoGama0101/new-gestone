@@ -26,6 +26,7 @@ import { AnalyticsDataService } from '@/services/analytics-data.service'
 import { useWorkMonth } from '@/providers/work-month-provider'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import { CardConsolidated } from '@/components/credit-cards/card-consolidated'
 
 const EMPTY_ARRAY: Transaction[] = []
 
@@ -64,7 +65,12 @@ export default function AnalyticsPage() {
       format(referenceDate, 'yyyy-MM-dd'),
     ],
     queryFn: ({ signal }) =>
-      AnalyticsDataService.getHistory(userId, monthsCount, referenceDate, signal),
+      AnalyticsDataService.getHistory(
+        userId,
+        monthsCount,
+        referenceDate,
+        signal,
+      ),
     staleTime: 60000,
     enabled: !!userId,
   })
@@ -150,6 +156,8 @@ export default function AnalyticsPage() {
           Período por competência · inclui o mês atual
         </span>
       </div>
+
+      <CardConsolidated month={referenceDate} compact />
 
       {isLoading ? (
         <div
