@@ -17,54 +17,13 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { TransactionForm } from '@/components/transactions/transaction-form'
-import { addMonths, subMonths, format } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
-import { ChevronLeft, ChevronRight, CalendarDays } from 'lucide-react'
+import { useWorkMonth } from '@/providers/work-month-provider'
 
 export default function DashboardPage() {
   const [isAddOpen, setIsAddOpen] = React.useState(false)
-  const [selectedDate, setSelectedDate] = React.useState(new Date())
+  const { date: selectedDate } = useWorkMonth()
 
   const { summary, isLoading, error, refetch } = useAnalytics(selectedDate)
-
-  const handlePrevMonth = () => setSelectedDate(subMonths(selectedDate, 1))
-  const handleNextMonth = () => setSelectedDate(addMonths(selectedDate, 1))
-
-  // Seletor de Mês — memoizado para evitar recriar o JSX a cada re-render
-  const monthSelector = (
-    <div className="bg-background border-border flex w-full min-w-0 items-center justify-between gap-1 rounded-md border p-1 sm:w-auto">
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={handlePrevMonth}
-        className="hover:bg-accent size-10 shrink-0 rounded-md"
-        aria-label="Mês anterior"
-      >
-        <ChevronLeft className="text-muted-foreground size-3.5" />
-      </Button>
-
-      <div
-        aria-live="polite"
-        aria-atomic="true"
-        className="flex min-w-0 items-center justify-center gap-2 px-2 py-2"
-      >
-        <CalendarDays className="text-muted-foreground size-3 shrink-0" />
-        <span className="text-foreground text-center text-sm font-medium break-words capitalize">
-          {format(selectedDate, 'MMMM yyyy', { locale: ptBR })}
-        </span>
-      </div>
-
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={handleNextMonth}
-        className="hover:bg-accent size-10 shrink-0 rounded-md"
-        aria-label="Próximo mês"
-      >
-        <ChevronRight className="text-muted-foreground size-3.5" />
-      </Button>
-    </div>
-  )
 
   if (error) return <LoadError error={error} retry={refetch} />
 
@@ -77,7 +36,6 @@ export default function DashboardPage() {
         actionClassName="w-full flex-col items-stretch sm:w-auto sm:flex-row [&_button]:min-h-11"
         action={
           <>
-            {monthSelector}
             <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
               <DialogTrigger
                 render={<Button className="min-h-11">Novo lançamento</Button>}

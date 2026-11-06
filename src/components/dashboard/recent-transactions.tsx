@@ -11,8 +11,11 @@ import { Wallet, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import { TransactionTable } from '@/components/transactions/transaction-table'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useWorkMonth } from '@/providers/work-month-provider'
+import { workMonthHref } from '@/lib/utils/work-month'
 
 export function RecentTransactions() {
+  const { month } = useWorkMonth()
   const {
     categories,
     error: categoriesError,
@@ -75,7 +78,7 @@ export function RecentTransactions() {
           </CardTitle>
         </div>
         <Link
-          href="/transactions"
+          href={workMonthHref('/transactions', month)}
           className="text-link flex min-h-10 max-w-full min-w-0 flex-wrap items-center gap-2 text-sm font-medium underline-offset-4 hover:underline"
         >
           Ver extrato

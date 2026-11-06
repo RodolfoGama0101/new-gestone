@@ -2,6 +2,9 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import DashboardPage from '@/app/(dashboard)/page'
 import { useAnalytics } from '@/hooks/use-analytics'
+jest.mock('@/providers/work-month-provider', () => ({
+  useWorkMonth: () => ({ month: '2026-11', date: new Date(2026, 10, 1), setMonth: jest.fn() }),
+}))
 jest.mock('@/contexts/auth-context', () => ({
   useAuth: () => ({ user: { displayName: 'Pessoa' } }),
 }))

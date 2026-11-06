@@ -14,7 +14,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { LogOut, ChevronDown } from 'lucide-react'
+import { LogOut, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react'
+import { addMonths, format } from 'date-fns'
+import { MonthPicker } from '@/components/shared/month-picker'
+import { Button } from '@/components/ui/button'
+import { useWorkMonth } from '@/providers/work-month-provider'
 
 const PAGE_TITLES: Record<string, string> = {
   '/': 'Painel',
@@ -33,6 +37,7 @@ const PAGE_TITLES: Record<string, string> = {
 export function Header() {
   const pathname = usePathname()
   const { user, signOutUser } = useAuth()
+  const { month, date, setMonth } = useWorkMonth()
 
   const pageTitle = PAGE_TITLES[pathname] ?? 'GestOne'
 
@@ -54,7 +59,7 @@ export function Header() {
     user?.displayName || user?.email?.split('@')[0] || 'Usuário'
 
   return (
-    <header className="border-border bg-background sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between border-b px-4 sm:px-6">
+    <header className="border-border bg-background sticky top-0 z-10 flex min-h-16 shrink-0 flex-wrap items-center justify-between gap-x-2 border-b px-4 sm:px-6">
       {/* Left: Logo (mobile) + Breadcrumbs */}
       <div className="flex min-w-0 items-center gap-2.5">
         {/* Logo visível apenas em mobile */}
@@ -82,6 +87,35 @@ export function Header() {
         </h2>
       </div>
 
+      <div
+        role="group"
+        aria-label="Mês de trabalho"
+        className="order-last flex w-full items-center justify-center gap-1 pb-2 md:order-none md:w-auto md:pb-0"
+      >
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Mês anterior"
+          className="size-11"
+          disabled={month === '0001-01'}
+          onClick={() => setMonth(format(addMonths(date, -1), 'yyyy-MM'))}
+        >
+          <ChevronLeft />
+        </Button>
+        <div className="w-44 min-w-0 max-w-44 flex-1">
+          <MonthPicker value={month} onChange={setMonth} />
+        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Próximo mês"
+          className="size-11"
+          disabled={month === '9999-12'}
+          onClick={() => setMonth(format(addMonths(date, 1), 'yyyy-MM'))}
+        >
+          <ChevronRight />
+        </Button>
+      </div>
       {/* Right: Theme toggle + User menu */}
       <div className="flex shrink-0 items-center gap-2">
         {/* ThemeToggle visível no header em mobile (sidebar não aparece) */}
@@ -91,7 +125,10 @@ export function Header() {
 
         {user && (
           <DropdownMenu>
-            <DropdownMenuTrigger aria-label="Abrir menu da conta" className="hover:bg-accent focus-visible:ring-ring group flex min-h-11 min-w-11 cursor-pointer items-center justify-center gap-1.5 rounded-md px-2 py-1 transition-colors outline-none focus-visible:ring-1">
+            <DropdownMenuTrigger
+              aria-label="Abrir menu da conta"
+              className="hover:bg-accent focus-visible:ring-ring group flex min-h-11 min-w-11 cursor-pointer items-center justify-center gap-1.5 rounded-md px-2 py-1 transition-colors outline-none focus-visible:ring-1"
+            >
               <Avatar className="size-8 shrink-0">
                 <AvatarFallback className="bg-muted text-foreground text-xs font-bold">
                   {getInitials()}

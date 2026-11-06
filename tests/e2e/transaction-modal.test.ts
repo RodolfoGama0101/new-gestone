@@ -22,7 +22,7 @@ test('modal compacto mantém campos e confirmação acessíveis em todas as seç
   await page
     .getByRole('button', { name: 'Criar conta grátis', exact: true })
     .click()
-  await expect(page).toHaveURL('http://localhost:3102/', { timeout: 90000 })
+  await expect(page).toHaveURL(/^http:\/\/localhost:3102\/(?:\?month=\d{4}-\d{2})?$/, { timeout: 90000 })
   await page
     .getByRole('button', { name: 'Novo lançamento', exact: true })
     .click()

@@ -26,11 +26,66 @@ async function register(page: Page) {
   await page
     .getByRole('button', { name: 'Criar conta grátis', exact: true })
     .click()
-  await expect(page).toHaveURL('http://localhost:3102/', { timeout: 90000 })
+  await expect(page).toHaveURL(/^http:\/\/localhost:3102\/(?:\?month=\d{4}-\d{2})?$/, { timeout: 90000 })
   const uid = (await auth.getUserByEmail(email)).uid
   await expect.poll(async () => (await db.collection(`users/${uid}/categories`).get()).size).toBeGreaterThan(0)
   return { email, uid }
 }
+
+test('mês de trabalho acompanha navegação, histórico e preferência por usuário', async ({ page }) => {
+  const { uid } = await register(page)
+  const categories = await db.collection(`users/${uid}/categories`).get()
+  const category = categories.docs.find((item) => item.data().type === 'expense')!
+  for (const [id, description, date] of [
+    ['fevereiro', 'Despesa de fevereiro', new Date(2024, 1, 5, 12)],
+    ['marco', 'Despesa de março', new Date(2024, 2, 5, 12)],
+  ] as const) {
+    await db.doc(`users/${uid}/transactions/${id}`).set({
+      type: 'expense', amount: 1234, description, categoryId: category.id,
+      date: Timestamp.fromDate(date), tags: [], notes: null, recurring: false,
+      createdAt: Timestamp.now(), updatedAt: Timestamp.now(),
+    })
+  }
+  await page.goto('/expenses?month=2024-02')
+  await expect(page.getByRole('button', { name: 'Fevereiro de 2024' })).toBeVisible()
+  await expect(page.getByText('Despesa de fevereiro')).toBeVisible()
+  await expect(page.getByText('Despesa de março')).not.toBeVisible()
+  await page.getByRole('button', { name: 'Próximo mês', exact: true }).click()
+  await expect(page).toHaveURL(/month=2024-03/)
+  await expect(page.getByText('Despesa de março')).toBeVisible()
+  await expect(page.getByText('Despesa de fevereiro')).not.toBeVisible()
+  await page.getByRole('navigation', { name: 'Navegação principal' }).first().getByRole('link', { name: 'Orçamentos' }).click()
+  await expect(page).toHaveURL(/\/budgets\?month=2024-03/)
+  await page.reload()
+  await expect(page.getByRole('button', { name: 'Março de 2024' })).toBeVisible()
+  await page.goto('/transactions?month=2024-03&startDate=2024-01-01&endDate=2024-01-31')
+  await expect(page.getByText(/personalizado/)).toBeVisible()
+  await page.getByRole('button', { name: 'Próximo mês', exact: true }).click()
+  await expect(page).toHaveURL(/month=2024-04/)
+  await expect(page).not.toHaveURL(/startDate|endDate/)
+  await page.goBack()
+  await expect(page).toHaveURL(/startDate=2024-01-01/)
+  await expect(page.getByRole('button', { name: 'Março de 2024' })).toBeVisible()
+  await page.goto('/analytics?month=invalido')
+  await expect(page).toHaveURL(/month=2024-03/)
+  expect(await page.evaluate((key) => localStorage.getItem(key), `gestone:work-month:${uid}`)).toBe('2024-03')
+  await page.goto('/credit-cards?month=2025-01')
+  await expect(page.getByRole('button', { name: 'Janeiro de 2025' })).toBeVisible()
+  await page.goto('/series?month=2025-01')
+  await expect(page.getByText(/Todas as séries estão disponíveis/)).toBeVisible()
+  expect((await db.collection(`users/${uid}/transactions`).get()).size).toBe(2)
+  await page.getByRole('button', { name: 'Abrir menu da conta' }).click()
+  await page.getByText('Sair da conta').click()
+  await expect(page).toHaveURL(/\/login/)
+  const second = await register(page)
+  expect(second.uid).not.toBe(uid)
+  const currentMonth = await page.evaluate(() => {
+    const now = new Date()
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+  })
+  await expect(page).toHaveURL(new RegExp(`month=${currentMonth}`))
+  expect(await page.evaluate((key) => localStorage.getItem(key), `gestone:work-month:${uid}`)).toBe('2025-01')
+})
 
 test('inicialização e migração concorrentes preservam IDs e não duplicam categorias', async ({ page }) => {
   const { uid } = await register(page)
@@ -134,7 +189,7 @@ test('cadastro, CRUD, busca, CSV, login e exclusão segura de conta', async ({
     await login.getByLabel('E-mail', { exact: true }).fill(email)
     await login.getByLabel('Senha', { exact: true }).fill(password)
     await login.getByRole('button', { name: 'Entrar na conta' }).click()
-    await expect(login).toHaveURL('http://localhost:3102/')
+    await expect(login).toHaveURL(/^http:\/\/localhost:3102\/(?:\?month=\d{4}-\d{2})?$/)
     // Um cookie válido sozinho não autoriza a exclusão.
     expect(
       (
@@ -355,6 +410,7 @@ for (const route of ['/transactions', '/expenses']) {
     const { uid } = await register(page)
     const now = new Date()
     const timestamp = Timestamp.fromDate(now)
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1, 12)
     const categoryId = 'pagination-recovery'
     const batch = db.batch()
     batch.set(db.doc(`users/${uid}/categories/${categoryId}`), {
@@ -365,7 +421,7 @@ for (const route of ['/transactions', '/expenses']) {
       batch.set(db.doc(`users/${uid}/transactions/recovery-${index}`), {
         description: `Registro ${String(index).padStart(2, '0')}`, amount: 100,
         type: 'expense', categoryId, creditCardId: null, cardClosingDay: null,
-        date: Timestamp.fromMillis(now.getTime() - index * 86400000),
+        date: Timestamp.fromMillis(firstDay.getTime() - index * 60000),
         tags: [], notes: null, recurring: false, createdAt: timestamp, updatedAt: timestamp,
       })
     }
@@ -399,8 +455,9 @@ for (const route of ['/transactions', '/expenses']) {
     const edit = page.getByRole('dialog')
     await edit.getByLabel('Descrição', { exact: true }).fill('Movido pela edição de data')
     await edit.getByLabel('Data', { exact: true }).click()
-    const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1)
-    const originalDate = new Date(now.getTime() - 10 * 86400000)
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
+    const tomorrow = new Date(now.getFullYear(), now.getMonth(), Math.min(now.getDate() + 1, lastDay))
+    const originalDate = new Date(firstDay.getTime() - 10 * 60000)
     const monthsToAdvance = (tomorrow.getFullYear() - originalDate.getFullYear()) * 12 + tomorrow.getMonth() - originalDate.getMonth()
     for (let month = 0; month < monthsToAdvance; month++) {
       await page.getByRole('button', { name: 'Go to the Next Month' }).click()
@@ -552,7 +609,7 @@ test('tema da conta persiste após recarregar e em outro dispositivo, com moeda 
     await second.getByLabel('E-mail', { exact: true }).fill(email)
     await second.getByLabel('Senha', { exact: true }).fill(password)
     await second.getByRole('button', { name: 'Entrar na conta', exact: true }).click()
-    await expect(second).toHaveURL('http://localhost:3102/')
+    await expect(second).toHaveURL(/^http:\/\/localhost:3102\/(?:\?month=\d{4}-\d{2})?$/)
     await expect(second.locator('html')).toHaveClass(/dark/)
     await second.goto('/settings')
     await second.getByRole('button', { name: 'Preferências', exact: true }).click()
@@ -697,7 +754,8 @@ test('período e cartão restauram URL, reiniciam paginação e exportam o mesmo
   await expect(page.getByText('A data final deve ser igual ou posterior à inicial.')).toHaveCount(0)
   await expect(page.getByRole('button', { name: 'Exportar CSV' })).toBeEnabled()
   await page.getByRole('button', { name: 'Limpar Filtros' }).click()
-  await expect(page.getByLabel('Data inicial da competência')).toHaveText('Selecione uma data')
+  const workMonth = new URL(page.url()).searchParams.get('month')!
+  await expect(page.getByLabel('Data inicial da competência')).toHaveText(`01/${workMonth.slice(5)}/${workMonth.slice(0, 4)}`)
 })
 
 test('importação valida, confirma e repete sem duplicar; orçamento persiste por mês', async ({ page }) => {
@@ -721,7 +779,7 @@ test('importação valida, confirma e repete sem duplicar; orçamento persiste p
   expect((await db.collection(`users/${uid}/transactions`).get()).size).toBe(3)
   await dialog.getByRole('button', { name: 'Fechar', exact: true }).click()
   await page.goto('/budgets')
-  await page.getByLabel('Mês de competência').click()
+  await page.getByRole('group', { name: 'Mês de trabalho' }).getByRole('button').nth(1).click()
   await page.getByRole('button', { name: 'Outubro', exact: true }).click()
   await expect(page.getByLabel('Economia atual', { exact: true })).toHaveValue(/R\$\s900,00/)
   await page.getByLabel('Meta em R$').fill('950,00')
@@ -735,16 +793,16 @@ test('importação valida, confirma e repete sem duplicar; orçamento persiste p
   await page.getByRole('button', { name: 'Salvar limite' }).click()
   await expect(page.getByText(/Excesso: R\$\s50,00/)).toBeVisible()
   await page.reload()
-  await page.getByLabel('Mês de competência').click()
+  await page.getByRole('group', { name: 'Mês de trabalho' }).getByRole('button').nth(1).click()
   await page.getByRole('button', { name: 'Outubro', exact: true }).click()
   await expect(page.getByText(/Excesso: R\$\s50,00/)).toBeVisible()
   await page.setViewportSize({ width: 390, height: 844 })
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
   await page.screenshot({ path: 'test-results/budget-mobile.png', fullPage: true })
-  await page.getByLabel('Mês de competência').click()
+  await page.getByRole('group', { name: 'Mês de trabalho' }).getByRole('button').nth(1).click()
   await page.getByRole('button', { name: 'Novembro', exact: true }).click()
   await expect(page.getByText('Nenhum limite definido para este mês.')).toBeVisible()
-  await page.getByLabel('Mês de competência').click()
+  await page.getByRole('group', { name: 'Mês de trabalho' }).getByRole('button').nth(1).click()
   await page.getByRole('button', { name: 'Outubro', exact: true }).click()
   await page.getByRole('button', { name: 'Remover limite' }).click()
   await expect(page.getByText('Nenhum limite definido para este mês.')).toBeVisible()
@@ -851,7 +909,6 @@ test('quitação integral e estorno não criam despesa nem mudam indicadores', a
   expect((await payment.get()).data()?.amount).toBe(10000)
   await page.reload()
   await page.getByRole('button', { name: 'Ver fatura', exact: true }).click()
-  await page.getByRole('button', { name: 'Fatura anterior' }).click()
   await expect(page.getByText('Status: Quitada', { exact: true })).toBeVisible()
   expect((await db.collection(`users/${uid}/transactions`).get()).docs.map(d => d.data())).toEqual(before)
   await page.getByRole('button', { name: 'Estornar quitação' }).click()

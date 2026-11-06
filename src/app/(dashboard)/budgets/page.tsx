@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { format } from 'date-fns'
+import { useWorkMonth } from '@/providers/work-month-provider'
 import { useBudget } from '@/hooks/use-budget'
 import { useCategories } from '@/hooks/use-categories'
 import { parseBudgetAmount } from '@/lib/utils/budget'
@@ -15,7 +15,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
-import { MonthPicker } from '@/components/shared/month-picker'
 import {
   Select,
   SelectContent,
@@ -25,7 +24,11 @@ import {
 } from '@/components/ui/select'
 
 export default function BudgetsPage() {
-  const [month, setMonth] = useState(() => format(new Date(), 'yyyy-MM'))
+  const { month } = useWorkMonth()
+  return <BudgetMonth key={month} month={month} />
+}
+
+function BudgetMonth({ month }: { month: string }) {
   const budget = useBudget(month)
   const { categories, error, refetch } = useCategories()
   const [message, setMessage] = useState('')
@@ -58,22 +61,6 @@ export default function BudgetsPage() {
       <PageHeader
         title="Orçamentos e metas"
         description="Defina sua meta de economia e os limites de gastos do mês."
-        action={
-          <div className="w-full max-w-xs space-y-1 text-sm">
-            <Label htmlFor="budget-month">Mês de competência</Label>
-            <MonthPicker
-              id="budget-month"
-              value={month}
-              disabled={budget.saving}
-              onChange={(value) => {
-                setMonth(value)
-                setMessage('')
-                setGoal('')
-                setLimit('')
-              }}
-            />
-          </div>
-        }
       />
 
       <details className="text-muted-foreground text-sm">

@@ -26,7 +26,7 @@ test('superfícies Geist preservam conteúdo e reflow nos dois temas', async ({
   await page
     .getByRole('button', { name: 'Criar conta grátis', exact: true })
     .click()
-  await expect(page).toHaveURL('http://localhost:3102/', { timeout: 90000 })
+  await expect(page).toHaveURL(/^http:\/\/localhost:3102\/(?:\?month=\d{4}-\d{2})?$/, { timeout: 90000 })
   const { uid } = await getAuth(app).getUserByEmail(email)
   const now = Timestamp.now()
   const date = new Date()
@@ -226,6 +226,7 @@ test('superfícies Geist preservam conteúdo e reflow nos dois temas', async ({
           await page
             .getByRole('button', { name: 'Voltar aos cartões', exact: true })
             .click()
+          await page.getByRole('button', { name: 'Mês anterior', exact: true }).click()
           await page
             .getByRole('button', { name: 'Ver fatura', exact: true })
             .click()

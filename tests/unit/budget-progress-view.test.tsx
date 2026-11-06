@@ -1,5 +1,8 @@
 /** @jest-environment jsdom */
 import '@testing-library/jest-dom'
+jest.mock('@/providers/work-month-provider', () => ({
+  useWorkMonth: () => ({ month: '2026-11', date: new Date(2026, 10, 1), setMonth: jest.fn() }),
+}))
 import { render, screen } from '@testing-library/react'
 import BudgetsPage from '@/app/(dashboard)/budgets/page'
 import { formatMoney } from '@/lib/utils/format-money'

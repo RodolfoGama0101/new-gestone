@@ -15,7 +15,7 @@ test('painel móvel mantém mês, ação e navegação acessíveis', async ({
   await page
     .getByRole('button', { name: 'Criar conta grátis', exact: true })
     .click()
-  await expect(page).toHaveURL('http://localhost:3102/', { timeout: 90000 })
+  await expect(page).toHaveURL(/^http:\/\/localhost:3102\/(?:\?month=\d{4}-\d{2})?$/, { timeout: 90000 })
 
   for (const width of [320, 390]) {
     await page.setViewportSize({ width, height: 740 })

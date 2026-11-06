@@ -95,7 +95,7 @@ test('login Google no desktop abre o painel ap√≥s fechar o popup e criar a sess√
     { timeout: 60000 },
   )
   await Promise.all([dashboardDocument, signInWithGoogle(page)])
-  await expect(page).toHaveURL(`${origin}/`, { timeout: 30000 })
+  await expect(page).toHaveURL(new RegExp(`^${origin}/(?:\\?month=\\d{4}-\\d{2})?$`), { timeout: 30000 })
   await expect(
     page.getByRole('button', { name: 'Abrir menu da conta' }),
   ).toBeVisible()
@@ -104,7 +104,7 @@ test('login Google no desktop abre o painel ap√≥s fechar o popup e criar a sess√
   )
   expect(session?.httpOnly).toBe(true)
   await page.reload()
-  await expect(page).toHaveURL(`${origin}/`)
+  await expect(page).toHaveURL(new RegExp(`^${origin}/(?:\\?month=\\d{4}-\\d{2})?$`))
   await expect(
     page.getByRole('button', { name: 'Abrir menu da conta' }),
   ).toBeVisible()

@@ -20,8 +20,11 @@ import {
 } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
 import { Search, X, Filter } from 'lucide-react'
+import { useWorkMonth } from '@/providers/work-month-provider'
+import { workMonthPeriod } from '@/lib/utils/work-month'
 
 export function TransactionFilters() {
+  const { month } = useWorkMonth()
   const { categories } = useCategories()
   const {
     creditCards,
@@ -34,6 +37,7 @@ export function TransactionFilters() {
   const [dateBasis, setDateBasis] = useQueryState('dateBasis', { defaultValue: 'competence' })
   const purchase = dateBasis === 'purchase'
   const period = transactionPeriod(start, end)
+  const defaultPeriod = workMonthPeriod(month)
   const preset = (offset: number) => {
     const month = subMonths(new Date(), offset)
     void setStart(format(startOfMonth(month), 'yyyy-MM-dd'))
@@ -182,10 +186,11 @@ export function TransactionFilters() {
           Data inicial {purchase ? 'da compra' : 'da competência'}
           <DatePicker
             aria-label={purchase ? 'Data inicial da compra' : 'Data inicial da competência'}
-            date={parsePeriodDate(start)}
-            setDate={(date) =>
+            date={start || end ? parsePeriodDate(start) : defaultPeriod.startDate}
+            setDate={(date) => {
+              if (!start && !end) void setEnd(format(defaultPeriod.endDate, 'yyyy-MM-dd'))
               void setStart(date ? format(date, 'yyyy-MM-dd') : '')
-            }
+            }}
             dateFormat="dd/MM/yyyy"
             clearable
             aria-invalid={!!period.error}
@@ -196,10 +201,11 @@ export function TransactionFilters() {
           Data final {purchase ? 'da compra' : 'da competência'}
           <DatePicker
             aria-label={purchase ? 'Data final da compra' : 'Data final da competência'}
-            date={parsePeriodDate(end)}
-            setDate={(date) =>
+            date={start || end ? parsePeriodDate(end) : defaultPeriod.endDate}
+            setDate={(date) => {
+              if (!start && !end) void setStart(format(defaultPeriod.startDate, 'yyyy-MM-dd'))
               void setEnd(date ? format(date, 'yyyy-MM-dd') : '')
-            }
+            }}
             dateFormat="dd/MM/yyyy"
             clearable
             aria-invalid={!!period.error}
@@ -250,7 +256,7 @@ export function TransactionFilters() {
         </p>
       )}
       <p className="text-muted-foreground text-sm">
-        Período: {start || 'sem início'} a {end || 'sem fim'}.{' '}
+        Período: {start || end ? `${start || 'sem início'} a ${end || 'sem fim'} (personalizado)` : `mês de trabalho ${month}`}.{' '}
         {purchase ? 'Filtro pela data da compra.' : 'Filtro pela competência; a data da compra pode ser diferente.'}
       </p>
       <div className="flex flex-wrap gap-2">

@@ -28,3 +28,14 @@ test('permite mudar de ano e respeita bloqueio do formulário', () => {
     screen.getByRole('button', { name: /Dezembro de 2025/ }),
   ).toBeDisabled()
 })
+
+test('retorna ao mês atual do calendário local', () => {
+  const onChange = jest.fn()
+  const now = new Date()
+  render(<MonthPicker value="2024-01" onChange={onChange} />)
+  fireEvent.click(screen.getByRole('button', { name: /Janeiro de 2024/ }))
+  fireEvent.click(screen.getByRole('button', { name: 'Este mês' }))
+  expect(onChange).toHaveBeenCalledWith(
+    `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`,
+  )
+})

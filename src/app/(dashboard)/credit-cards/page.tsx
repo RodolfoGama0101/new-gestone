@@ -31,8 +31,11 @@ import { CreditCardVisual } from '@/components/credit-cards/credit-card-visual'
 import { UpcomingInvoices } from '@/components/credit-cards/upcoming-invoices'
 import { CreditCardBillSummary } from '@/components/credit-cards/credit-card-bill-summary'
 import { CreditCard } from '@/types/credit-card'
+import { useWorkMonth } from '@/providers/work-month-provider'
+import { format } from 'date-fns'
 
 export default function CreditCardsPage() {
+  const { month: workMonth, date: workDate, setMonth } = useWorkMonth()
   const {
     creditCards,
     isLoading,
@@ -43,7 +46,11 @@ export default function CreditCardsPage() {
   } = useCreditCards()
 
   const [invoiceMonth, setInvoiceMonth] = React.useState<Date | null>(null)
-  const openInvoice = (month: Date) => setInvoiceMonth(month)
+  const openInvoice = (month: Date) => {
+    const selected = format(month, 'yyyy-MM')
+    if (selected !== workMonth) setMonth(selected)
+    setInvoiceMonth(month)
+  }
   const [isAddOpen, setIsAddOpen] = React.useState(false)
   const [selectedCardId, setSelectedCardId] = React.useState<string | null>(
     null,
@@ -144,9 +151,10 @@ export default function CreditCardsPage() {
         />
       ) : invoiceMonth && selectedCard ? (
         <CreditCardBillSummary
-          key={selectedCard.id + invoiceMonth.toISOString()}
+          key={`${selectedCard.id}-${workMonth}`}
           card={selectedCard}
-          initialMonth={invoiceMonth}
+          selectedMonth={workDate}
+          onMonthChange={(month) => setMonth(format(month, 'yyyy-MM'))}
         />
       ) : (
         <div className="grid items-start gap-8 xl:grid-cols-[1.4fr_1fr]">
@@ -269,12 +277,14 @@ export default function CreditCardsPage() {
             {selectedCard ? (
               <div className="animate-in fade-in space-y-4 duration-200">
                 <CreditCardBillSummary
-                  key={selectedCard.id}
+                  key={`${selectedCard.id}-${workMonth}`}
                   card={selectedCard}
                   compact
+                  selectedMonth={workDate}
+                  onMonthChange={(month) => setMonth(format(month, 'yyyy-MM'))}
                   onViewInvoice={openInvoice}
                 />
-                <UpcomingInvoices card={selectedCard} onOpen={openInvoice} />
+                <UpcomingInvoices card={selectedCard} referenceMonth={workDate} onOpen={openInvoice} />
               </div>
             ) : (
               <div className="border-border text-muted-foreground bg-muted/5 flex h-48 flex-col items-center justify-center rounded-xl border border-dashed text-sm">
