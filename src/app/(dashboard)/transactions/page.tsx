@@ -67,6 +67,7 @@ export default function TransactionsPage() {
       limitCount: 10,
     },
     valid,
+    'ledger',
   )
 
   // Estados dos Modais

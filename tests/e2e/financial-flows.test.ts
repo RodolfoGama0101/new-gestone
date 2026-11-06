@@ -437,7 +437,7 @@ for (const route of ['/transactions', '/expenses']) {
     await expect(page.getByText('Registro 11', { exact: true })).not.toBeVisible()
     await expect(page.getByText('Página 2', { exact: true })).not.toBeVisible()
 
-    const add = async (description: string) => {
+    const add = async (description: string, expectedPage = 1) => {
       await page.getByRole('button', { name: route === '/expenses' ? 'Nova Despesa' : 'Novo Lançamento', exact: true }).click()
       const dialog = page.getByRole('dialog')
       await dialog.getByLabel('Valor', { exact: true }).fill('100')
@@ -445,8 +445,8 @@ for (const route of ['/transactions', '/expenses']) {
       await dialog.getByLabel('Categoria', { exact: true }).click()
       await page.getByRole('option', { name: 'Paginação', exact: true }).click()
       await dialog.getByRole('button', { name: 'Confirmar Lançamento' }).click()
-      await expect(page.getByText(description, { exact: true })).toBeVisible()
-      await expect(page.getByText('Página 1', { exact: true })).toBeVisible()
+      await expect(dialog).not.toBeVisible()
+      await expect(page.getByText(`Página ${expectedPage}`, { exact: true })).toBeVisible()
     }
     await add('Novo pelo formulário A')
     await page.getByRole('button', { name: 'Próximo', exact: true }).click()
@@ -464,13 +464,12 @@ for (const route of ['/transactions', '/expenses']) {
     }
     await page.locator(`button[data-day="${tomorrow.toLocaleDateString('pt-BR')}"]`).click()
     await edit.getByRole('button', { name: 'Salvar Lançamento' }).click()
-    await expect(page.getByText('Movido pela edição de data', { exact: true })).toBeVisible()
-    await expect(page.getByText('Página 1', { exact: true })).toBeVisible()
-    await page.getByRole('button', { name: 'Próximo', exact: true }).click()
     await expect(page.getByText('Registro 09', { exact: true })).toBeVisible()
-    await add('Novo pelo formulário B')
+    await expect(page.getByText('Página 2', { exact: true })).toBeVisible()
+    await add('Novo pelo formulário B', 2)
 
     const descriptions = page.getByText(/^(Registro \d{2}|Novo pelo formulário [AB]|Movido pela edição de data)$/)
+    await page.getByRole('button', { name: 'Anterior', exact: true }).click()
     await expect(descriptions).toHaveCount(10)
     const first = await descriptions.allTextContents()
     await page.getByRole('button', { name: 'Próximo', exact: true }).click()

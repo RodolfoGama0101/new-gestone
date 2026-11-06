@@ -16,9 +16,9 @@ Extrato e CSV usam a mesma função de comparação por trecho da descrição, r
 
 ## Cache e navegação relacionados — ROD-112
 
-A chave serializável representa UID, tipo, categoria, cartão, início/fim em milissegundos, tamanho efetivo da página e termo normalizado. A consulta acrescenta página e ID do cursor; os snapshots completos ficam somente no estado usado para consultar o Firestore. Alterar esses parâmetros reinicia página e cursores. Os prefixos `['transactions', uid]` usados pelas mutações continuam invalidando todas as variações do usuário. Consultas com cinco e dez itens ou com intervalos diferentes não reutilizam páginas incompatíveis.
+A chave serializável representa UID, lista, tipo, categoria, cartão, início/fim em milissegundos, tamanho efetivo da página e termo normalizado, além dos filtros financeiros avançados. A consulta acrescenta a revisão e a página desejada; durante a reconstrução, usa snapshots completos como cursores do Firestore. Alterar os filtros reinicia a página. Os prefixos `['transactions', uid]` usados pelas mutações continuam invalidando todas as variações do usuário. Consultas com cinco e dez itens ou com intervalos diferentes não reutilizam páginas incompatíveis.
 
-A ROD-113 acrescenta uma revisão de paginação por usuário a essa identidade. Criações, edições e exclusões confirmadas reiniciam todas as listas do usuário e impedem reutilizar snapshots/páginas da revisão anterior. Veja [a política de recuperação de paginação](transaction-pagination.md).
+A revisão de paginação por usuário impede reutilizar snapshots anteriores a uma gravação. Criações, edições e exclusões confirmadas preservam a página quando possível e reconstroem os cursores. Veja [a política de recuperação de paginação](transaction-pagination.md).
 
 ## Verificação
 

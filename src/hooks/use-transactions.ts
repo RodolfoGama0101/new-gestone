@@ -3,18 +3,19 @@ import { TransactionService, GetTransactionsFilters } from '@/services/transacti
 import { useAuth } from '@/contexts/auth-context'
 import { Transaction } from '@/types/transaction'
 import { toast } from 'sonner'
-import { DocumentData, QueryDocumentSnapshot } from 'firebase/firestore'
 import * as React from 'react'
 import { normalizeTransactionSearch } from '@/lib/utils/transaction-search'
 import { invalidateTransactionData, transactionPaginationKey } from '@/lib/transaction-cache'
 
-export function useTransactions(filters: Omit<GetTransactionsFilters, 'lastVisible'> = {}, enabled = true) {
+type PaginationPosition = { filtersKey: string; page: number; revision: number }
+
+export function useTransactions(filters: Omit<GetTransactionsFilters, 'lastVisible'> = {}, enabled = true, listId = 'default') {
   const { user } = useAuth()
   const queryClient = useQueryClient()
   const userId = user?.uid ?? ''
   // Estado compartilhado no QueryClient, sem consulta de rede. Toda mutação de
   // lançamentos muda a revisão, inclusive quando executada fora deste hook.
-  const { data: revision } = useQuery({
+  const { data: revision = 0 } = useQuery({
     queryKey: transactionPaginationKey(userId),
     queryFn: skipToken,
     initialData: 0,
@@ -29,57 +30,63 @@ export function useTransactions(filters: Omit<GetTransactionsFilters, 'lastVisib
   }, [search])
   const limitVal = filters.limitCount || (filters.creditCardId ? 100 : 10)
   const filtersKey = JSON.stringify([
-    userId, filters.type ?? null, filters.categoryId ?? null,
+    userId, listId, filters.type ?? null, filters.categoryId ?? null,
     filters.creditCardId ?? null, filters.startDate?.getTime() ?? null,
     filters.endDate?.getTime() ?? null, filters.dateBasis ?? null,
-    filters.minAmount ?? null, filters.maxAmount ?? null, filters.modality ?? null, limitVal, search, revision,
+    filters.minAmount ?? null, filters.maxAmount ?? null, filters.modality ?? null, limitVal, search,
   ])
-  const [pagination, dispatchPagination] = React.useReducer(
-    (
-      state: {
-        filtersKey: string
-        currentPage: number
-        pageCursors: Record<number, QueryDocumentSnapshot<DocumentData> | null>
-      },
-      action:
-        | { type: 'reset'; filtersKey: string }
-        | { type: 'next'; cursor: QueryDocumentSnapshot<DocumentData> }
-        | { type: 'previous' }
-    ) => {
-      if (action.type === 'reset') return { filtersKey: action.filtersKey, currentPage: 1, pageCursors: { 1: null } }
-      if (action.type === 'next') {
-        return {
-          ...state,
-          currentPage: state.currentPage + 1,
-          pageCursors: { ...state.pageCursors, [state.currentPage + 1]: action.cursor },
-        }
-      }
-      return { ...state, currentPage: Math.max(1, state.currentPage - 1) }
-    },
-    { filtersKey, currentPage: 1, pageCursors: { 1: null } }
+  const positionKey = ['transactionPosition', userId, listId, filtersKey] as const
+  const [position, setPosition] = React.useReducer(
+    (_state: PaginationPosition, next: PaginationPosition) => next,
+    queryClient.getQueryData<PaginationPosition>(positionKey) ?? { filtersKey, page: 1, revision },
   )
-
-  const hasChangedFilters = pagination.filtersKey !== filtersKey
-  const currentPage = hasChangedFilters ? 1 : pagination.currentPage
-  const pageCursors: Record<number, QueryDocumentSnapshot<DocumentData> | null> = hasChangedFilters
-    ? { 1: null }
-    : pagination.pageCursors
+  const hasChangedFilters = position.filtersKey !== filtersKey
+  const desiredPage = hasChangedFilters ? 1 : position.page
+  const recovering = !hasChangedFilters && position.revision !== revision
 
   React.useEffect(() => {
-    if (hasChangedFilters) dispatchPagination({ type: 'reset', filtersKey })
-  }, [filtersKey, hasChangedFilters])
+    if (hasChangedFilters) {
+      const next = { filtersKey, page: 1, revision }
+      setPosition(next)
+      queryClient.setQueryData(['transactionPosition', userId, listId, filtersKey], next)
+    }
+  }, [filtersKey, hasChangedFilters, listId, queryClient, revision, userId])
 
   const transactionsQuery = useQuery({
-    queryKey: ['transactions', userId, filtersKey, currentPage, pageCursors[currentPage]?.id ?? null],
-    queryFn: ({ signal }) =>
-      TransactionService.getPaged(userId, {
-        ...filters,
-        search,
-        limitCount: limitVal,
-        lastVisible: pageCursors[currentPage] ?? undefined,
-      }, { signal }),
+    queryKey: ['transactions', userId, filtersKey, revision, desiredPage, recovering],
+    queryFn: async ({ signal }) => {
+      let cursor: GetTransactionsFilters['lastVisible']
+      let first: Awaited<ReturnType<typeof TransactionService.getPaged>> | undefined
+      let lastNonEmpty: { result: Awaited<ReturnType<typeof TransactionService.getPaged>>; page: number } | undefined
+      for (let page = 1; page <= desiredPage; page++) {
+        const result = await TransactionService.getPaged(userId, {
+          ...filters, search, limitCount: limitVal, lastVisible: cursor,
+        }, { signal })
+        if (signal.aborted) throw new DOMException('Consulta cancelada.', 'AbortError')
+        first ??= result
+        if (result.transactions.length > 0) lastNonEmpty = { result, page }
+        // Um lote vazio com continuação ainda é navegável.
+        if (recovering && page > 1 && result.transactions.length === 0 && !result.hasMore) {
+          return { ...(lastNonEmpty?.result ?? first), page: lastNonEmpty?.page ?? 1 }
+        }
+        if (page === desiredPage || !result.hasMore || !result.lastVisible) {
+          return { ...result, page }
+        }
+        cursor = result.lastVisible
+      }
+      throw new Error('Não foi possível reconstruir a paginação.')
+    },
     enabled: enabled && !!userId && search === settledSearch,
   })
+
+  const currentPage = transactionsQuery.data?.page ?? desiredPage
+  React.useEffect(() => {
+    if (!hasChangedFilters && transactionsQuery.data && currentPage !== desiredPage) {
+      const next = { filtersKey, page: currentPage, revision }
+      setPosition(next)
+      queryClient.setQueryData(['transactionPosition', userId, listId, filtersKey], next)
+    }
+  }, [currentPage, desiredPage, filtersKey, hasChangedFilters, listId, queryClient, revision, transactionsQuery.data, userId])
 
   const createMutation = useMutation({
     mutationFn: (data: Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'>) =>
@@ -126,17 +133,21 @@ export function useTransactions(filters: Omit<GetTransactionsFilters, 'lastVisib
   const lastVisible = transactionsQuery.data?.lastVisible ?? null
 
   const hasNextPage = Boolean(transactionsQuery.data?.hasMore && lastVisible)
-  const hasPreviousPage = currentPage > 1
+  const hasPreviousPage = currentPage > 1 && !!transactionsQuery.data
 
   const goToNextPage = () => {
-    if (hasNextPage && lastVisible) {
-      dispatchPagination({ type: 'next', cursor: lastVisible })
+    if (hasNextPage) {
+      const next = { filtersKey, page: currentPage + 1, revision }
+      queryClient.setQueryData(positionKey, next)
+      setPosition(next)
     }
   }
 
   const goToPreviousPage = () => {
     if (hasPreviousPage) {
-      dispatchPagination({ type: 'previous' })
+      const next = { filtersKey, page: currentPage - 1, revision }
+      queryClient.setQueryData(positionKey, next)
+      setPosition(next)
     }
   }
 

@@ -146,7 +146,7 @@ test('alterar o intervalo reinicia a página e consulta dados próprios mesmo co
   expect(result.current.transactions[0].id).toContain(String(new Date(2026, 1, 1).getTime()))
 })
 
-test.each(['create', 'update', 'delete'] as const)('%s reinicia todas as listas e não reutiliza cursores/cache anteriores', async (operation) => {
+test.each(['create', 'update', 'delete'] as const)('%s preserva as listas e reconstrói cursores/cache anteriores', async (operation) => {
   let generation = 0
   getPaged.mockImplementation(async (_uid, filters = {}) => ({
     transactions: [{ id: `${generation}-${filters.lastVisible ? 'next' : 'first'}` }] as never,
@@ -169,18 +169,14 @@ test.each(['create', 'update', 'delete'] as const)('%s reinicia todas as listas 
     if (operation === 'delete') await result.current.ledger.deleteTransaction('item')
   })
   await waitFor(() => expect(result.current.ledger.isLoading || result.current.expenses.isLoading).toBe(false))
-  expect(result.current.ledger.currentPage).toBe(1)
-  expect(result.current.expenses.currentPage).toBe(1)
-  expect(result.current.ledger.transactions[0].id).toBe('1-first')
-  expect(result.current.expenses.transactions[0].id).toBe('1-first')
-
-  act(() => result.current.ledger.goToNextPage())
-  await waitFor(() => expect(result.current.ledger.isLoading).toBe(false))
+  expect(result.current.ledger.currentPage).toBe(2)
+  expect(result.current.expenses.currentPage).toBe(2)
   expect(result.current.ledger.transactions[0].id).toBe('1-next')
-  expect(getPaged).toHaveBeenLastCalledWith('user', expect.objectContaining({ lastVisible: expect.objectContaining({ generation: 1 }) }), expect.objectContaining({ signal: expect.any(AbortSignal) }))
+  expect(result.current.expenses.transactions[0].id).toBe('1-next')
+  expect(getPaged).toHaveBeenCalledWith('user', expect.objectContaining({ lastVisible: expect.objectContaining({ generation: 1 }) }), expect.objectContaining({ signal: expect.any(AbortSignal) }))
 })
 
-test('alteração externa ao hook reinicia a página e preserva o estado de outro usuário', async () => {
+test('alteração externa ao hook reconstrói a página e preserva o estado de outro usuário', async () => {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: Infinity } } })
   client.setQueryData(transactionPaginationKey('other'), 7)
   const { result } = renderHook(() => useTransactions(), { wrapper: wrapper(client) })
@@ -190,9 +186,142 @@ test('alteração externa ao hook reinicia a página e preserva o estado de outr
   expect(result.current.currentPage).toBe(2)
   await act(async () => { await invalidateTransactionData(client, 'user') })
   await waitFor(() => expect(result.current.isLoading).toBe(false))
-  expect(result.current.currentPage).toBe(1)
-  expect(getPaged).toHaveBeenLastCalledWith('user', expect.objectContaining({ lastVisible: undefined }), expect.objectContaining({ signal: expect.any(AbortSignal) }))
+  expect(result.current.currentPage).toBe(2)
+  expect(getPaged).toHaveBeenLastCalledWith('user', expect.objectContaining({ lastVisible: expect.objectContaining({ id: 'cursor-10' }) }), expect.objectContaining({ signal: expect.any(AbortSignal) }))
   expect(client.getQueryData(transactionPaginationKey('other'))).toBe(7)
+})
+
+test('exclusão da última página retorna à última página válida', async () => {
+  let removed = false
+  getPaged.mockImplementation(async (_uid, filters = {}) => ({
+    transactions: filters.lastVisible && removed ? [] : [{ id: filters.lastVisible ? 'last' : 'first' }] as never,
+    lastVisible: filters.lastVisible && removed ? null : { id: 'cursor' } as never,
+    hasMore: !filters.lastVisible && !removed,
+  }))
+  jest.mocked(TransactionService.delete).mockImplementation(async () => { removed = true })
+  const { result } = renderHook(() => useTransactions(), { wrapper: wrapper() })
+  await waitFor(() => expect(result.current.isLoading).toBe(false))
+  act(() => result.current.goToNextPage())
+  await waitFor(() => expect(result.current.transactions[0]?.id).toBe('last'))
+  await act(async () => { await result.current.deleteTransaction('last') })
+  await waitFor(() => expect(result.current.transactions[0]?.id).toBe('first'))
+  expect(result.current.currentPage).toBe(1)
+  expect(result.current.hasNextPage).toBe(false)
+})
+
+test('reconstrução conserva lote vazio que ainda oferece continuação', async () => {
+  let generation = 0
+  getPaged.mockImplementation(async (_uid, filters = {}) => {
+    const cursor = filters.lastVisible?.id
+    return {
+      transactions: cursor === 'one' ? [] : [{ id: cursor ?? 'first' }] as never,
+      lastVisible: { id: cursor === 'one' ? 'two' : 'one', generation } as never,
+      hasMore: cursor !== 'two',
+    }
+  })
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: Infinity } } })
+  const { result } = renderHook(() => useTransactions(), { wrapper: wrapper(client) })
+  await waitFor(() => expect(result.current.isLoading).toBe(false))
+  act(() => result.current.goToNextPage())
+  await waitFor(() => expect(result.current.currentPage).toBe(2))
+  await waitFor(() => expect(result.current.isLoading).toBe(false))
+  expect(result.current.transactions).toHaveLength(0)
+  expect(result.current.hasNextPage).toBe(true)
+  generation++
+  await act(async () => { await invalidateTransactionData(client, 'user') })
+  await waitFor(() => expect(result.current.isLoading).toBe(false))
+  expect(result.current.currentPage).toBe(2)
+  expect(result.current.hasNextPage).toBe(true)
+  act(() => result.current.goToNextPage())
+  await waitFor(() => expect(result.current.transactions[0]?.id).toBe('two'))
+  expect(result.current.currentPage).toBe(3)
+})
+
+test('navegação até lote final sem resultados mostra o fim da busca', async () => {
+  getPaged.mockImplementation(async (_uid, filters = {}) => ({
+    transactions: filters.lastVisible ? [] : [{ id: 'first' }] as never,
+    lastVisible: { id: 'boundary' } as never,
+    hasMore: !filters.lastVisible,
+  }))
+  const { result } = renderHook(() => useTransactions({ search: 'alvo' }), { wrapper: wrapper() })
+  await waitFor(() => expect(result.current.isLoading).toBe(false))
+  act(() => result.current.goToNextPage())
+  await waitFor(() => expect(result.current.currentPage).toBe(2))
+  await waitFor(() => expect(result.current.isLoading).toBe(false))
+  expect(result.current.transactions).toHaveLength(0)
+  expect(result.current.hasPreviousPage).toBe(true)
+  expect(result.current.hasNextPage).toBe(false)
+})
+
+test('reconstrução de busca totalmente vazia retorna à primeira página', async () => {
+  let empty = false
+  getPaged.mockImplementation(async (_uid, filters = {}) => {
+    const page = filters.lastVisible?.id === 'one' ? 2 : filters.lastVisible?.id === 'two' ? 3 : 1
+    return {
+      transactions: empty ? [] : [{ id: String(page) }] as never,
+      lastVisible: { id: page === 1 ? 'one' : 'two' } as never,
+      hasMore: page < 3,
+    }
+  })
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: Infinity } } })
+  const { result } = renderHook(() => useTransactions(), { wrapper: wrapper(client) })
+  await waitFor(() => expect(result.current.isLoading).toBe(false))
+  act(() => result.current.goToNextPage())
+  await waitFor(() => expect(result.current.transactions[0]?.id).toBe('2'))
+  act(() => result.current.goToNextPage())
+  await waitFor(() => expect(result.current.transactions[0]?.id).toBe('3'))
+  empty = true
+  await act(async () => { await invalidateTransactionData(client, 'user') })
+  await waitFor(() => expect(result.current.currentPage).toBe(1))
+  await waitFor(() => expect(result.current.isLoading).toBe(false))
+  expect(result.current.transactions).toHaveLength(0)
+})
+
+test('restaura posição ao remontar a mesma lista sem compartilhar com outro usuário', async () => {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: Infinity } } })
+  const first = renderHook(() => useTransactions({}, true, 'ledger'), { wrapper: wrapper(client) })
+  await waitFor(() => expect(first.result.current.isLoading).toBe(false))
+  act(() => first.result.current.goToNextPage())
+  await waitFor(() => expect(first.result.current.isLoading).toBe(false))
+  first.unmount()
+  const second = renderHook(() => useTransactions({}, true, 'ledger'), { wrapper: wrapper(client) })
+  await waitFor(() => expect(second.result.current.isLoading).toBe(false))
+  expect(second.result.current.currentPage).toBe(2)
+  auth.mockReturnValue({ user: { uid: 'other' } } as ReturnType<typeof useAuth>)
+  second.rerender()
+  await waitFor(() => expect(second.result.current.isLoading).toBe(false))
+  expect(second.result.current.currentPage).toBe(1)
+})
+
+test('uma resposta antiga não sobrescreve a reconstrução da revisão mais recente', async () => {
+  let finishOld!: (value: Awaited<ReturnType<typeof TransactionService.getPaged>>) => void
+  let generation = 0
+  getPaged.mockImplementation(async (_uid, filters = {}) => {
+    if (generation === 1 && !filters.lastVisible) {
+      return new Promise((resolve) => { finishOld = resolve })
+    }
+    return {
+      transactions: [{ id: `${generation}-${filters.lastVisible ? 'next' : 'first'}` }] as never,
+      lastVisible: { id: 'boundary', generation } as never,
+      hasMore: !filters.lastVisible,
+    }
+  })
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: Infinity } } })
+  const { result } = renderHook(() => useTransactions(), { wrapper: wrapper(client) })
+  await waitFor(() => expect(result.current.isLoading).toBe(false))
+  act(() => result.current.goToNextPage())
+  await waitFor(() => expect(result.current.transactions[0]?.id).toBe('0-next'))
+  generation = 1
+  act(() => { void invalidateTransactionData(client, 'user') })
+  await waitFor(() => expect(finishOld).toBeDefined())
+  generation = 2
+  await act(async () => { await invalidateTransactionData(client, 'user') })
+  await waitFor(() => expect(result.current.transactions[0]?.id).toBe('2-next'))
+  await act(async () => {
+    finishOld({ transactions: [{ id: 'old' }] as never, lastVisible: { id: 'boundary' } as never, hasMore: true })
+  })
+  expect(result.current.transactions[0]?.id).toBe('2-next')
+  expect(result.current.currentPage).toBe(2)
 })
 
 test('falha ao excluir mantém a página e seus cursores', async () => {

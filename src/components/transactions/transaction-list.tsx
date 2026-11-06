@@ -107,7 +107,7 @@ export function TransactionList({
     error,
     refetch,
     isFetching,
-  } = useTransactions({ ...criteria, limitCount: 10 }, valid)
+  } = useTransactions({ ...criteria, limitCount: 10 }, valid, type)
 
   const [isAddOpen, setIsAddOpen] = React.useState(false)
   const [editingTx, setEditingTx] = React.useState<Transaction | null>(null)
