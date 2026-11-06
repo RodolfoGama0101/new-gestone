@@ -52,6 +52,11 @@ import {
 } from 'lucide-react'
 import * as Icons from 'lucide-react'
 import { PageHeader } from '@/components/shared/page-header'
+import {
+  ManagementFilters,
+  useManagementFilters,
+} from '@/components/shared/management-filters'
+import { matchesCategory } from '@/lib/utils/management-filters'
 
 // Mapeamento dos ícones para o selecionador
 const AVAILABLE_ICONS = [
@@ -117,9 +122,7 @@ export default function CategoriesPage() {
   } = useCategories()
 
   // Estados do Formulário
-  const [categoryTab, setCategoryTab] = React.useState<
-    'expense' | 'income' | 'investment'
-  >('expense')
+  const { values, setValues } = useManagementFilters()
   const [isAddOpen, setIsAddOpen] = React.useState(false)
   const [editingId, setEditingId] = React.useState<string | null>(null)
   const [name, setName] = React.useState('')
@@ -210,15 +213,9 @@ export default function CategoriesPage() {
   }
 
   // Filtrar categorias
-  const incomes = categories
-    .filter((c) => !c.archived)
-    .filter((c) => c.type === 'income' || c.type === 'both')
-  const expenses = categories
-    .filter((c) => !c.archived)
-    .filter((c) => c.type === 'expense' || c.type === 'both')
-  const investments = categories
-    .filter((c) => !c.archived)
-    .filter((c) => c.type === 'investment' || c.type === 'both')
+  const filteredCategories = categories.filter((category) =>
+    matchesCategory(category, values),
+  )
 
   if (error) return <LoadError error={error} retry={refetch} />
 
@@ -247,6 +244,31 @@ export default function CategoriesPage() {
         }
       />
 
+      <ManagementFilters
+        values={values}
+        setValues={setValues}
+        searchLabel="Buscar por nome"
+        fields={[
+          {
+            key: 'type',
+            label: 'Tipo',
+            options: [
+              { value: 'expense', label: 'Despesa' },
+              { value: 'income', label: 'Receita' },
+              { value: 'investment', label: 'Investimento' },
+            ],
+          },
+          {
+            key: 'status',
+            label: 'Arquivamento',
+            options: [
+              { value: 'active', label: 'Ativas' },
+              { value: 'archived', label: 'Arquivadas' },
+            ],
+          },
+        ]}
+      />
+
       {categories.length === 0 ? (
         <EmptyState
           title="Sem categorias cadastradas"
@@ -255,39 +277,9 @@ export default function CategoriesPage() {
         />
       ) : (
         <div className="space-y-6">
-          <div
-            className="border-border flex gap-6 overflow-auto border-b"
-            role="group"
-            aria-label="Tipos de categoria"
-          >
-            {(
-              [
-                ['expense', 'Despesas'],
-                ['income', 'Receitas'],
-                ['investment', 'Investimentos'],
-              ] as const
-            ).map(([value, label]) => (
-              <button
-                key={value}
-                type="button"
-                aria-pressed={categoryTab === value}
-                onClick={() => setCategoryTab(value)}
-                className={`focus-visible:outline-ring shrink-0 border-b-2 pb-3.5 text-sm ${categoryTab === value ? 'border-foreground font-medium' : 'text-muted-foreground border-transparent'}`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
           <Card>
             <CardHeader>
-              <CardTitle>
-                Categorias de{' '}
-                {categoryTab === 'expense'
-                  ? 'despesas'
-                  : categoryTab === 'income'
-                    ? 'receitas'
-                    : 'investimentos'}
-              </CardTitle>
+              <CardTitle>Categorias</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               <table className="financial-table w-full text-left text-[13px]">
@@ -301,12 +293,7 @@ export default function CategoriesPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {(categoryTab === 'expense'
-                    ? expenses
-                    : categoryTab === 'income'
-                      ? incomes
-                      : investments
-                  ).map((cat) => (
+                  {filteredCategories.map((cat) => (
                     <tr key={cat.id}>
                       <td data-label="Categoria">
                         <div className="flex items-center gap-2.5">
@@ -315,6 +302,11 @@ export default function CategoriesPage() {
                           </span>
                           <span className="[overflow-wrap:anywhere]">
                             {cat.name}
+                            {cat.archived && (
+                              <small className="text-muted-foreground block text-xs">
+                                Arquivada
+                              </small>
+                            )}
                             {cat.isDefault && (
                               <small className="text-muted-foreground block text-xs">
                                 Padrão do sistema
@@ -325,24 +317,28 @@ export default function CategoriesPage() {
                       </td>
                       <td data-label="Tipo">
                         <span className="bg-accent text-muted-foreground rounded-full px-2.5 py-1 text-xs">
-                          {categoryTab === 'expense'
+                          {cat.type === 'expense'
                             ? 'Despesa'
-                            : categoryTab === 'income'
+                            : cat.type === 'income'
                               ? 'Receita'
-                              : 'Investimento'}
+                              : cat.type === 'investment'
+                                ? 'Investimento'
+                                : 'Todos os tipos'}
                         </span>
                       </td>
                       <td data-label="Ações">
                         <div className="flex justify-end gap-1">
-                          <Button
-                            variant="ghost"
-                            onClick={() => handleEditClick(cat)}
-                            aria-label={'Editar categoria ' + cat.name}
-                          >
-                            <Pencil className="size-4" />
-                            Editar
-                          </Button>
-                          {!cat.isDefault && (
+                          {!cat.archived && (
+                            <Button
+                              variant="ghost"
+                              onClick={() => handleEditClick(cat)}
+                              aria-label={'Editar categoria ' + cat.name}
+                            >
+                              <Pencil className="size-4" />
+                              Editar
+                            </Button>
+                          )}
+                          {!cat.isDefault && !cat.archived && (
                             <Button
                               variant="ghost"
                               size="icon"
@@ -358,15 +354,10 @@ export default function CategoriesPage() {
                   ))}
                 </tbody>
               </table>
-              {(categoryTab === 'expense'
-                ? expenses
-                : categoryTab === 'income'
-                  ? incomes
-                  : investments
-              ).length === 0 && (
+              {filteredCategories.length === 0 && (
                 <EmptyState
-                  title="Sem categorias neste tipo"
-                  description="Adicione uma categoria para classificar seus lançamentos."
+                  title="Nenhuma categoria encontrada"
+                  description="Altere ou limpe os filtros para ver as categorias cadastradas."
                   icon={Tag}
                   compact
                 />

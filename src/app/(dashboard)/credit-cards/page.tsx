@@ -33,8 +33,14 @@ import { CreditCardBillSummary } from '@/components/credit-cards/credit-card-bil
 import { CreditCard } from '@/types/credit-card'
 import { useWorkMonth } from '@/providers/work-month-provider'
 import { format } from 'date-fns'
+import {
+  ManagementFilters,
+  useManagementFilters,
+} from '@/components/shared/management-filters'
+import { matchesCard } from '@/lib/utils/management-filters'
 
 export default function CreditCardsPage() {
+  const { values, setValues } = useManagementFilters()
   const { month: workMonth, date: workDate, setMonth } = useWorkMonth()
   const {
     creditCards,
@@ -46,7 +52,16 @@ export default function CreditCardsPage() {
   } = useCreditCards()
 
   const [invoiceMonth, setInvoiceMonth] = React.useState<Date | null>(null)
+  const returnFocus = React.useRef<{
+    label: string | null
+    text: string | null
+  } | null>(null)
   const openInvoice = (month: Date) => {
+    const active = document.activeElement
+    returnFocus.current =
+      active instanceof HTMLElement
+        ? { label: active.getAttribute('aria-label'), text: active.textContent }
+        : null
     const selected = format(month, 'yyyy-MM')
     if (selected !== workMonth) setMonth(selected)
     setInvoiceMonth(month)
@@ -64,6 +79,22 @@ export default function CreditCardsPage() {
   const [isDeleting, setIsDeleting] = React.useState(false)
   const [deleteError, setDeleteError] = React.useState<string | null>(null)
   const deletionInFlight = React.useRef(false)
+
+  React.useEffect(() => {
+    if (invoiceMonth || !returnFocus.current) return
+    const saved = returnFocus.current
+    returnFocus.current = null
+    const buttons = Array.from(
+      document.querySelectorAll<HTMLButtonElement>('button'),
+    )
+    const button =
+      buttons.find((candidate) =>
+        saved.label
+          ? candidate.getAttribute('aria-label') === saved.label
+          : candidate.textContent === saved.text,
+      ) ?? buttons.find((candidate) => candidate.textContent === 'Ver fatura')
+    button?.focus()
+  }, [invoiceMonth])
 
   const handleDeleteConfirm = async () => {
     if (!deletingCard || deletionInFlight.current) return
@@ -88,9 +119,12 @@ export default function CreditCardsPage() {
     }
   }
 
+  const filteredCards = creditCards.filter((card) => matchesCard(card, values))
   const selectedCard =
-    creditCards.find((card) => card.id === selectedCardId) ??
-    creditCards[0] ??
+    (invoiceMonth ? creditCards : filteredCards).find(
+      (card) => card.id === selectedCardId,
+    ) ??
+    filteredCards[0] ??
     null
 
   const handleArchiveConfirm = async () => {
@@ -143,6 +177,25 @@ export default function CreditCardsPage() {
         }
       />
 
+      {!invoiceMonth && (
+        <ManagementFilters
+          values={values}
+          setValues={setValues}
+          searchLabel="Buscar por nome ou banco"
+          fields={[
+            {
+              key: 'status',
+              label: 'Situação',
+              options: [
+                { value: 'active', label: 'Ativo' },
+                { value: 'inactive', label: 'Inativo' },
+                { value: 'archived', label: 'Arquivado' },
+              ],
+            },
+          ]}
+        />
+      )}
+
       {creditCards.length === 0 ? (
         <EmptyState
           title="Nenhum cartão cadastrado"
@@ -156,6 +209,12 @@ export default function CreditCardsPage() {
           selectedMonth={workDate}
           onMonthChange={(month) => setMonth(format(month, 'yyyy-MM'))}
         />
+      ) : filteredCards.length === 0 ? (
+        <EmptyState
+          title="Nenhum cartão encontrado"
+          description="Altere ou limpe os filtros para ver os cartões cadastrados."
+          icon={CardIcon}
+        />
       ) : (
         <div className="grid items-start gap-8 xl:grid-cols-[1.4fr_1fr]">
           {/* Coluna da esquerda: Lista de cartões */}
@@ -167,14 +226,14 @@ export default function CreditCardsPage() {
               />
               <h2 className="text-sm font-medium">Sua carteira</h2>
               <span className="bg-muted text-muted-foreground rounded-full px-2 py-0.5 text-xs">
-                {creditCards.length}
+                {filteredCards.length}
               </span>
             </div>
             <p className="text-muted-foreground text-sm">
               Selecione um cartão para acompanhar suas faturas.
             </p>
             <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,240px),1fr))] items-start gap-5">
-              {creditCards.map((card) => {
+              {filteredCards.map((card) => {
                 const isSelected = selectedCard?.id === card.id
                 return (
                   <button
@@ -284,7 +343,11 @@ export default function CreditCardsPage() {
                   onMonthChange={(month) => setMonth(format(month, 'yyyy-MM'))}
                   onViewInvoice={openInvoice}
                 />
-                <UpcomingInvoices card={selectedCard} referenceMonth={workDate} onOpen={openInvoice} />
+                <UpcomingInvoices
+                  card={selectedCard}
+                  referenceMonth={workDate}
+                  onOpen={openInvoice}
+                />
               </div>
             ) : (
               <div className="border-border text-muted-foreground bg-muted/5 flex h-48 flex-col items-center justify-center rounded-xl border border-dashed text-sm">

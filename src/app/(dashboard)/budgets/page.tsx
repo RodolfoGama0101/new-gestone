@@ -16,6 +16,11 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import {
+  ManagementFilters,
+  useManagementFilters,
+} from '@/components/shared/management-filters'
+import { matchesBudget } from '@/lib/utils/management-filters'
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -30,12 +35,45 @@ export default function BudgetsPage() {
 
 function BudgetMonth({ month }: { month: string }) {
   const budget = useBudget(month)
-  const { categories, error, refetch } = useCategories()
+  const {
+    categories,
+    isLoading: categoriesLoading,
+    error,
+    refetch,
+  } = useCategories()
+  const { values, setValues } = useManagementFilters()
   const [message, setMessage] = useState('')
   const [categoryId, setCategoryId] = useState('')
   const [limit, setLimit] = useState('')
   const [isLimitFormOpen, setIsLimitFormOpen] = useState(false)
   const [goal, setGoal] = useState('')
+  const budgetCategories = categories.filter(
+    (category) => category.type === 'expense' || category.type === 'both',
+  )
+  const rows = [
+    ...budgetCategories.map((category) => ({
+      categoryId: category.id,
+      name: category.name,
+      archived: !!category.archived,
+      amount: budget.data?.limits.find(
+        (item) => item.categoryId === category.id,
+      )?.amount,
+    })),
+    ...(budget.data?.limits ?? [])
+      .filter(
+        (item) =>
+          !budgetCategories.some((category) => category.id === item.categoryId),
+      )
+      .map((item) => ({ ...item, archived: true })),
+  ]
+  const filteredRows = rows.filter((item) =>
+    matchesBudget(
+      item.categoryId,
+      item.amount,
+      budget.data?.expenses[item.categoryId] || 0,
+      values,
+    ),
+  )
   const act = async (operation: () => Promise<unknown>) => {
     setMessage('')
     try {
@@ -73,7 +111,7 @@ function BudgetMonth({ month }: { month: string }) {
           contam como economia, sem dedução adicional de reservas futuras.
         </p>
       </details>
-      {budget.isLoading ? (
+      {budget.isLoading || categoriesLoading ? (
         <p role="status">Carregando orçamento…</p>
       ) : (
         <>
@@ -188,72 +226,117 @@ function BudgetMonth({ month }: { month: string }) {
               <CardTitle>Limites por categoria</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
+              <ManagementFilters
+                values={values}
+                setValues={setValues}
+                fields={[
+                  {
+                    key: 'categoryId',
+                    label: 'Filtrar categoria',
+                    options: rows.map((item) => ({
+                      value: item.categoryId,
+                      label: `${item.name}${item.archived ? ' (arquivada)' : ''}`,
+                    })),
+                  },
+                  {
+                    key: 'status',
+                    label: 'Situação do limite',
+                    options: [
+                      { value: 'none', label: 'Sem limite' },
+                      { value: 'within', label: 'Dentro do limite' },
+                      { value: 'exceeded', label: 'Excedido' },
+                    ],
+                  },
+                ]}
+              />
               {!budget.data?.limits.length && (
                 <p>Nenhum limite definido para este mês.</p>
               )}
-              {budget.data?.limits.map((item) => {
-                const spent = budget.data.expenses[item.categoryId] || 0
-                const category = categories.find(
-                  (c) => c.id === item.categoryId,
-                )
+              {!rows.length && <p>Nenhuma categoria de despesa cadastrada.</p>}
+              {rows.length > 0 && !filteredRows.length && (
+                <p>
+                  Nenhuma categoria corresponde aos filtros. Altere ou limpe os
+                  filtros.
+                </p>
+              )}
+              {filteredRows.map((item) => {
+                const spent = budget.data?.expenses[item.categoryId] || 0
                 return (
                   <div
                     key={item.categoryId}
                     className="border-border min-w-0 space-y-4 border-b pb-6 [overflow-wrap:anywhere]"
                   >
                     <h3 className="font-medium">
-                      {category?.name || item.name}
-                      {!category || category.archived ? ' (arquivada)' : ''}
+                      {item.name}
+                      {item.archived ? ' (arquivada)' : ''}
                     </h3>
-                    <p className="text-sm">
-                      Limite: {formatCurrency(item.amount)} · Realizado:{' '}
-                      {formatCurrency(spent)} ·{' '}
-                      {spent > item.amount
-                        ? `Excesso: ${formatCurrency(spent - item.amount)}`
-                        : `Restante: ${formatCurrency(item.amount - spent)}`}
-                    </p>
-                    <progress
-                      className="[&::-webkit-progress-bar]:bg-muted h-1.5 w-full appearance-none overflow-hidden rounded-full [&::-moz-progress-bar]:bg-current [&::-webkit-progress-value]:bg-current"
-                      style={{
-                        color:
-                          spent >= item.amount
-                            ? 'var(--expense)'
-                            : spent / item.amount >= 0.8
-                              ? 'var(--warning)'
-                              : 'var(--primary)',
-                      }}
-                      max={item.amount}
-                      value={Math.min(spent, item.amount)}
-                      aria-label={'Consumo de ' + (category?.name || item.name)}
-                      aria-valuetext={
-                        formatCurrency(spent) +
-                        ' de ' +
-                        formatCurrency(item.amount)
-                      }
-                    />
+                    {item.amount === undefined ? (
+                      <p className="text-sm">
+                        Sem limite · Realizado: {formatCurrency(spent)}
+                      </p>
+                    ) : (
+                      <>
+                        <p className="text-sm">
+                          Limite: {formatCurrency(item.amount)} · Realizado:{' '}
+                          {formatCurrency(spent)} ·{' '}
+                          {spent > item.amount
+                            ? `Excesso: ${formatCurrency(spent - item.amount)}`
+                            : `Restante: ${formatCurrency(item.amount - spent)}`}
+                        </p>
+                        <progress
+                          className="[&::-webkit-progress-bar]:bg-muted h-1.5 w-full appearance-none overflow-hidden rounded-full [&::-moz-progress-bar]:bg-current [&::-webkit-progress-value]:bg-current"
+                          style={{
+                            color:
+                              spent >= item.amount
+                                ? 'var(--expense)'
+                                : spent / item.amount >= 0.8
+                                  ? 'var(--warning)'
+                                  : 'var(--primary)',
+                          }}
+                          max={item.amount}
+                          value={Math.min(spent, item.amount)}
+                          aria-label={'Consumo de ' + item.name}
+                          aria-valuetext={
+                            formatCurrency(spent) +
+                            ' de ' +
+                            formatCurrency(item.amount)
+                          }
+                        />
+                      </>
+                    )}
                     <div className="flex flex-wrap gap-2">
-                      <Button
-                        variant="outline"
-                        disabled={budget.saving}
-                        onClick={() => {
-                          setIsLimitFormOpen(true)
-                          setCategoryId(item.categoryId)
-                          setLimit(
-                            formatCsvAmount(item.amount).replaceAll('.', ''),
-                          )
-                        }}
-                      >
-                        Editar limite
-                      </Button>
-                      <Button
-                        variant="outline"
-                        disabled={budget.saving}
-                        onClick={() =>
-                          act(() => budget.save({ remove: item.categoryId }))
-                        }
-                      >
-                        Remover limite
-                      </Button>
+                      {item.amount !== undefined && (
+                        <>
+                          <Button
+                            variant="outline"
+                            disabled={budget.saving || item.archived}
+                            onClick={() => {
+                              if (item.amount === undefined) return
+                              setIsLimitFormOpen(true)
+                              setCategoryId(item.categoryId)
+                              setLimit(
+                                formatCsvAmount(item.amount).replaceAll(
+                                  '.',
+                                  '',
+                                ),
+                              )
+                            }}
+                          >
+                            Editar limite
+                          </Button>
+                          <Button
+                            variant="outline"
+                            disabled={budget.saving}
+                            onClick={() =>
+                              act(() =>
+                                budget.save({ remove: item.categoryId }),
+                              )
+                            }
+                          >
+                            Remover limite
+                          </Button>
+                        </>
+                      )}
                     </div>
                   </div>
                 )

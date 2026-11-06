@@ -1,12 +1,32 @@
 /** @jest-environment jsdom */
 import '@testing-library/jest-dom'
 jest.mock('@/providers/work-month-provider', () => ({
-  useWorkMonth: () => ({ month: '2026-11', date: new Date(2026, 10, 1), setMonth: jest.fn() }),
+  useWorkMonth: () => ({
+    month: '2026-11',
+    date: new Date(2026, 10, 1),
+    setMonth: jest.fn(),
+  }),
 }))
 import { render, screen } from '@testing-library/react'
 import BudgetsPage from '@/app/(dashboard)/budgets/page'
 import { formatMoney } from '@/lib/utils/format-money'
 
+jest.mock('@/components/shared/management-filters', () => ({
+  ManagementFilters: () => null,
+  useManagementFilters: () => ({
+    values: {
+      search: '',
+      type: '',
+      status: '',
+      modality: '',
+      categoryId: '',
+      creditCardId: '',
+      pending: '',
+      scope: '',
+    },
+    setValues: jest.fn(),
+  }),
+}))
 const mockBudget = {
   isLoading: false,
   error: null,

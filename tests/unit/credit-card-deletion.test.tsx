@@ -13,6 +13,22 @@ import CreditCardsPage from '@/app/(dashboard)/credit-cards/page'
 import { CreditCardService } from '@/services/credit-card.service'
 import type { CreditCard } from '@/types/credit-card'
 
+jest.mock('@/components/shared/management-filters', () => ({
+  ManagementFilters: () => null,
+  useManagementFilters: () => ({
+    values: {
+      search: '',
+      type: '',
+      status: '',
+      modality: '',
+      categoryId: '',
+      creditCardId: '',
+      pending: '',
+      scope: '',
+    },
+    setValues: jest.fn(),
+  }),
+}))
 jest.mock('@/services/credit-card.service', () => ({
   CreditCardService: { getAll: jest.fn(), delete: jest.fn() },
 }))
@@ -20,7 +36,11 @@ jest.mock('@/contexts/auth-context', () => ({
   useAuth: () => ({ user: { uid: 'owner' } }),
 }))
 jest.mock('@/providers/work-month-provider', () => ({
-  useWorkMonth: () => ({ month: '2026-11', date: new Date(2026, 10, 1), setMonth: jest.fn() }),
+  useWorkMonth: () => ({
+    month: '2026-11',
+    date: new Date(2026, 10, 1),
+    setMonth: jest.fn(),
+  }),
 }))
 jest.mock('@/components/credit-cards/credit-card-bill-summary', () => ({
   CreditCardBillSummary: () => null,

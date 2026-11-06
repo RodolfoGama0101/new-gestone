@@ -31,6 +31,7 @@
 
 ## Filtros, importação e planejamento
 
+- [Filtros das telas de gestão](features/management-filters.md)
 - [Mês de trabalho](features/work-month.md)
 - [Período e cartão no extrato](features/transaction-period.md)
 - [Importação CSV](features/csv-import.md)

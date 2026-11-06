@@ -20,6 +20,13 @@ import { DatePicker } from '@/components/shared/date-picker'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ConfirmDialog } from '@/components/shared/confirm-dialog'
 import { useWorkMonth } from '@/providers/work-month-provider'
+import { useCategories } from '@/hooks/use-categories'
+import { useCreditCards } from '@/hooks/use-credit-cards'
+import {
+  ManagementFilters,
+  useManagementFilters,
+} from '@/components/shared/management-filters'
+import { matchesSeries } from '@/lib/utils/management-filters'
 
 function SeriesItem({
   item,
@@ -213,14 +220,88 @@ function SeriesItem({
 export default function SeriesPage() {
   const { month } = useWorkMonth()
   const series = useTransactionSeries()
+  const categories = useCategories()
+  const cards = useCreditCards()
+  const { values, setValues } = useManagementFilters()
   const [message, setMessage] = useState('')
+  const filteredSeries = (series.data ?? []).filter((item) =>
+    matchesSeries(item, values, month),
+  )
   if (series.error)
     return <LoadError error={series.error} retry={series.refetch} />
+  if (categories.error || cards.error)
+    return (
+      <LoadError
+        error={categories.error || cards.error}
+        retry={() => Promise.all([categories.refetch(), cards.refetch()])}
+      />
+    )
   return (
     <div className="space-y-8">
       <PageHeader
         title="Séries de lançamentos"
         description={`Mês de trabalho: ${month}. Todas as séries estão disponíveis abaixo. Crie uma série pelo formulário de lançamento.`}
+      />
+      <ManagementFilters
+        values={values}
+        setValues={setValues}
+        searchLabel="Buscar por descrição"
+        fields={[
+          {
+            key: 'scope',
+            label: 'Programação',
+            options: [{ value: 'month', label: 'Mês de trabalho' }],
+          },
+          {
+            key: 'modality',
+            label: 'Modalidade',
+            options: [
+              { value: 'recurring', label: 'Recorrência' },
+              { value: 'installment', label: 'Parcelamento' },
+            ],
+          },
+          {
+            key: 'type',
+            label: 'Tipo financeiro',
+            options: [
+              { value: 'expense', label: 'Despesa' },
+              { value: 'income', label: 'Receita' },
+              { value: 'investment', label: 'Investimento' },
+            ],
+          },
+          {
+            key: 'categoryId',
+            label: 'Categoria',
+            options: categories.categories.map((item) => ({
+              value: item.id,
+              label: `${item.name}${item.archived ? ' (arquivada)' : ''}`,
+            })),
+          },
+          {
+            key: 'creditCardId',
+            label: 'Cartão',
+            options: cards.creditCards.map((item) => ({
+              value: item.id,
+              label: `${item.name}${item.archived ? ' (arquivado)' : ''}`,
+            })),
+          },
+          {
+            key: 'status',
+            label: 'Cancelamento',
+            options: [
+              { value: 'active', label: 'Não canceladas' },
+              { value: 'cancelled', label: 'Canceladas' },
+            ],
+          },
+          {
+            key: 'pending',
+            label: 'Geração pendente',
+            options: [
+              { value: 'yes', label: 'Pendente' },
+              { value: 'no', label: 'Sem pendência' },
+            ],
+          },
+        ]}
       />
       <details className="text-muted-foreground text-sm">
         <summary className="cursor-pointer py-2">
@@ -252,10 +333,15 @@ export default function SeriesPage() {
         Gerar pendentes
       </Button>
       {message && <p role="status">{message}</p>}
-      {series.isLoading ? (
+      {series.isLoading || categories.isLoading || cards.isLoading ? (
         <p role="status">Carregando séries…</p>
       ) : !series.data?.length ? (
         <p>Nenhuma série cadastrada.</p>
+      ) : !filteredSeries.length ? (
+        <p>
+          Nenhuma série corresponde aos filtros. Altere ou limpe os filtros para
+          ver as séries cadastradas.
+        </p>
       ) : (
         <div className="space-y-6">
           {(['recurring', 'installment'] as const).map((kind) => (
@@ -263,7 +349,7 @@ export default function SeriesPage() {
               <h2 className="text-base font-medium">
                 {kind === 'recurring' ? 'Recorrências' : 'Parcelamentos'}
               </h2>
-              {series.data
+              {filteredSeries
                 .filter((item) => item.kind === kind)
                 .map((item) => (
                   <SeriesItem
@@ -274,9 +360,9 @@ export default function SeriesPage() {
                     month={month}
                   />
                 ))}
-              {!series.data.some((item) => item.kind === kind) && (
+              {!filteredSeries.some((item) => item.kind === kind) && (
                 <p className="text-muted-foreground text-sm">
-                  Nenhuma série deste tipo cadastrada.
+                  Nenhuma série deste tipo corresponde aos filtros.
                 </p>
               )}
             </section>
