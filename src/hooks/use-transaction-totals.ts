@@ -22,11 +22,12 @@ export function useTransactionTotals(
     const timeout = setTimeout(() => setSettledSearch(criteria.search), 300)
     return () => clearTimeout(timeout)
   }, [criteria.search])
-  return useQuery({
+  const query = useQuery({
     queryKey: ['transactionTotals', userId, criteria],
     queryFn: ({ signal }) =>
       TransactionService.getTotals(userId, criteria, { signal }),
     enabled: enabled && !!userId && settledSearch === criteria.search,
     staleTime: 60000,
   })
+  return { ...query, isSettling: settledSearch !== criteria.search }
 }

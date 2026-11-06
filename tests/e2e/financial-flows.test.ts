@@ -956,3 +956,46 @@ test('quitação integral e estorno não criam despesa nem mudam indicadores', a
   expect((await payment.get()).exists).toBe(false)
   expect((await db.collection(`users/${uid}/transactions`).get()).docs.map(d => d.data())).toEqual(before)
 })
+
+test('totais completos preservam competência, filtros, paginação e exclusão', async ({ page }) => {
+  const { uid } = await register(page)
+  const now = Timestamp.now()
+  const category = (await db.collection(`users/${uid}/categories`).where('type', '==', 'expense').get()).docs[0]
+  await db.doc(`users/${uid}/creditCards/summary-card`).set({ name: 'Cartão resumo', bankName: 'Teste', brand: 'visa', holderName: 'Teste', closingDay: 15, isActive: true, color: '#000000', createdAt: now, updatedAt: now })
+  const batch = db.batch()
+  for (let i = 0; i < 105; i++) {
+    batch.set(db.doc(`users/${uid}/transactions/summary-${String(i).padStart(3, '0')}`), {
+      type: 'expense', amount: 100, description: `Despesa resumo ${String(i).padStart(3, '0')}`,
+      categoryId: category.id, date: Timestamp.fromDate(new Date(2026, 9, 10, 12)),
+      tags: [], notes: null, recurring: false, createdAt: now, updatedAt: now,
+    })
+  }
+  batch.set(db.doc(`users/${uid}/transactions/summary-card-purchase`), {
+    type: 'expense', amount: 250, description: 'Compra após fechamento', categoryId: category.id,
+    date: Timestamp.fromDate(new Date(2026, 9, 20, 12)), creditCardId: 'summary-card', cardClosingDay: 15,
+    tags: [], notes: null, recurring: false, createdAt: now, updatedAt: now,
+  })
+  await batch.commit()
+  await page.goto('/expenses?month=2026-10')
+  const monthly = page.getByRole('region', { name: 'Mês completo por competência — 2026-10' })
+  const filtered = page.getByRole('region', { name: 'Totais dos resultados filtrados' })
+  await expect(monthly).toContainText('105 lançamentos')
+  await expect(monthly).toContainText('105,00')
+  await expect(filtered).toHaveCount(0)
+  await page.getByRole('button', { name: 'Próximo', exact: true }).click()
+  await expect(page.getByText('Página 2', { exact: true })).toBeVisible()
+  await expect(monthly).toContainText('105 lançamentos')
+  await page.getByRole('button', { name: 'Excluir lançamento', exact: true }).first().click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Excluir', exact: true }).click()
+  await expect(monthly).toContainText('104 lançamentos')
+  await expect(monthly).toContainText('104,00')
+  await page.getByLabel('Buscar por descrição').fill('inexistente')
+  await expect(filtered).toContainText('0 lançamentos')
+  await expect(monthly).toContainText('104 lançamentos')
+  await page.goto('/expenses?month=2026-10&dateBasis=purchase&startDate=2026-10-20&endDate=2026-10-20')
+  await expect(monthly).toContainText('104 lançamentos')
+  await expect(filtered).toContainText('1 lançamentos')
+  await expect(filtered).toContainText('2,50')
+  await page.goto('/expenses?month=2026-11')
+  await expect(page.getByRole('region', { name: 'Mês completo por competência — 2026-11' })).toContainText('2,50')
+})

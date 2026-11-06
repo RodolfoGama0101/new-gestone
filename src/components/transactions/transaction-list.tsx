@@ -88,7 +88,7 @@ export function TransactionList({
   emptyTitle,
   deleteDescription,
 }: TransactionListProps) {
-  const { criteria, values, valid } = useTransactionFilters(type)
+  const { criteria, values, valid, month } = useTransactionFilters(type)
   const { creditCards } = useCreditCards()
   const {
     categories,
@@ -179,13 +179,12 @@ export function TransactionList({
         }
       />
 
-      {valid && !error && (
-        <TransactionPageSummary
-          transactions={transactions}
-          type={type}
-          isLoading={isLoading}
-        />
-      )}
+      <TransactionPageSummary
+        criteria={criteria}
+        month={month}
+        valid={valid}
+        type={type}
+      />
       <TransactionNavigation />
       <TransactionFilters fixedType={type} />
       {/* Lista de transações */}

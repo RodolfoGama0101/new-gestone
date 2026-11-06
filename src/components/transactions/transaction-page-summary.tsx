@@ -1,60 +1,116 @@
+import { Button } from '@/components/ui/button'
+import { useTransactionTotals } from '@/hooks/use-transaction-totals'
 import { formatMoney } from '@/lib/utils/format-money'
-import { Skeleton } from '@/components/ui/skeleton'
-import type { Transaction } from '@/types/transaction'
+import { normalizeTransactionSearch } from '@/lib/utils/transaction-search'
+import { workMonthPeriod } from '@/lib/utils/work-month'
+import type { GetTransactionsFilters } from '@/services/transaction.service'
+import type { FinancialType } from '@/lib/utils/transaction-filters'
 
-/** O escopo é explícito: estes totais pertencem à página, não a todo o histórico. */
+type Criteria = Omit<GetTransactionsFilters, 'lastVisible' | 'limitCount'>
+
+export function hasAdditionalFilters(
+  criteria: Criteria,
+  month: string,
+  type?: FinancialType,
+) {
+  const period = workMonthPeriod(month)
+  return Boolean(
+    criteria.type !== type ||
+    criteria.categoryId ||
+    criteria.creditCardId ||
+    normalizeTransactionSearch(criteria.search ?? '') ||
+    criteria.dateBasis !== 'competence' ||
+    criteria.minAmount !== undefined ||
+    criteria.maxAmount !== undefined ||
+    criteria.modality ||
+    criteria.startDate?.getTime() !== period.startDate.getTime() ||
+    criteria.endDate?.getTime() !== period.endDate.getTime(),
+  )
+}
+
 export function TransactionPageSummary({
-  transactions,
+  criteria,
+  month,
+  valid,
   type,
-  isLoading = false,
 }: {
-  transactions: Transaction[]
-  type?: Transaction['type']
-  isLoading?: boolean
+  criteria: Criteria
+  month: string
+  valid: boolean
+  type?: FinancialType
 }) {
-  const income = transactions
-    .filter((item) => item.type === 'income')
-    .reduce((sum, item) => sum + item.amount, 0)
-  const expense = transactions
-    .filter((item) => item.type !== 'income')
-    .reduce((sum, item) => sum + item.amount, 0)
-  const metrics = type
-    ? ([
-        [
-          'Total nesta página',
-          transactions.reduce((sum, item) => sum + item.amount, 0),
-        ],
-      ] as const)
-    : ([
-        ['Entradas nesta página', income],
-        ['Saídas nesta página', expense],
-        ['Saldo nesta página', income - expense],
-      ] as const)
+  const monthly = useTransactionTotals({
+    ...workMonthPeriod(month),
+    dateBasis: 'competence',
+    type,
+  })
+  const filtered = hasAdditionalFilters(criteria, month, type)
+  const results = useTransactionTotals(criteria, filtered && valid)
+
   return (
-    <div className={`grid gap-4 ${type ? '' : 'xl:grid-cols-3'}`}>
-      {metrics.map(([label, value]) => (
-        <section
-          key={label}
-          aria-label={label}
-          className="border-border min-w-0 rounded-md border px-6 py-5"
-        >
-          <h2 className="text-muted-foreground text-[13px] font-normal">
-            {label}
-          </h2>
-          {isLoading ? (
-            <Skeleton className="mt-3 h-8 w-32" />
-          ) : (
-            <>
-              <p className="mt-3 text-2xl font-medium tracking-tight [overflow-wrap:anywhere] tabular-nums">
-                {formatMoney(value)}
-              </p>
-              <p className="text-muted-foreground mt-2 text-xs">
-                {transactions.length} lançamentos nesta página
-              </p>
-            </>
-          )}
-        </section>
-      ))}
+    <div className="space-y-4">
+      <SummarySection
+        title={`Mês completo por competência — ${month}`}
+        query={monthly}
+        type={type}
+      />
+      {filtered && valid && (
+        <SummarySection
+          title="Totais dos resultados filtrados"
+          query={results}
+          type={type}
+        />
+      )}
     </div>
+  )
+}
+
+function SummarySection({
+  title,
+  query,
+  type,
+}: {
+  title: string
+  query: ReturnType<typeof useTransactionTotals>
+  type?: FinancialType
+}) {
+  const totals = query.data
+  const result = totals && totals.income - totals.expense - totals.investment
+  const invalidResult = result !== undefined && !Number.isSafeInteger(result)
+  return (
+    <section
+      aria-label={title}
+      className="border-border rounded-md border px-6 py-5"
+    >
+      <h2 className="text-sm font-medium">{title}</h2>
+      {query.isFetching || query.isSettling || query.isPending ? (
+        <p role="status" className="text-muted-foreground mt-2 text-sm">
+          Calculando totais…
+        </p>
+      ) : query.isError || invalidResult ? (
+        <p role="alert" className="mt-2 text-sm">
+          Não foi possível calcular os totais.{' '}
+          <Button variant="outline" size="sm" onClick={() => query.refetch()}>
+            Tentar novamente
+          </Button>
+        </p>
+      ) : (
+        totals && (
+          <div className="mt-3 flex flex-wrap gap-x-6 gap-y-2 text-base font-medium [overflow-wrap:anywhere] tabular-nums">
+            {type ? (
+              <span>Total: {formatMoney(totals[type])}</span>
+            ) : (
+              <>
+                <span>Receitas: {formatMoney(totals.income)}</span>
+                <span>Despesas: {formatMoney(totals.expense)}</span>
+                <span>Aportes: {formatMoney(totals.investment)}</span>
+                <span>Resultado: {formatMoney(result!)}</span>
+              </>
+            )}
+            <span>{totals.count} lançamentos</span>
+          </div>
+        )
+      )}
+    </section>
   )
 }

@@ -8,8 +8,6 @@ import { LoadError } from '@/components/shared/load-error'
 
 import * as React from 'react'
 import { useTransactions } from '@/hooks/use-transactions'
-import { useTransactionTotals } from '@/hooks/use-transaction-totals'
-import { formatMoney } from '@/lib/utils/format-money'
 import { useCategories } from '@/hooks/use-categories'
 import { useCreditCards } from '@/hooks/use-credit-cards'
 import { Card, CardContent } from '@/components/ui/card'
@@ -39,15 +37,13 @@ import {
 } from 'lucide-react'
 
 export default function TransactionsPage() {
-  const { values, criteria, valid } = useTransactionFilters()
+  const { values, criteria, valid, month } = useTransactionFilters()
   const { creditCards } = useCreditCards()
   const {
     categories,
     error: categoriesError,
     refetch: refetchCategories,
   } = useCategories()
-
-  const totalsQuery = useTransactionTotals(criteria, valid)
 
   const {
     transactions,
@@ -125,49 +121,7 @@ export default function TransactionsPage() {
         }
       />
 
-      {valid && (
-        <section
-          aria-label="Totais dos resultados filtrados"
-          className="border-border rounded-md border px-6 py-5"
-        >
-          <h2 className="text-sm font-medium">
-            Totais dos resultados filtrados
-          </h2>
-          {totalsQuery.isFetching ? (
-            <p role="status" className="text-muted-foreground mt-2 text-sm">
-              Calculando totais…
-            </p>
-          ) : totalsQuery.isError ? (
-            <p role="alert" className="mt-2 text-sm">
-              Não foi possível calcular os totais.{' '}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => totalsQuery.refetch()}
-              >
-                Tentar novamente
-              </Button>
-            </p>
-          ) : (
-            totalsQuery.data && (
-              <div className="mt-2 flex flex-wrap gap-x-6 gap-y-2 text-sm tabular-nums">
-                <span>Receitas: {formatMoney(totalsQuery.data.income)}</span>
-                <span>Despesas: {formatMoney(totalsQuery.data.expense)}</span>
-                <span>
-                  Investimentos: {formatMoney(totalsQuery.data.investment)}
-                </span>
-                <span>{totalsQuery.data.count} lançamentos</span>
-              </div>
-            )
-          )}
-        </section>
-      )}
-      {valid && (
-        <TransactionPageSummary
-          transactions={transactions}
-          isLoading={isLoading}
-        />
-      )}
+      <TransactionPageSummary criteria={criteria} month={month} valid={valid} />
       <TransactionNavigation />
       {/* Painel de Filtros URL */}
       <TransactionFilters />
