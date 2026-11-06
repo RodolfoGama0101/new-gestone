@@ -31,6 +31,8 @@
 
 ## Auditorias
 
+- [Validação integrada da consulta financeira — #30](audits/2026-11-06/financial-integration.md)
+
 - [Acessibilidade em 22/10/2026](audits/2026-10-22/accessibility.md)
 
 ## Filtros, importação e planejamento

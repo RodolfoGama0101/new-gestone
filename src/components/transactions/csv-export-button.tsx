@@ -25,7 +25,7 @@ function escapeCsvValue(value: unknown) {
 }
 
 export function CsvExportButton({ filters = {}, search = '', disabled = false }: CsvExportButtonProps) {
-  const { categories } = useCategories()
+  const { categories, isLoading: categoriesLoading, error: categoriesError } = useCategories()
   const { user } = useAuth()
   const [isExporting, setIsExporting] = React.useState(false)
 
@@ -105,7 +105,7 @@ export function CsvExportButton({ filters = {}, search = '', disabled = false }:
       variant="outline"
       size="sm"
       onClick={handleExport}
-      disabled={disabled || isExporting}
+      disabled={disabled || isExporting || categoriesLoading || !!categoriesError}
       className="gap-1.5 cursor-pointer text-xs font-semibold"
     >
       {isExporting ? (

@@ -2,6 +2,8 @@
 
 No extrato, “Importar CSV” aceita o formato exportado pelo GestOne: UTF-8, BOM opcional, ponto e vírgula e sete colunas na ordem `Data;Descrição;Categoria;Tipo;Valor (BRL);Tags;Anotações`. Aspas duplicadas, delimitadores e quebras de linha dentro de campos são preservados. Datas usam `dd/MM/aaaa`; valores em reais têm duas casas decimais e agrupamento de milhares opcional. O limite é 1 MiB e 500 lançamentos.
 
+“Exportar CSV” aguarda o carregamento das categorias e fica indisponível se essa consulta falhar, evitando gravar “Sem Categoria” por falta temporária dos cadastros. Após recuperar a consulta, o botão volta a ficar disponível. Categorias realmente ausentes continuam com o fallback anterior.
+
 A prévia mostra todas as linhas, valores e erros. Categorias são resolvidas por nome e tipo, ou pelo mapeamento explícito selecionado pelo usuário; categorias arquivadas e tipos incompatíveis são rejeitados. O arquivo inteiro deve estar válido antes de confirmar. A operação revalida categorias atuais antes de gravar. Fórmulas permanecem texto; o escape de apóstrofo conhecido do exportador é removido para preservar a descrição original.
 
 Os valores são convertidos com aritmética inteira, sem arredondamento. O CSV não contém cartão, fechamento ou recorrência: a interface explica que serão lançamentos avulsos sem cartão. Não há integração bancária nem criação automática de categorias.

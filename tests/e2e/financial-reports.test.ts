@@ -3,6 +3,7 @@ import { initializeApp, getApps } from 'firebase-admin/app'
 import { getAuth } from 'firebase-admin/auth'
 import { getFirestore, Timestamp } from 'firebase-admin/firestore'
 import { readFile } from 'node:fs/promises'
+import { readCsv } from '../../src/lib/utils/transaction-csv'
 
 if (
   process.env.FIREBASE_AUTH_EMULATOR_HOST !== '127.0.0.1:9099' ||
@@ -125,6 +126,58 @@ test('relatórios integram períodos, filtros, comparação, metas por mês, det
     { name: longCategory, amount: 35000, updatedAt: now },
   )
   await batch.commit()
+  // O mesmo conjunto deve fechar em todas as telas, inclusive além de um lote.
+  await page.goto('/?month=2024-02')
+  for (const [name, amount] of [
+    ['Receitas', '1.000,00'],
+    ['Despesas', '405,00'],
+    ['Aportes', '800,00'],
+  ])
+    await expect(
+      page
+        .getByRole('main')
+        .getByRole('link', { name, exact: true })
+        .locator('..'),
+    ).toContainText(amount)
+  await expect(
+    page
+      .getByRole('link', { name: 'Resultado projetado do mês', exact: true })
+      .locator('../../..'),
+  ).toContainText('-R$ 205,00')
+  await expect(
+    page.getByRole('region', { name: 'Consolidado dos cartões' }),
+  ).toContainText('300,00')
+  await page.goto('/transactions?month=2024-02')
+  const monthly = page.getByRole('region', {
+    name: 'Mês completo por competência — 2024-02',
+  })
+  await expect(monthly).toContainText('109 lançamentos')
+  for (const amount of ['1.000,00', '405,00', '800,00', '-R$ 205,00'])
+    await expect(monthly).toContainText(amount)
+  await page.getByRole('button', { name: 'Próximo', exact: true }).click()
+  await expect(page.getByText('Página 2', { exact: true })).toBeVisible()
+  await expect(monthly).toContainText('109 lançamentos')
+  const ledgerDownload = page.waitForEvent('download')
+  await page.getByRole('button', { name: 'Exportar CSV', exact: true }).click()
+  const ledgerCsv = await readFile(
+    (await (await ledgerDownload).path())!,
+    'utf8',
+  )
+  for (const [route, amount] of [
+    ['income', '1.000,00'],
+    ['expenses', '405,00'],
+    ['investments', '800,00'],
+  ]) {
+    await page.goto(`/${route}?month=2024-02`)
+    await expect(monthly).toContainText(amount)
+  }
+  await page.goto('/credit-cards?month=2024-02&invoiceCard=report-card')
+  await expect(page.getByText(/Total:.*300,00.*2 compras/)).toBeVisible()
+  await expect(page.getByText('Status: Quitada', { exact: true })).toBeVisible()
+  await expect(
+    page.getByText('Relatório installment', { exact: true }),
+  ).toBeVisible()
+  await expect(page.getByText('Relatório card', { exact: true })).toBeVisible()
   const metric = (name: string) =>
     page.getByRole('link', { name, exact: true }).locator('../..')
   await page.goto('/analytics?month=2024-02&reportWindow=1')
@@ -146,6 +199,19 @@ test('relatórios integram períodos, filtros, comparação, metas por mês, det
   expect(csv.split('\n')).toHaveLength(110)
   expect(csv).toContain('Relatório installment')
   expect(csv).not.toContain('previous-income')
+  const rows = readCsv(csv)
+  expect(rows).toHaveLength(109)
+  expect(rows).toEqual(readCsv(ledgerCsv))
+  const totals: Record<string, number> = {}
+  for (const row of rows) {
+    const [whole, cents] = row[4].replaceAll('.', '').split(',')
+    totals[row[3]] = (totals[row[3]] ?? 0) + Number(whole) * 100 + Number(cents)
+  }
+  expect(totals).toEqual({
+    Receita: 100000,
+    Despesa: 40500,
+    Investimento: 80000,
+  })
   await page
     .getByRole('list', { name: 'Despesas por categoria' })
     .getByRole('link')
