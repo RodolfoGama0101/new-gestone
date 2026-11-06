@@ -19,6 +19,9 @@ jest.mock('@/services/credit-card.service', () => ({
 jest.mock('@/contexts/auth-context', () => ({
   useAuth: () => ({ user: { uid: 'owner' } }),
 }))
+jest.mock('@/providers/work-month-provider', () => ({
+  useWorkMonth: () => ({ month: '2026-11', date: new Date(2026, 10, 1), setMonth: jest.fn() }),
+}))
 jest.mock('@/components/credit-cards/credit-card-bill-summary', () => ({
   CreditCardBillSummary: () => null,
 }))

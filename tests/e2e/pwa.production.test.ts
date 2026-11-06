@@ -8,7 +8,7 @@ async function register(page: Page) {
   await page.getByLabel('Senha', { exact: true }).fill('TesteSeguro@123')
   await page.getByLabel('Confirmar Senha', { exact: true }).fill('TesteSeguro@123')
   await page.getByRole('button', { name: 'Criar conta grátis', exact: true }).click()
-  await expect(page).toHaveURL('http://localhost:3102/')
+  await expect(page).toHaveURL(/^http:\/\/localhost:3102\/(?:\?month=\d{4}-\d{2})?$/)
   return email.split('@')[0]
 }
 

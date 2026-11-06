@@ -52,13 +52,13 @@ export function MonthPicker({
       <PopoverTrigger
         id={id}
         disabled={disabled}
-        className="border-input bg-background focus-visible:ring-ring flex h-10 w-full min-w-0 items-center gap-2 rounded-lg border px-3 text-left text-sm outline-none focus-visible:ring-2 disabled:opacity-50"
+        className="border-input bg-background focus-visible:ring-ring flex h-11 w-full min-w-0 items-center gap-2 rounded-lg border px-3 text-left text-sm outline-none focus-visible:ring-2 disabled:opacity-50"
       >
         <CalendarDays
-          className="text-muted-foreground size-4 shrink-0"
+          className="text-muted-foreground hidden size-4 shrink-0 min-[240px]:block"
           aria-hidden="true"
         />
-        <span>
+        <span className="min-w-0 truncate">
           {MONTHS[Number(value.slice(5)) - 1]} de {value.slice(0, 4)}
         </span>
       </PopoverTrigger>

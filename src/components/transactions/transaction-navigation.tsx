@@ -2,9 +2,12 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useWorkMonth } from '@/providers/work-month-provider'
+import { workMonthHref } from '@/lib/utils/work-month'
 
 export function TransactionNavigation() {
   const pathname = usePathname()
+  const { month } = useWorkMonth()
   return (
     <nav
       aria-label="Lançamentos por tipo"
@@ -18,7 +21,7 @@ export function TransactionNavigation() {
       ].map(([href, label]) => (
         <Link
           key={href}
-          href={href}
+          href={workMonthHref(href, month)}
           aria-current={pathname === href ? 'page' : undefined}
           className={`shrink-0 border-b-2 pb-3.5 text-sm ${pathname === href ? 'border-foreground text-foreground font-medium' : 'text-muted-foreground hover:text-foreground border-transparent'}`}
         >

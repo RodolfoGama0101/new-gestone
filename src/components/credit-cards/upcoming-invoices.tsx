@@ -3,7 +3,6 @@
 import { addMonths, format, startOfMonth } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { useCardInvoice } from '@/hooks/use-card-invoice'
-import { useCurrentDate } from '@/hooks/use-current-date'
 import { formatMoney } from '@/lib/utils/format-money'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -60,11 +59,12 @@ function UpcomingInvoice({
 export function UpcomingInvoices({
   card,
   onOpen,
+  referenceMonth,
 }: {
   card: CreditCard
   onOpen: (month: Date) => void
+  referenceMonth: Date
 }) {
-  const today = useCurrentDate()
   return (
     <Card>
       <CardHeader>
@@ -75,7 +75,7 @@ export function UpcomingInvoices({
           <UpcomingInvoice
             key={offset}
             card={card}
-            month={addMonths(startOfMonth(today), offset)}
+            month={addMonths(startOfMonth(referenceMonth), offset)}
             onOpen={onOpen}
           />
         ))}

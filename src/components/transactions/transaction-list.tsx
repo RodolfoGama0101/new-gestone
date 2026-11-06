@@ -23,6 +23,8 @@ import { TransactionPageSummary } from '@/components/transactions/transaction-pa
 import { TransactionTable } from '@/components/transactions/transaction-table'
 import { PageHeader } from '@/components/shared/page-header'
 import { Transaction } from '@/types/transaction'
+import { useWorkMonth } from '@/providers/work-month-provider'
+import { workMonthPeriod } from '@/lib/utils/work-month'
 import {
   Plus,
   Loader2,
@@ -82,9 +84,9 @@ export function TransactionList({
   editDialogDescription,
   emptyIcon,
   emptyTitle,
-  emptyDescription,
   deleteDescription,
 }: TransactionListProps) {
+  const { month } = useWorkMonth()
   const {
     categories,
     error: categoriesError,
@@ -102,7 +104,7 @@ export function TransactionList({
     error,
     refetch,
     isFetching,
-  } = useTransactions({ type })
+  } = useTransactions({ type, dateBasis: 'competence', ...workMonthPeriod(month) })
 
   const [isAddOpen, setIsAddOpen] = React.useState(false)
   const [editingTx, setEditingTx] = React.useState<Transaction | null>(null)
@@ -195,8 +197,8 @@ export function TransactionList({
       {/* Lista de transações */}
       {transactions.length === 0 ? (
         <EmptyState
-          title={emptyTitle}
-          description={emptyDescription}
+          title={hasNextPage ? 'Continue a busca' : emptyTitle}
+          description={hasNextPage ? 'Há mais lançamentos para pesquisar neste mês.' : 'Nenhum lançamento encontrado nesta página do mês de trabalho.'}
           icon={emptyIcon}
         />
       ) : (

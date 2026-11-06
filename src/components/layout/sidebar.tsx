@@ -6,6 +6,8 @@ import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { ThemeToggle } from '@/components/shared/theme-toggle'
 import { Logo } from '@/components/shared/logo'
+import { useWorkMonth } from '@/providers/work-month-provider'
+import { workMonthHref } from '@/lib/utils/work-month'
 import {
   LayoutDashboard,
   ArrowUpCircle,
@@ -39,6 +41,7 @@ const secondaryNavItems = [
 
 export function Sidebar() {
   const pathname = usePathname()
+  const { month } = useWorkMonth()
 
   return (
     <aside className="border-sidebar-border bg-sidebar fixed inset-y-0 left-0 z-20 hidden w-[200px] flex-col border-r md:flex">
@@ -57,7 +60,7 @@ export function Sidebar() {
           return (
             <Link
               key={item.href}
-              href={item.href}
+              href={workMonthHref(item.href, month)}
               aria-current={isActive ? 'page' : undefined}
               className={cn(
                 'group relative flex min-h-10 cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm font-normal transition-colors duration-100',
@@ -87,7 +90,7 @@ export function Sidebar() {
           return (
             <Link
               key={item.href}
-              href={item.href}
+              href={workMonthHref(item.href, month)}
               aria-current={isActive ? 'page' : undefined}
               className={cn(
                 'group relative flex min-h-10 cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-100',

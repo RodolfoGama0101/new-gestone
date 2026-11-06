@@ -31,17 +31,22 @@ export function CreditCardBillSummary({
   onEditTransaction,
   compact = false,
   initialMonth,
+  selectedMonth,
+  onMonthChange,
   onViewInvoice,
 }: {
   card: CreditCard
   onEditTransaction?: (tx: Transaction) => void
   compact?: boolean
   initialMonth?: Date
+  selectedMonth?: Date
+  onMonthChange?: (month: Date) => void
   onViewInvoice?: (month: Date) => void
 }) {
-  const [month, setMonth] = React.useState(() =>
+  const [localMonth, setLocalMonth] = React.useState(() =>
     startOfMonth(initialMonth ?? new Date()),
   )
+  const month = selectedMonth ?? localMonth
   const payment = useInvoicePayment(card.id, month)
   const today = useCurrentDate()
   const cycle = invoiceCycle(card, month)
@@ -78,7 +83,9 @@ export function CreditCardBillSummary({
   const pages = Math.max(1, Math.ceil(transactions.length / 20))
   const currentPage = Math.min(page, pages)
   const changeMonth = (offset: number) => {
-    setMonth((value) => addMonths(value, offset))
+    const next = addMonths(month, offset)
+    if (onMonthChange) onMonthChange(next)
+    else setLocalMonth(next)
     setPage(1)
   }
   const closeDeletion = () => {
@@ -104,7 +111,7 @@ export function CreditCardBillSummary({
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Fatura atual</CardTitle>
+          <CardTitle>Fatura do mês de trabalho</CardTitle>
         </CardHeader>
         <CardContent className="space-y-5">
           <p className="text-muted-foreground text-sm capitalize">

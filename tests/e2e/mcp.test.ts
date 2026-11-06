@@ -1150,7 +1150,7 @@ test('MCP privado: OAuth, PKCE, concorrência, regras financeiras, quotas e revo
   await page
     .getByRole('button', { name: 'Entrar na conta', exact: true })
     .click()
-  await expect(page).toHaveURL(`${origin}/`, { timeout: 90000 })
+  await expect(page).toHaveURL(new RegExp(`^${origin}/(?:\\?month=\\d{4}-\\d{2})?$`), { timeout: 90000 })
   await page.route('https://example.test/oauth/callback**', (route) =>
     route.fulfill({ status: 200, body: 'Callback fictício recebido.' }),
   )

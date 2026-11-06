@@ -1,8 +1,8 @@
 # Período e cartão no extrato — ROD-121
 
-O extrato persiste busca, tipo, categoria, `startDate`, `endDate` e `creditCardId` na URL. Datas civis são interpretadas no fuso local, do início do primeiro dia ao último milissegundo do último dia. Campos ausentes deixam esse lado do intervalo aberto. Datas inexistentes e intervalos invertidos exibem erro junto aos campos e impedem consulta e exportação.
+O extrato persiste busca, tipo, categoria, `startDate`, `endDate` e `creditCardId` na URL. Datas civis são interpretadas no fuso local, do início do primeiro dia ao último milissegundo do último dia. Se ambos os campos estiverem ausentes, usa-se o mês de trabalho; em um intervalo personalizado, um campo ausente deixa esse lado aberto. Datas inexistentes e intervalos invertidos exibem erro junto aos campos e impedem consulta e exportação.
 
-Os atalhos selecionam este mês ou o mês anterior. Limpar filtros remove também período e cartão. Listagem e CSV recebem o mesmo objeto de filtros; o CSV inclui todas as páginas. Qualquer alteração reinicia os cursores da paginação. Cartões arquivados continuam disponíveis para consultar o histórico.
+Os atalhos selecionam este mês ou o mês anterior como intervalo personalizado. Na ausência de intervalo personalizado, o extrato usa o mês de trabalho compartilhado. Limpar filtros retorna a esse mês e remove o cartão. Trocar o mês de trabalho remove o intervalo personalizado. Listagem e CSV recebem o mesmo objeto de filtros; o CSV inclui todas as páginas. Qualquer alteração reinicia os cursores da paginação. Cartões arquivados continuam disponíveis para consultar o histórico.
 
 O extrato usa **competência** por padrão: compras no cartão entram na data de fechamento da fatura, e parcelas usam `installmentMonth` mesmo quando a data do lançamento foi editada. O seletor de critério também permite consultar pela data da compra. Registros antigos usam o fechamento do cartão ou, se indisponível, o padrão histórico de dia 10. Listagem e CSV aplicam os mesmos critérios. Os serviços mantêm a data da compra como padrão para consumidores existentes; a consulta por compra usa `dateBasis: 'purchase'`.
 

@@ -4,6 +4,8 @@ import * as React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
+import { useWorkMonth } from '@/providers/work-month-provider'
+import { workMonthHref } from '@/lib/utils/work-month'
 import {
   LayoutDashboard,
   Receipt,
@@ -43,6 +45,7 @@ const extraItems = [
 
 export function BottomNav() {
   const pathname = usePathname()
+  const { month } = useWorkMonth()
   const [isOpen, setIsOpen] = React.useState(false)
 
   const isExtraActive = extraItems.some((item) => pathname === item.href)
@@ -54,7 +57,7 @@ export function BottomNav() {
         return (
           <Link
             key={item.href}
-            href={item.href}
+            href={workMonthHref(item.href, month)}
               aria-current={isActive ? 'page' : undefined}
             className={cn(
               'flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 text-muted-foreground transition-colors relative cursor-pointer h-full',
@@ -97,7 +100,7 @@ export function BottomNav() {
               return (
                 <Link
                   key={item.href}
-                  href={item.href}
+                  href={workMonthHref(item.href, month)}
               aria-current={isActive ? 'page' : undefined}
                   onClick={() => setIsOpen(false)}
                   className={cn(

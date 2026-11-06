@@ -19,15 +19,18 @@ import { Input } from '@/components/ui/input'
 import { DatePicker } from '@/components/shared/date-picker'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ConfirmDialog } from '@/components/shared/confirm-dialog'
+import { useWorkMonth } from '@/providers/work-month-provider'
 
 function SeriesItem({
   item,
   busy,
   perform,
+  month,
 }: {
   item: TransactionSeries
   busy: boolean
   perform: ReturnType<typeof useTransactionSeries>['perform']
+  month: string
 }) {
   const [amount, setAmount] = useState(
     formatCsvAmount(item.amount).replaceAll('.', ''),
@@ -84,18 +87,21 @@ function SeriesItem({
               Impacto nas faturas: {item.count} parcelas
             </summary>
             <ol className="mt-2 max-h-64 space-y-1 overflow-auto">
-              {Array.from({ length: item.count }, (_, i) => (
-                <li key={i}>
-                  Parcela {i + 1}/{item.count} · Fatura{' '}
-                  {installmentMonth(
-                    parseFirestoreDate(item.date),
-                    i,
-                    item.cardClosingDay!,
-                    item.timezoneOffset,
-                  )}{' '}
-                  · {formatMoney(installmentAmount(item.amount, item.count, i))}
-                </li>
-              ))}
+              {Array.from({ length: item.count }, (_, i) => {
+                const invoiceMonth = installmentMonth(
+                  parseFirestoreDate(item.date),
+                  i,
+                  item.cardClosingDay!,
+                  item.timezoneOffset,
+                )
+                return (
+                  <li key={i}>
+                    Parcela {i + 1}/{item.count} · Fatura {invoiceMonth}{' '}
+                    {invoiceMonth === month && '(mês de trabalho) '}·{' '}
+                    {formatMoney(installmentAmount(item.amount, item.count, i))}
+                  </li>
+                )
+              })}
             </ol>
             <p>
               Projeção original. Edições e cancelamentos podem alterar os
@@ -205,6 +211,7 @@ function SeriesItem({
   )
 }
 export default function SeriesPage() {
+  const { month } = useWorkMonth()
   const series = useTransactionSeries()
   const [message, setMessage] = useState('')
   if (series.error)
@@ -213,7 +220,7 @@ export default function SeriesPage() {
     <div className="space-y-8">
       <PageHeader
         title="Séries de lançamentos"
-        description="Lançamentos recorrentes e compras parceladas. Crie uma série pelo formulário de lançamento."
+        description={`Mês de trabalho: ${month}. Todas as séries estão disponíveis abaixo. Crie uma série pelo formulário de lançamento.`}
       />
       <details className="text-muted-foreground text-sm">
         <summary className="cursor-pointer py-2">
@@ -264,6 +271,7 @@ export default function SeriesPage() {
                     item={item}
                     busy={series.busy}
                     perform={series.perform}
+                    month={month}
                   />
                 ))}
               {!series.data.some((item) => item.kind === kind) && (

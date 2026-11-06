@@ -23,7 +23,7 @@ import { useCreditCards } from '@/hooks/use-credit-cards'
 import { filterTransactionPeriod } from '@/lib/utils/transaction-date'
 
 import { AnalyticsDataService } from '@/services/analytics-data.service'
-import { useCurrentDate } from '@/hooks/use-current-date'
+import { useWorkMonth } from '@/providers/work-month-provider'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
@@ -48,7 +48,7 @@ export default function AnalyticsPage() {
 
   // Quantidade de meses para exibição histórica (padrão: 6 meses)
   const [monthsCount, setMonthsCount] = React.useState(6)
-  const referenceDate = useCurrentDate()
+  const { date: referenceDate } = useWorkMonth()
 
   const startDate = React.useMemo(
     () => startOfMonth(subMonths(referenceDate, monthsCount - 1)),

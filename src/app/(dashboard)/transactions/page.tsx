@@ -1,6 +1,8 @@
 'use client'
 
 import { transactionPeriod } from '@/lib/utils/transaction-period'
+import { useWorkMonth } from '@/providers/work-month-provider'
+import { workMonthPeriod } from '@/lib/utils/work-month'
 import { TransactionNavigation } from '@/components/transactions/transaction-navigation'
 import { TransactionPageSummary } from '@/components/transactions/transaction-page-summary'
 import { TransactionTable } from '@/components/transactions/transaction-table'
@@ -40,6 +42,7 @@ import {
 } from 'lucide-react'
 
 export default function TransactionsPage() {
+  const { month } = useWorkMonth()
   const {
     categories,
     error: categoriesError,
@@ -58,8 +61,8 @@ export default function TransactionsPage() {
   const period = transactionPeriod(start, end)
   const periodFilters = {
     dateBasis: dateBasis === 'purchase' ? 'purchase' as const : 'competence' as const,
-    startDate: period.startDate,
-    endDate: period.endDate,
+    startDate: start || end ? period.startDate : workMonthPeriod(month).startDate,
+    endDate: start || end ? period.endDate : workMonthPeriod(month).endDate,
     creditCardId: creditCardId || undefined,
   }
   const criteria: Omit<GetTransactionsFilters, 'lastVisible' | 'limitCount'> = {
