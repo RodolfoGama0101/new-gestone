@@ -7,6 +7,8 @@
 
 ## Funcionalidades
 
+- [Relatórios financeiros e comparação](features/financial-reports.md)
+
 - [Dashboard mensal](features/dashboard.md)
 
 - [Paridade financeira do MCP](features/mcp-parity.md)

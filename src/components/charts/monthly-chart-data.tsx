@@ -21,7 +21,7 @@ export function MonthlyChartData({
             <h4 className="font-medium">{month.monthLabel}</h4>
             <dl className="mt-2 grid gap-2">
               {(balanceOnly
-                ? ([['Saldo acumulado', month.balance]] as const)
+                ? ([['Resultado acumulado do período', month.balance]] as const)
                 : ([
                     ['Receitas', month.income],
                     ['Despesas', month.expense],

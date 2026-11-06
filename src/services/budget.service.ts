@@ -25,6 +25,20 @@ function amountIsValid(amount: number) {
     throw new Error('Informe centavos positivos dentro do limite permitido.')
 }
 export const BudgetService = {
+  async getSettings(userId: string, month: string) {
+    monthDate(month)
+    const root = doc(db, 'users', userId, 'budgets', month)
+    const [goal, limits] = await Promise.all([
+      getDoc(root),
+      getDocs(collection(root, 'limits')),
+    ])
+    return {
+      goal: goal.data()?.amount as number | undefined,
+      limits: limits.docs.map(
+        (d) => ({ categoryId: d.id, ...d.data() }) as BudgetLimit,
+      ),
+    }
+  },
   async get(userId: string, month: string, signal?: AbortSignal) {
     const date = monthDate(month)
     const root = doc(db, 'users', userId, 'budgets', month)

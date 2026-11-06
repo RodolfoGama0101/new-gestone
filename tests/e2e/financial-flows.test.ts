@@ -1062,5 +1062,5 @@ test('consolida cartões, preserva filtros e quitação ao detalhar e excluir co
   await page.goto('/?month=2025-02')
   await expect(page.getByRole('region', { name: 'Consolidado dos cartões' })).toContainText('25,00')
   await page.goto('/analytics?month=2025-02')
-  await expect(page.getByRole('region', { name: 'Consolidado dos cartões' })).toContainText('25,00')
+  await expect(page.getByRole('region', { name: 'Gastos por cartão' })).toContainText('Total em cartões: R$ 25,00')
 })

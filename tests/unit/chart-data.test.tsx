@@ -63,7 +63,7 @@ it('expõe as séries e o saldo acumulado a partir dos mesmos centavos dos gráf
     expect(
       screen.getByText(formatMoney(value).replaceAll('\u00a0', ' ')),
     ).toBeInTheDocument()
-  expect(screen.getByText('Saldo acumulado')).toBeInTheDocument()
+  expect(screen.getAllByText('Resultado acumulado do período')).toHaveLength(2)
 })
 
 it('mantém estados vazios sem dados inventados', () => {

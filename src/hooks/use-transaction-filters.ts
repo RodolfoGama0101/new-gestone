@@ -20,13 +20,19 @@ const parsers = {
   modality: parseAsString.withDefault(''),
 }
 
-export function useTransactionFilters(fixedType?: FinancialType) {
+export function useTransactionFilters(
+  fixedType?: FinancialType,
+  defaultPeriod?: { startDate: Date; endDate: Date },
+) {
   const { month } = useWorkMonth()
   const [values, setValues] = useQueryStates(parsers)
+  const resolved = resolveTransactionFilters(values, month, fixedType)
+  if (defaultPeriod && !values.startDate && !values.endDate)
+    resolved.criteria = { ...resolved.criteria, ...defaultPeriod }
   return {
     values,
     setValues,
     month,
-    ...resolveTransactionFilters(values, month, fixedType),
+    ...resolved,
   }
 }

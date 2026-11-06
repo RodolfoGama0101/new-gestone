@@ -22,11 +22,13 @@ import type { FinancialType } from '@/lib/utils/transaction-filters'
 
 export function TransactionFilters({
   fixedType,
+  defaultPeriod: reportPeriod,
 }: {
   fixedType?: FinancialType
+  defaultPeriod?: { startDate: Date; endDate: Date }
 }) {
   const { values, setValues, month, criteria, periodError, amountError } =
-    useTransactionFilters(fixedType)
+    useTransactionFilters(fixedType, reportPeriod)
   const [advancedOpen, setAdvancedOpen] = useState(
     () => !!values.minAmount || !!values.maxAmount || !!values.modality,
   )
@@ -42,7 +44,7 @@ export function TransactionFilters({
   } = useCreditCards()
   const supportsCard = !criteria.type || criteria.type === 'expense'
   const purchase = criteria.dateBasis === 'purchase'
-  const defaultPeriod = workMonthPeriod(month)
+  const defaultPeriod = reportPeriod ?? workMonthPeriod(month)
   const options = (
     items: { value: string; label: string }[],
     value: string,
@@ -274,7 +276,9 @@ export function TransactionFilters({
         Período:{' '}
         {values.startDate || values.endDate
           ? `${values.startDate || 'sem início'} a ${values.endDate || 'sem fim'} (personalizado)`
-          : `mês de trabalho ${month}`}
+          : reportPeriod
+            ? `${format(reportPeriod.startDate, 'dd/MM/yyyy')} a ${format(reportPeriod.endDate, 'dd/MM/yyyy')}`
+            : `mês de trabalho ${month}`}
         .{' '}
         {purchase
           ? 'Filtro pela data da compra.'

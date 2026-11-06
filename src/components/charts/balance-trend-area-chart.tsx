@@ -29,7 +29,7 @@ export function BalanceTrendAreaChart({ data }: { data: MonthlySummary[] }) {
   return (
     <Card className="min-w-0">
       <CardHeader>
-        <CardTitle>Evolução de Saldo</CardTitle>
+        <CardTitle>Resultado acumulado do período</CardTitle>
         <CardDescription>
           Acumulado a partir de zero no início do período; não representa o
           saldo bancário.
@@ -114,7 +114,7 @@ export function BalanceTrendAreaChart({ data }: { data: MonthlySummary[] }) {
                   <Area
                     type="linear"
                     dataKey="balance"
-                    name="Saldo acumulado"
+                    name="Resultado acumulado do período"
                     stroke="var(--chart-1)"
                     fill={`url(#${gradientId})`}
                     strokeWidth={2.5}

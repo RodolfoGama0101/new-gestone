@@ -4,8 +4,60 @@ import { CreditCardService } from './credit-card.service'
 import { AnalyticsService } from './analytics.service'
 import { filterTransactionPeriod } from '@/lib/utils/transaction-date'
 import { parseFirestoreDate } from '@/lib/utils/parse-date'
+import type { GetTransactionsFilters } from './transaction.service'
+import {
+  reportMonthlyHistory,
+  reportTotals,
+  safeReportAdd,
+} from '@/lib/utils/financial-report'
 
 export const AnalyticsDataService = {
+  async getReport(
+    userId: string,
+    filters: GetTransactionsFilters,
+    signal?: AbortSignal,
+  ) {
+    if (!filters.startDate || !filters.endDate)
+      throw new Error('Informe as duas datas do relatório.')
+    const criteria = {
+      ...filters,
+      dateBasis: filters.dateBasis ?? 'competence',
+    }
+    const cards = await CreditCardService.getAll(userId)
+    const transactions = await TransactionService.getAll(userId, criteria, {
+      cards,
+      signal,
+    })
+    const totals = reportTotals(transactions)
+    const monthly = reportMonthlyHistory(
+      transactions,
+      filters.startDate,
+      filters.endDate,
+      cards,
+      criteria.dateBasis,
+    )
+    const cardTotals = new Map<string, number>()
+    for (const tx of transactions) {
+      if (tx.type === 'expense' && tx.creditCardId)
+        cardTotals.set(
+          tx.creditCardId,
+          safeReportAdd(cardTotals.get(tx.creditCardId) ?? 0, tx.amount),
+        )
+    }
+    return {
+      transactions,
+      totals,
+      monthly,
+      cards: [...cardTotals]
+        .map(([id, amount]) => ({
+          id,
+          amount,
+          name:
+            cards.find((card) => card.id === id)?.name ?? 'Cartão indisponível',
+        }))
+        .sort((a, b) => b.amount - a.amount),
+    }
+  },
   async getSummary(
     userId: string,
     month: Date,

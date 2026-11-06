@@ -72,14 +72,14 @@ test('gráficos expõem 20 categorias e séries sem hover em 320px nos dois tema
         exact: true,
       }),
     ).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'Evolução de Saldo', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Resultado acumulado do período', exact: true })).toBeVisible()
   const summaries = page.getByText('Ver dados por período', { exact: true })
   for (const summary of await summaries.all()) {
     await summary.focus()
     await page.keyboard.press('Enter')
   }
   await expect(
-    page.getByText('Saldo acumulado', { exact: true }).first(),
+    page.getByText('Resultado acumulado do período', { exact: true }).last(),
   ).toBeVisible()
   await expect
     .poll(() =>

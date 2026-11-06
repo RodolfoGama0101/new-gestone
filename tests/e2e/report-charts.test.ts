@@ -84,7 +84,7 @@ test('relatórios comparam séries e períodos com gráficos legíveis em ambos 
   ).toBeVisible()
   const incomeMetric = page
     .getByText('Receitas no período', { exact: true })
-    .locator('..')
+    .locator('../..')
   await expect(incomeMetric).toContainText(
     (expectedIncome / 100).toLocaleString('pt-BR', {
       style: 'currency',
@@ -140,7 +140,7 @@ test('relatórios comparam séries e períodos com gráficos legíveis em ambos 
         await expect
           .poll(() =>
             incomeMetric
-              .locator('dd')
+              .locator('dd').first()
               .evaluate((element) => element.getBoundingClientRect().height),
           )
           .toBeLessThan(30)

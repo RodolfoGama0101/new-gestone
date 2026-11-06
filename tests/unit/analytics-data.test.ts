@@ -6,6 +6,62 @@ import { filterTransactionPeriod } from '@/lib/utils/transaction-date'
 import { AnalyticsHelper } from '@/lib/utils/analytics-helper'
 import type { Transaction } from '@/types/transaction'
 afterEach(() => jest.restoreAllMocks())
+test('relatório agrega todos os registros retornados e separa cartões sem duplicar totais', async () => {
+  const rows = Array.from(
+    { length: 105 },
+    (_, index) =>
+      ({
+        id: String(index),
+        type: 'expense',
+        amount: 101,
+        categoryId: 'cat',
+        date: new Date(2024, 1, 10),
+        creditCardId: 'card',
+        cardClosingDay: 20,
+      }) as Transaction,
+  )
+  jest.spyOn(TransactionService, 'getAll').mockResolvedValue(rows)
+  jest.spyOn(CreditCardService, 'getAll').mockResolvedValue([])
+  const filters = {
+    startDate: new Date(2024, 1, 1),
+    endDate: new Date(2024, 1, 29, 23, 59, 59, 999),
+    dateBasis: 'competence' as const,
+    search: 'compra',
+  }
+  const signal = new AbortController().signal
+  const report = await AnalyticsDataService.getReport('user', filters, signal)
+  expect(report.totals.expense).toBe(10605)
+  expect(report.monthly[0].expense).toBe(10605)
+  expect(report.cards).toEqual([
+    { id: 'card', name: 'Cartão indisponível', amount: 10605 },
+  ])
+  expect(TransactionService.getAll).toHaveBeenCalledWith('user', filters, {
+    cards: [],
+    signal,
+  })
+})
+
+test('relatório não retorna totais parciais quando a consulta falha', async () => {
+  jest.spyOn(CreditCardService, 'getAll').mockResolvedValue([])
+  jest
+    .spyOn(TransactionService, 'getAll')
+    .mockRejectedValue(new Error('Falha de leitura'))
+  await expect(
+    AnalyticsDataService.getReport('user', {
+      startDate: new Date(2024, 1, 1),
+      endDate: new Date(2024, 1, 29),
+    }),
+  ).rejects.toThrow('Falha de leitura')
+})
+test('relatório adota competência por padrão sem alterar o padrão dos serviços existentes', async () => {
+  jest.spyOn(CreditCardService, 'getAll').mockResolvedValue([])
+  const get = jest.spyOn(TransactionService, 'getAll').mockResolvedValue([])
+  await AnalyticsDataService.getReport('user', {
+    startDate: new Date(2024, 1, 1),
+    endDate: new Date(2024, 1, 29),
+  })
+  expect(get.mock.calls[0][1]?.dateBasis).toBe('competence')
+})
 test('dashboard limita os dois períodos e consulta reservas separadamente', async () => {
   const get = jest.spyOn(TransactionService, 'getAll').mockResolvedValue([])
   jest.spyOn(CreditCardService, 'getAll').mockResolvedValue([])
