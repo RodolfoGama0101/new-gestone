@@ -75,6 +75,13 @@ Escolha as verificações pelo impacto da mudança. Consulte os pré-requisitos 
 
 ## Entrega de tarefas: branch, commit, push e Linear
 
+### Issues do GitHub
+
+- Para o fluxo solicitado de issues do GitHub, consulte as issues abertas do repositório e escolha a próxima entrega executável pela ordem e dependências descritas. Issues agregadoras não substituem as entregas filhas. Confira comentários, critérios de aceite e a `main` remota antes de começar.
+- Registre na issue o início do trabalho e a branch `codex/`. Implemente e valide os critérios em ambiente isolado, preservando alterações locais alheias. Se houver impedimento, mantenha a issue aberta e registre o que falta, sem declarar sucesso.
+- O usuário autorizou, para esse fluxo, integrar a entrega validada à `main` e enviar o push. Atualize a referência remota antes da integração, preserve commits concorrentes e não use force push. A integração Git da Vercel pode publicar a `main`; regras Firestore e migrações de produção continuam exigindo autorização específica.
+- Depois de confirmar o commit na `main` remota, comente na issue o resumo, verificações, limitações e hash; feche-a como concluída somente quando todos os critérios estiverem atendidos. Não invente status de projeto, labels ou mensagens de sucesso. PR é opcional e não substitui a confirmação da publicação.
+
 - Quando o pedido estiver vinculado a uma tarefa do Linear, confirme seu identificador e critérios de aceite e atualize-a para `In Progress` ao iniciar o trabalho.
 - Pedidos diretos sem tarefa vinculada podem ser executados sem criar uma tarefa no Linear. Não invente identificadores nem associe uma tarefa por suposição.
 - Para cada tarefa implementada, conclua as verificações necessárias e crie um commit específico com o código, os testes e a documentação pertinentes antes de encerrar a entrega, salvo instrução explícita em contrário do usuário.
