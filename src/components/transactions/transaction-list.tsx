@@ -21,6 +21,7 @@ import { EmptyState } from '@/components/shared/empty-state'
 import { TransactionForm } from '@/components/transactions/transaction-form'
 import { TransactionNavigation } from '@/components/transactions/transaction-navigation'
 import { TransactionPageSummary } from '@/components/transactions/transaction-page-summary'
+import { InvestmentDistribution } from '@/components/transactions/investment-distribution'
 import { TransactionTable } from '@/components/transactions/transaction-table'
 import { PageHeader } from '@/components/shared/page-header'
 import { Transaction } from '@/types/transaction'
@@ -187,6 +188,9 @@ export function TransactionList({
       />
       <TransactionNavigation />
       <TransactionFilters fixedType={type} />
+      {type === 'investment' && (
+        <InvestmentDistribution criteria={criteria} valid={valid} />
+      )}
       {/* Lista de transações */}
       {!valid ? (
         <p role="alert">Corrija os filtros para consultar os lançamentos.</p>

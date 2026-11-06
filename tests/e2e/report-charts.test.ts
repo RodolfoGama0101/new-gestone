@@ -107,7 +107,7 @@ test('relatórios comparam séries e períodos com gráficos legíveis em ambos 
     page.locator('[data-slot="balance-trend-plot"] .recharts-area-curve'),
   ).toHaveCount(1)
   await expect(
-    page.locator('[data-slot="category-donut-plot"] .recharts-pie-sector'),
+    page.getByRole('heading', { name: 'Gastos por categoria' }).locator('../..').locator('[data-slot="category-donut-plot"] .recharts-pie-sector'),
   ).toHaveCount(3)
   const period = page.getByRole('group', { name: 'Período do relatório' })
   await period.getByRole('button', { name: '3 meses', exact: true }).click()

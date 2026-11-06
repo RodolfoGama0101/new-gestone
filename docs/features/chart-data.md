@@ -68,3 +68,7 @@ em uma linha, verificado também pelo E2E. O cenário confere a troca de 3/12
 meses, o foco preservado no filtro, a ocultação/restauração das séries e a
 presença das curvas e setores. A matriz financeira existente cobre valores
 longos e reflow equivalente a 200%. Nenhum dado de produção foi acessado.
+
+## Distribuição dos aportes
+
+Investimentos mostra a distribuição por categoria de todos os lançamentos que atendem ao período e filtros ativos, independentemente da página da lista. A consulta usa o mesmo critério de data da lista e percorre todos os lotes; a leitura por competência pode exigir muitas leituras em históricos extensos, conforme [Período e cartão no extrato](transaction-period.md). Busca é estabilizada antes da consulta e consultas substituídas são canceladas. O gráfico e a lista usam os mesmos centavos, com total e percentuais; categorias arquivadas ou indisponíveis continuam incluídas. A rosca agrupa categorias menores visualmente, mas a lista textual mantém todas. Relatórios reutiliza o componente para o período selecionado. Os valores representam aportes registrados, sem inferir patrimônio ou rendimento.

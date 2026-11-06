@@ -74,3 +74,15 @@ describe('AnalyticsHelper', () => {
     expect(currentMonth.balance).toBe(145000)
   })
 })
+
+test('agrupa aportes em centavos e preserva categorias arquivadas e indisponíveis', () => {
+  const tx = (categoryId: string, amount: number) => ({ type: 'investment', categoryId, amount }) as Transaction
+  const archived = { id: 'old', name: 'Antiga', archived: true, color: '#777' } as Category
+  const shares = AnalyticsHelper.getCategoryShare([tx('old', 101), tx('old', 2), tx('missing', 7)], [archived], 'investment')
+  expect(shares.map(({ name, value }) => ({ name, value }))).toEqual([
+    { name: 'Antiga (arquivada)', value: 103 },
+    { name: 'Categoria indisponível', value: 7 },
+  ])
+  expect(AnalyticsHelper.getCategoryShare([], [], 'investment')).toEqual([])
+  expect(() => AnalyticsHelper.getCategoryShare([tx('old', Number.MAX_SAFE_INTEGER), tx('old', 1)], [archived], 'investment')).toThrow(RangeError)
+})

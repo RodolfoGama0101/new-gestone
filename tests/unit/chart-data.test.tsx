@@ -67,3 +67,22 @@ it('mantém estados vazios sem dados inventados', () => {
   ).toBeVisible()
   expect(screen.queryByRole('list')).not.toBeInTheDocument()
 })
+
+it('apresenta aportes com centavos, categoria única e estado vazio', () => {
+  const { rerender } = render(
+    <CategoryDonutChart
+      type="investment"
+      data={[{ name: 'Reserva', value: 101, color: '#777' }]}
+      description="Resultados filtrados · janeiro"
+    />,
+  )
+  expect(screen.getByText('Resultados filtrados · janeiro')).toBeVisible()
+  const list = screen.getByRole('list', { name: 'Aportes por categoria' })
+  expect(within(list).getByText('Reserva')).toBeVisible()
+  expect(within(list).getByText('100%')).toBeVisible()
+  expect(
+    within(list).getByText(formatMoney(101).replaceAll('\u00a0', ' ')),
+  ).toBeVisible()
+  rerender(<CategoryDonutChart type="investment" data={[]} />)
+  expect(screen.getByText('Sem aportes no período selecionado.')).toBeVisible()
+})

@@ -20,7 +20,38 @@ const COLORS = [
   'var(--chart-5)',
 ]
 
-export function CategoryDonutChart({ data }: { data: CategoryShare[] }) {
+export function CategoryDonutChart({
+  data,
+  type = 'expense',
+  description,
+}: {
+  data: CategoryShare[]
+  type?: 'expense' | 'investment' | 'income'
+  description?: string
+}) {
+  const labels = {
+    expense: {
+      title: 'Gastos por categoria',
+      list: 'Despesas por categoria',
+      total: 'Total de despesas',
+      empty: 'Sem dados de despesas no período selecionado.',
+      description: 'Participação de cada categoria nas despesas do período.',
+    },
+    investment: {
+      title: 'Distribuição dos aportes',
+      list: 'Aportes por categoria',
+      total: 'Total de aportes',
+      empty: 'Sem aportes no período selecionado.',
+      description: 'Participação de cada categoria nos aportes do período.',
+    },
+    income: {
+      title: 'Distribuição das receitas',
+      list: 'Receitas por categoria',
+      total: 'Total de receitas',
+      empty: 'Sem receitas no período selecionado.',
+      description: 'Participação de cada categoria nas receitas do período.',
+    },
+  }[type]
   const total = data.reduce((sum, item) => sum + item.value, 0)
   const ranked = [...data].sort((a, b) => b.value - a.value)
   const slices = ranked
@@ -36,16 +67,12 @@ export function CategoryDonutChart({ data }: { data: CategoryShare[] }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Gastos por categoria</CardTitle>
-        <CardDescription>
-          Participação de cada categoria nas despesas do período.
-        </CardDescription>
+        <CardTitle>{labels.title}</CardTitle>
+        <CardDescription>{description ?? labels.description}</CardDescription>
       </CardHeader>
       <CardContent className="p-4 sm:p-6">
         {data.length === 0 || total === 0 ? (
-          <p className="text-muted-foreground text-sm">
-            Sem dados de despesas no período selecionado.
-          </p>
+          <p className="text-muted-foreground text-sm">{labels.empty}</p>
         ) : (
           <>
             <div className="mb-6 grid items-center gap-4 sm:grid-cols-[200px_1fr] xl:grid-cols-1 2xl:grid-cols-[200px_1fr]">
@@ -84,9 +111,7 @@ export function CategoryDonutChart({ data }: { data: CategoryShare[] }) {
                 </div>
               </div>
               <div className="min-w-0 space-y-2">
-                <p className="text-muted-foreground text-xs">
-                  Total de despesas
-                </p>
+                <p className="text-muted-foreground text-xs">{labels.total}</p>
                 <p className="text-2xl font-semibold tracking-tight [overflow-wrap:anywhere] tabular-nums">
                   {formatMoney(total)}
                 </p>
@@ -98,10 +123,7 @@ export function CategoryDonutChart({ data }: { data: CategoryShare[] }) {
                 )}
               </div>
             </div>
-            <ul
-              aria-label="Despesas por categoria"
-              className="divide-border divide-y"
-            >
+            <ul aria-label={labels.list} className="divide-border divide-y">
               {ranked.map((item, index) => {
                 const ratio = item.value / total
                 return (

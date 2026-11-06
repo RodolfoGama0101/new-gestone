@@ -93,6 +93,11 @@ export default function AnalyticsPage() {
     return AnalyticsHelper.getCategoryShare(transactions, categories, 'expense')
   }, [transactions, categories])
 
+  const investmentData = React.useMemo(
+    () => AnalyticsHelper.getCategoryShare(transactions, categories, 'investment'),
+    [transactions, categories],
+  )
+
   const monthlyHistory = React.useMemo(() => {
     return AnalyticsHelper.getMonthlyHistory(
       transactions,
@@ -176,6 +181,7 @@ export default function AnalyticsPage() {
       ) : (
         <div className="space-y-6">
           <ReportSummary data={monthlyHistory} />
+          <CategoryDonutChart data={investmentData} type="investment" />
           <div className="grid min-w-0 grid-cols-1 gap-6">
             {/* Fluxo de Caixa — ocupa toda a largura */}
             <div className="min-w-0">

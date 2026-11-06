@@ -17,6 +17,7 @@ export async function invalidateTransactionData(
     [
       'transactions',
       'transactionTotals',
+      'transactionDistribution',
       'analytics',
       'analyticsHistory',
       'creditCards',

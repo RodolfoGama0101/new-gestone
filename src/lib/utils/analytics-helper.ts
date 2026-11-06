@@ -32,14 +32,17 @@ export const AnalyticsHelper = {
       .filter((tx) => tx.type === type)
       .forEach((tx) => {
         const currentSum = sumMap.get(tx.categoryId) ?? 0
-        sumMap.set(tx.categoryId, currentSum + tx.amount)
+        const total = currentSum + tx.amount
+        if (!Number.isSafeInteger(tx.amount) || !Number.isSafeInteger(total))
+          throw new RangeError('Total em centavos excede o limite seguro.')
+        sumMap.set(tx.categoryId, total)
       })
 
     const shares: CategoryShare[] = []
     sumMap.forEach((amount, catId) => {
       const cat = categories.find((c) => c.id === catId)
       shares.push({
-        name: cat?.name ?? 'Sem Categoria',
+        name: cat ? `${cat.name}${cat.archived ? ' (arquivada)' : ''}` : 'Categoria indisponível',
         value: amount,
         color: cat?.color ?? '#6b7280',
       })
