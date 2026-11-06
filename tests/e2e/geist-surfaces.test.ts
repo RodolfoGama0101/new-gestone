@@ -252,7 +252,7 @@ test('superfícies Geist preservam conteúdo e reflow nos dois temas', async ({
           })
         }
         if (route === '/transactions') {
-          await page.getByLabel('Data inicial da compra').click()
+          await page.getByLabel('Data inicial da competência').click()
           await expect(page.locator('[data-slot="popover-content"]')).toBeVisible()
           await page.screenshot({ path: `dogfood-output/rod127-surfaces/${theme}-${width}-calendar.png`, fullPage: true, animations: 'disabled' })
           await page.keyboard.press('Escape')

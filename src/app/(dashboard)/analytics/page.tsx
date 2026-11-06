@@ -63,8 +63,8 @@ export default function AnalyticsPage() {
       monthsCount,
       format(referenceDate, 'yyyy-MM-dd'),
     ],
-    queryFn: () =>
-      AnalyticsDataService.getHistory(userId, monthsCount, referenceDate),
+    queryFn: ({ signal }) =>
+      AnalyticsDataService.getHistory(userId, monthsCount, referenceDate, signal),
     staleTime: 60000,
     enabled: !!userId,
   })

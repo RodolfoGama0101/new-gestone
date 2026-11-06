@@ -16,6 +16,7 @@ export async function invalidateTransactionData(
   await Promise.all(
     [
       'transactions',
+      'transactionTotals',
       'analytics',
       'analyticsHistory',
       'creditCards',

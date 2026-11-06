@@ -3,6 +3,7 @@ import { CreditCardService } from '@/services/credit-card.service'
 import { useAuth } from '@/contexts/auth-context'
 import { CreditCard } from '@/types/credit-card'
 import { toast } from 'sonner'
+import { invalidateTransactionData } from '@/lib/transaction-cache'
 
 export function useCreditCards() {
   const { user } = useAuth()
@@ -36,10 +37,8 @@ export function useCreditCards() {
       cardId: string
       data: Partial<Omit<CreditCard, 'id' | 'createdAt' | 'updatedAt'>>
     }) => CreditCardService.update(userId, cardId, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['creditCards', userId] })
-      queryClient.invalidateQueries({ queryKey: ['analytics', userId] })
-      queryClient.invalidateQueries({ queryKey: ['budgets', userId] })
+    onSuccess: async () => {
+      await invalidateTransactionData(queryClient, userId)
       toast.success('Cartão de crédito atualizado com sucesso!')
     },
     onError: () => {

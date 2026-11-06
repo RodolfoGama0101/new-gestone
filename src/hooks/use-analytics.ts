@@ -9,7 +9,7 @@ export function useAnalytics(selectedDate: Date) {
   const reference = useCurrentDate()
   const result = useQuery({
     queryKey: ['analytics', user?.uid, format(selectedDate, 'yyyy-MM'), format(reference, 'yyyy-MM-dd')],
-    queryFn: () => AnalyticsDataService.getSummary(user!.uid, selectedDate, reference),
+    queryFn: ({ signal }) => AnalyticsDataService.getSummary(user!.uid, selectedDate, reference, signal),
     enabled: !!user,
     staleTime: 60000,
   })

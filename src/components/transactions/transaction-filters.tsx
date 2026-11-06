@@ -31,6 +31,8 @@ export function TransactionFilters() {
   const [start, setStart] = useQueryState('startDate', { defaultValue: '' })
   const [end, setEnd] = useQueryState('endDate', { defaultValue: '' })
   const [card, setCard] = useQueryState('creditCardId', { defaultValue: '' })
+  const [dateBasis, setDateBasis] = useQueryState('dateBasis', { defaultValue: 'competence' })
+  const purchase = dateBasis === 'purchase'
   const period = transactionPeriod(start, end)
   const preset = (offset: number) => {
     const month = subMonths(new Date(), offset)
@@ -45,13 +47,13 @@ export function TransactionFilters() {
   })
 
   const handleClearFilters = async () => {
-    await Promise.all([setStart(''), setEnd(''), setCard('')])
+    await Promise.all([setStart(''), setEnd(''), setCard(''), setDateBasis('competence')])
     await setSearch('')
     await setType('')
     await setCategoryId('')
   }
 
-  const hasActiveFilters = search || type || categoryId || start || end || card
+  const hasActiveFilters = search || type || categoryId || start || end || card || purchase
 
   // Converte "all" para vazio para limpar o filtro na URL e no select
   const handleTypeChange = async (val: string | null) => {
@@ -158,9 +160,28 @@ export function TransactionFilters() {
 
       <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-3 [&>*]:min-w-0">
         <label className="space-y-1 text-sm">
-          Data inicial da compra
+          Critério de data
+          <Select
+            value={purchase ? 'purchase' : 'competence'}
+            onValueChange={(value) => void setDateBasis(value === 'purchase' ? 'purchase' : 'competence')}
+            items={[
+              { value: 'competence', label: 'Competência' },
+              { value: 'purchase', label: 'Data da compra' },
+            ]}
+          >
+            <SelectTrigger aria-label="Critério de data" className="w-full min-w-0">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="competence">Competência</SelectItem>
+              <SelectItem value="purchase">Data da compra</SelectItem>
+            </SelectContent>
+          </Select>
+        </label>
+        <label className="space-y-1 text-sm">
+          Data inicial {purchase ? 'da compra' : 'da competência'}
           <DatePicker
-            aria-label="Data inicial da compra"
+            aria-label={purchase ? 'Data inicial da compra' : 'Data inicial da competência'}
             date={parsePeriodDate(start)}
             setDate={(date) =>
               void setStart(date ? format(date, 'yyyy-MM-dd') : '')
@@ -172,9 +193,9 @@ export function TransactionFilters() {
           />
         </label>
         <label className="space-y-1 text-sm">
-          Data final da compra
+          Data final {purchase ? 'da compra' : 'da competência'}
           <DatePicker
-            aria-label="Data final da compra"
+            aria-label={purchase ? 'Data final da compra' : 'Data final da competência'}
             date={parsePeriodDate(end)}
             setDate={(date) =>
               void setEnd(date ? format(date, 'yyyy-MM-dd') : '')
@@ -229,8 +250,8 @@ export function TransactionFilters() {
         </p>
       )}
       <p className="text-muted-foreground text-sm">
-        Período: {start || 'sem início'} a {end || 'sem fim'}. Filtro pela data
-        da compra; a competência da fatura pode ser diferente.
+        Período: {start || 'sem início'} a {end || 'sem fim'}.{' '}
+        {purchase ? 'Filtro pela data da compra.' : 'Filtro pela competência; a data da compra pode ser diferente.'}
       </p>
       <div className="flex flex-wrap gap-2">
         <Button variant="outline" onClick={() => preset(0)}>

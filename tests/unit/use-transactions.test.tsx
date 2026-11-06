@@ -37,7 +37,7 @@ test('buscar de outra página reinicia o cursor e não recupera resultados do te
   rerender({ search: '  ALVO  ' })
   await waitFor(() => expect(result.current.isLoading).toBe(false))
   expect(result.current.currentPage).toBe(1)
-  expect(getPaged).toHaveBeenLastCalledWith('user', expect.objectContaining({ search: 'alvo', lastVisible: undefined }))
+  expect(getPaged).toHaveBeenLastCalledWith('user', expect.objectContaining({ search: 'alvo', lastVisible: undefined }), expect.objectContaining({ signal: expect.any(AbortSignal) }))
   expect(result.current.transactions[0].id).toContain('alvo')
 })
 
@@ -51,10 +51,10 @@ test('dashboard com cinco itens e extrato com dez não compartilham página em c
   await waitFor(() => expect(result.current.recent.isLoading).toBe(false))
   expect(result.current.recent.currentPage).toBe(2)
   expect(result.current.ledger.currentPage).toBe(1)
-  expect(getPaged).toHaveBeenLastCalledWith('user', expect.objectContaining({ limitCount: 5, lastVisible: expect.objectContaining({ id: 'cursor-5' }) }))
+  expect(getPaged).toHaveBeenLastCalledWith('user', expect.objectContaining({ limitCount: 5, lastVisible: expect.objectContaining({ id: 'cursor-5' }) }), expect.objectContaining({ signal: expect.any(AbortSignal) }))
   act(() => result.current.ledger.goToNextPage())
   await waitFor(() => expect(result.current.ledger.isLoading).toBe(false))
-  expect(getPaged).toHaveBeenLastCalledWith('user', expect.objectContaining({ limitCount: 10, lastVisible: expect.objectContaining({ id: 'cursor-10' }) }))
+  expect(getPaged).toHaveBeenLastCalledWith('user', expect.objectContaining({ limitCount: 10, lastVisible: expect.objectContaining({ id: 'cursor-10' }) }), expect.objectContaining({ signal: expect.any(AbortSignal) }))
 })
 
 test('trocar o limite no mesmo consumidor reinicia cursores mesmo ao voltar ao cache fresco', async () => {
@@ -71,7 +71,7 @@ test('trocar o limite no mesmo consumidor reinicia cursores mesmo ao voltar ao c
   expect(result.current.currentPage).toBe(1)
   expect(result.current.hasPreviousPage).toBe(false)
   expect(result.current.transactions[0].id).toMatch(/^10-/)
-  expect(getPaged).toHaveBeenLastCalledWith('user', expect.objectContaining({ limitCount: 10, lastVisible: undefined }))
+  expect(getPaged).toHaveBeenLastCalledWith('user', expect.objectContaining({ limitCount: 10, lastVisible: undefined }), expect.objectContaining({ signal: expect.any(AbortSignal) }))
   act(() => result.current.goToNextPage())
   await waitFor(() => expect(result.current.isLoading).toBe(false))
   expect(result.current.currentPage).toBe(2)
@@ -101,7 +101,7 @@ test.each(['startDate', 'endDate'] as const)('alterar somente %s reinicia a pág
   await waitFor(() => expect(result.current.isLoading).toBe(false))
   expect(result.current.currentPage).toBe(1)
   expect(result.current.hasPreviousPage).toBe(false)
-  expect(getPaged).toHaveBeenLastCalledWith('user', expect.objectContaining({ ...changed, lastVisible: undefined }))
+  expect(getPaged).toHaveBeenLastCalledWith('user', expect.objectContaining({ ...changed, lastVisible: undefined }), expect.objectContaining({ signal: expect.any(AbortSignal) }))
 })
 
 test('digitação rápida consulta apenas o termo final após a pausa', async () => {
@@ -113,7 +113,7 @@ test('digitação rápida consulta apenas o termo final após a pausa', async ()
   expect(getPaged).toHaveBeenCalledTimes(1)
   await waitFor(() => expect(result.current.isLoading).toBe(false))
   expect(getPaged).toHaveBeenCalledTimes(2)
-  expect(getPaged).toHaveBeenLastCalledWith('user', expect.objectContaining({ search: 'alvo' }))
+  expect(getPaged).toHaveBeenLastCalledWith('user', expect.objectContaining({ search: 'alvo' }), expect.objectContaining({ signal: expect.any(AbortSignal) }))
 })
 
 test('alterar o intervalo reinicia a página e consulta dados próprios mesmo com cache fresco', async () => {
@@ -126,7 +126,7 @@ test('alterar o intervalo reinicia a página e consulta dados próprios mesmo co
   rerender({ startDate: new Date(2026, 1, 1), endDate: new Date(2026, 1, 28) })
   await waitFor(() => expect(result.current.isLoading).toBe(false))
   expect(result.current.currentPage).toBe(1)
-  expect(getPaged).toHaveBeenLastCalledWith('user', expect.objectContaining({ startDate: new Date(2026, 1, 1), endDate: new Date(2026, 1, 28), lastVisible: undefined }))
+  expect(getPaged).toHaveBeenLastCalledWith('user', expect.objectContaining({ startDate: new Date(2026, 1, 1), endDate: new Date(2026, 1, 28), lastVisible: undefined }), expect.objectContaining({ signal: expect.any(AbortSignal) }))
   expect(result.current.transactions[0].id).toContain(String(new Date(2026, 1, 1).getTime()))
 })
 
@@ -161,7 +161,7 @@ test.each(['create', 'update', 'delete'] as const)('%s reinicia todas as listas 
   act(() => result.current.ledger.goToNextPage())
   await waitFor(() => expect(result.current.ledger.isLoading).toBe(false))
   expect(result.current.ledger.transactions[0].id).toBe('1-next')
-  expect(getPaged).toHaveBeenLastCalledWith('user', expect.objectContaining({ lastVisible: expect.objectContaining({ generation: 1 }) }))
+  expect(getPaged).toHaveBeenLastCalledWith('user', expect.objectContaining({ lastVisible: expect.objectContaining({ generation: 1 }) }), expect.objectContaining({ signal: expect.any(AbortSignal) }))
 })
 
 test('alteração externa ao hook reinicia a página e preserva o estado de outro usuário', async () => {
@@ -175,7 +175,7 @@ test('alteração externa ao hook reinicia a página e preserva o estado de outr
   await act(async () => { await invalidateTransactionData(client, 'user') })
   await waitFor(() => expect(result.current.isLoading).toBe(false))
   expect(result.current.currentPage).toBe(1)
-  expect(getPaged).toHaveBeenLastCalledWith('user', expect.objectContaining({ lastVisible: undefined }))
+  expect(getPaged).toHaveBeenLastCalledWith('user', expect.objectContaining({ lastVisible: undefined }), expect.objectContaining({ signal: expect.any(AbortSignal) }))
   expect(client.getQueryData(transactionPaginationKey('other'))).toBe(7)
 })
 

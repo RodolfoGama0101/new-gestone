@@ -20,8 +20,10 @@ import {
 import { db } from '@/lib/firebase/config'
 import { Transaction } from '@/types/transaction'
 import type { CreditCard } from '@/types/credit-card'
-import { startOfMonth, endOfMonth, subMonths } from 'date-fns'
-import { filterTransactionPeriod } from '@/lib/utils/transaction-date'
+import { startOfMonth, endOfMonth } from 'date-fns'
+import { getTransactionDate } from '@/lib/utils/transaction-date'
+import { parseFirestoreDate } from '@/lib/utils/parse-date'
+import { CreditCardService } from './credit-card.service'
 import { matchesTransactionSearch, normalizeTransactionSearch } from '@/lib/utils/transaction-search'
 
 // Uma busca lê no máximo 100 candidatos e um documento de lookahead por página.
@@ -36,7 +38,40 @@ export interface GetTransactionsFilters {
   startDate?: Date
   endDate?: Date
   search?: string
+  dateBasis?: 'purchase' | 'competence'
+  minAmount?: number
+  maxAmount?: number
+  modality?: 'all' | 'single' | 'recurring' | 'installment'
   lastVisible?: QueryDocumentSnapshot<DocumentData>
+}
+
+type TransactionQueryOptions = { signal?: AbortSignal; cards?: CreditCard[] }
+
+function throwIfAborted(signal?: AbortSignal) {
+  if (signal?.aborted) throw new DOMException('Consulta cancelada.', 'AbortError')
+}
+
+export function matchesTransactionFilters(transaction: Transaction, filters: GetTransactionsFilters, cards: CreditCard[] = []) {
+  if (filters.type && transaction.type !== filters.type) return false
+  if (filters.categoryId && transaction.categoryId !== filters.categoryId) return false
+  if (filters.creditCardId && transaction.creditCardId !== filters.creditCardId) return false
+  if (!matchesTransactionSearch(transaction.description, filters.search ?? '')) return false
+  if (filters.minAmount != null && transaction.amount < filters.minAmount) return false
+  if (filters.maxAmount != null && transaction.amount > filters.maxAmount) return false
+  const modality = transaction.installmentTotal != null ? 'installment' : transaction.recurring ? 'recurring' : 'single'
+  if (filters.modality && filters.modality !== 'all' && filters.modality !== modality) return false
+  if (filters.startDate || filters.endDate) {
+    const date = filters.dateBasis === 'competence' ? getTransactionDate(transaction, cards) : parseFirestoreDate(transaction.date)
+    if (filters.startDate && date < filters.startDate) return false
+    if (filters.endDate && date > filters.endDate) return false
+  }
+  return true
+}
+
+function checkedAdd(sum: number, amount: number) {
+  const result = sum + amount
+  if (!Number.isSafeInteger(amount) || !Number.isSafeInteger(result)) throw new RangeError('Total em centavos excede o limite seguro.')
+  return result
 }
 
 export const TransactionService = {
@@ -73,8 +108,10 @@ export const TransactionService = {
     if (filters.type) constraints.push(where('type', '==', filters.type))
     if (filters.categoryId) constraints.push(where('categoryId', '==', filters.categoryId))
     if (filters.creditCardId) constraints.push(where('creditCardId', '==', filters.creditCardId))
-    if (filters.startDate) constraints.push(where('date', '>=', Timestamp.fromDate(filters.startDate)))
-    if (filters.endDate) constraints.push(where('date', '<=', Timestamp.fromDate(filters.endDate)))
+    if (filters.dateBasis !== 'competence') {
+      if (filters.startDate) constraints.push(where('date', '>=', Timestamp.fromDate(filters.startDate)))
+      if (filters.endDate) constraints.push(where('date', '<=', Timestamp.fromDate(filters.endDate)))
+    }
 
     constraints.push(orderBy('date', 'desc'))
     // O snapshot inclui o ID usado pelo Firestore para desempatar datas iguais.
@@ -86,54 +123,89 @@ export const TransactionService = {
 
   async getPaged(
     userId: string,
-    filters: GetTransactionsFilters = {}
+    filters: GetTransactionsFilters = {},
+    options: TransactionQueryOptions = {},
   ): Promise<{
     transactions: Transaction[]
     lastVisible: QueryDocumentSnapshot<DocumentData> | null
     hasMore: boolean
   }> {
-    const colRef = this.getCollection(userId)
+    throwIfAborted(options.signal)
+    const cards = filters.dateBasis === 'competence'
+      ? options.cards ?? await CreditCardService.getAll(userId)
+      : []
+    throwIfAborted(options.signal)
     const constraints = this.getQueryConstraints(filters)
 
     const limitVal = filters.limitCount || 20
-    const search = normalizeTransactionSearch(filters.search ?? '')
-    const scanLimit = search ? TRANSACTION_SEARCH_BATCH_SIZE : limitVal
+    const needsScan = Boolean(normalizeTransactionSearch(filters.search ?? '') || filters.dateBasis === 'competence' || filters.minAmount != null || filters.maxAmount != null || (filters.modality && filters.modality !== 'all'))
+    const scanLimit = needsScan ? TRANSACTION_SEARCH_BATCH_SIZE : Math.min(limitVal, TRANSACTION_SEARCH_BATCH_SIZE)
     constraints.push(limit(scanLimit + 1))
 
-    const q = query(colRef, ...constraints)
+    const q = query(this.getCollection(userId), ...constraints)
     const snapshot = await getDocs(q)
+    throwIfAborted(options.signal)
     const candidates = snapshot.docs.slice(0, scanLimit)
-    const pageDocs: QueryDocumentSnapshot<DocumentData>[] = []
+    const transactions: Transaction[] = []
     let scanned = 0
     for (const candidate of candidates) {
       scanned++
-      if (!search || matchesTransactionSearch(candidate.data().description, search)) {
-        pageDocs.push(candidate)
-      }
-      if (pageDocs.length === limitVal) break
+      const transaction = this.toTransaction(candidate)
+      if (matchesTransactionFilters(transaction, filters, cards)) transactions.push(transaction)
+      if (transactions.length === limitVal) break
     }
     const lastVisible = candidates[scanned - 1] ?? null
 
     return {
-      transactions: pageDocs.map((docSnap) => this.toTransaction(docSnap)),
+      transactions,
       lastVisible,
       hasMore: snapshot.docs.length > scanned,
     }
   },
 
-  async getAll(userId: string, filters: Omit<GetTransactionsFilters, 'lastVisible' | 'limitCount'> = {}) {
-    const q = query(this.getCollection(userId), ...this.getQueryConstraints(filters))
-    const snapshot = await getDocs(q)
-    return snapshot.docs
-      .map((docSnap) => this.toTransaction(docSnap))
-      .filter((transaction) => matchesTransactionSearch(transaction.description, filters.search ?? ''))
+  async getAll(userId: string, filters: Omit<GetTransactionsFilters, 'lastVisible' | 'limitCount'> = {}, options: TransactionQueryOptions = {}) {
+    throwIfAborted(options.signal)
+    const cards = filters.dateBasis === 'competence'
+      ? options.cards ?? await CreditCardService.getAll(userId)
+      : []
+    const transactions: Transaction[] = []
+    let cursor: QueryDocumentSnapshot<DocumentData> | undefined
+    do {
+      throwIfAborted(options.signal)
+      const page = await this.getPaged(userId, { ...filters, limitCount: TRANSACTION_SEARCH_BATCH_SIZE, lastVisible: cursor }, { ...options, cards })
+      transactions.push(...page.transactions)
+      if (!page.hasMore) break
+      if (!page.lastVisible) throw new Error('Não foi possível continuar a consulta de lançamentos.')
+      cursor = page.lastVisible
+    } while (true)
+    throwIfAborted(options.signal)
+    return transactions
+  },
+
+  async getTotals(userId: string, filters: Omit<GetTransactionsFilters, 'lastVisible' | 'limitCount'> = {}, options: TransactionQueryOptions = {}) {
+    throwIfAborted(options.signal)
+    const cards = filters.dateBasis === 'competence'
+      ? options.cards ?? await CreditCardService.getAll(userId)
+      : []
+    const totals = { income: 0, expense: 0, investment: 0, count: 0 }
+    let cursor: QueryDocumentSnapshot<DocumentData> | undefined
+    do {
+      throwIfAborted(options.signal)
+      const page = await this.getPaged(userId, { ...filters, limitCount: TRANSACTION_SEARCH_BATCH_SIZE, lastVisible: cursor }, { ...options, cards })
+      for (const transaction of page.transactions) {
+        totals[transaction.type] = checkedAdd(totals[transaction.type], transaction.amount)
+        totals.count = checkedAdd(totals.count, 1)
+      }
+      if (!page.hasMore) break
+      if (!page.lastVisible) throw new Error('Não foi possível continuar a consulta de lançamentos.')
+      cursor = page.lastVisible
+    } while (true)
+    throwIfAborted(options.signal)
+    return totals
   },
 
   async getInvoice(userId: string, card: CreditCard, month: Date) {
-    const start = startOfMonth(month)
-    const end = endOfMonth(month)
-    const purchases = await this.getAll(userId, { creditCardId: card.id, startDate: subMonths(start, 1), endDate: end })
-    return filterTransactionPeriod(purchases.filter((tx) => tx.type === 'expense'), start, end, [card])
+    return this.getAll(userId, { type: 'expense', creditCardId: card.id, dateBasis: 'competence', startDate: startOfMonth(month), endDate: endOfMonth(month) }, { cards: [card] })
   },
 
   async getCardClosingDay(userId: string, cardId: string, preserveExistingLink = false): Promise<number> {

@@ -10,13 +10,13 @@ test('dashboard limita os dois períodos e consulta reservas separadamente', asy
   const get = jest.spyOn(TransactionService, 'getAll').mockResolvedValue([])
   jest.spyOn(CreditCardService, 'getAll').mockResolvedValue([])
   await AnalyticsDataService.getSummary('user', new Date(2026, 8, 1), new Date(2026, 8, 15))
-  expect(get).toHaveBeenCalledWith('user', { startDate: new Date(2026, 6, 1), endDate: new Date(2026, 8, 30, 23, 59, 59, 999) })
-  expect(get).toHaveBeenCalledWith('user', { type: 'expense', startDate: new Date(2026, 8, 1), endDate: new Date(2026, 8, 15, 23, 59, 59, 999) })
+  expect(get).toHaveBeenCalledWith('user', { dateBasis: 'competence', startDate: new Date(2026, 7, 1), endDate: new Date(2026, 8, 30, 23, 59, 59, 999) }, { cards: [], signal: undefined })
+  expect(get).toHaveBeenCalledWith('user', { type: 'expense', startDate: new Date(2026, 8, 1), endDate: new Date(2026, 8, 15, 23, 59, 59, 999) }, { signal: undefined })
 })
-test.each([3, 6, 12])('histórico de %i meses tem início/fim e margem para cartão', async (months) => {
+test.each([3, 6, 12])('histórico de %i meses usa o intervalo de competência', async (months) => {
   const get = jest.spyOn(TransactionService, 'getAll').mockResolvedValue([])
   await AnalyticsDataService.getHistory('user', months, new Date(2026, 8, 15))
-  expect(get).toHaveBeenCalledWith('user', { startDate: new Date(2026, 8 - months, 1), endDate: new Date(2026, 8, 30, 23, 59, 59, 999) })
+  expect(get).toHaveBeenCalledWith('user', { dateBasis: 'competence', startDate: new Date(2026, 9 - months, 1), endDate: new Date(2026, 8, 30, 23, 59, 59, 999) }, { signal: undefined })
 })
 test('lançamento fora do período não altera soma nem distribuição', () => {
   const tx = (month: number) => ({ type: 'expense', amount: 10000, date: new Date(2026, month, 5), categoryId: 'category' } as Transaction)

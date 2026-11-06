@@ -12,7 +12,7 @@ import { TransactionService } from './transaction.service'
 import { CreditCardService } from './credit-card.service'
 import { budgetProgress } from '@/lib/utils/budget'
 import { parsePeriodDate } from '@/lib/utils/transaction-period'
-import { endOfMonth, startOfMonth, subMonths } from 'date-fns'
+import { endOfMonth, startOfMonth } from 'date-fns'
 
 export type BudgetLimit = { categoryId: string; name: string; amount: number }
 function monthDate(month: string) {
@@ -25,16 +25,17 @@ function amountIsValid(amount: number) {
     throw new Error('Informe centavos positivos dentro do limite permitido.')
 }
 export const BudgetService = {
-  async get(userId: string, month: string) {
+  async get(userId: string, month: string, signal?: AbortSignal) {
     const date = monthDate(month)
     const root = doc(db, 'users', userId, 'budgets', month)
     const [goal, limits, transactions, cards] = await Promise.all([
       getDoc(root),
       getDocs(collection(root, 'limits')),
       TransactionService.getAll(userId, {
-        startDate: subMonths(startOfMonth(date), 2),
+        dateBasis: 'competence',
+        startDate: startOfMonth(date),
         endDate: endOfMonth(date),
-      }),
+      }, { signal }),
       CreditCardService.getAll(userId),
     ])
     return {

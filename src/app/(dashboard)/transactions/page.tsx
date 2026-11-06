@@ -9,6 +9,9 @@ import { LoadError } from '@/components/shared/load-error'
 import * as React from 'react'
 import { useQueryState } from 'nuqs'
 import { useTransactions } from '@/hooks/use-transactions'
+import { useTransactionTotals } from '@/hooks/use-transaction-totals'
+import { formatMoney } from '@/lib/utils/format-money'
+import type { GetTransactionsFilters } from '@/services/transaction.service'
 import { useCategories } from '@/hooks/use-categories'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -51,12 +54,21 @@ export default function TransactionsPage() {
   const [start] = useQueryState('startDate', { defaultValue: '' })
   const [end] = useQueryState('endDate', { defaultValue: '' })
   const [creditCardId] = useQueryState('creditCardId', { defaultValue: '' })
+  const [dateBasis] = useQueryState('dateBasis', { defaultValue: 'competence' })
   const period = transactionPeriod(start, end)
   const periodFilters = {
+    dateBasis: dateBasis === 'purchase' ? 'purchase' as const : 'competence' as const,
     startDate: period.startDate,
     endDate: period.endDate,
     creditCardId: creditCardId || undefined,
   }
+  const criteria: Omit<GetTransactionsFilters, 'lastVisible' | 'limitCount'> = {
+    ...periodFilters,
+    search,
+    type: type === 'income' || type === 'expense' || type === 'investment' ? type : undefined,
+    categoryId: categoryId || undefined,
+  }
+  const totalsQuery = useTransactionTotals(criteria, !period.error)
 
   const {
     transactions,
@@ -72,14 +84,8 @@ export default function TransactionsPage() {
     isFetching,
   } = useTransactions(
     {
-      ...periodFilters,
+      ...criteria,
       limitCount: 10,
-      search,
-      type:
-        type === 'income' || type === 'expense' || type === 'investment'
-          ? type
-          : undefined,
-      categoryId: categoryId || undefined,
     },
     !period.error,
   )
@@ -148,6 +154,23 @@ export default function TransactionsPage() {
       />
 
       {!period.error && (
+        <section aria-label="Totais dos resultados filtrados" className="border-border rounded-md border px-6 py-5">
+          <h2 className="text-sm font-medium">Totais dos resultados filtrados</h2>
+          {totalsQuery.isFetching ? (
+            <p role="status" className="text-muted-foreground mt-2 text-sm">Calculando totais…</p>
+          ) : totalsQuery.isError ? (
+            <p role="alert" className="mt-2 text-sm">Não foi possível calcular os totais. <Button variant="outline" size="sm" onClick={() => totalsQuery.refetch()}>Tentar novamente</Button></p>
+          ) : totalsQuery.data && (
+            <div className="mt-2 flex flex-wrap gap-x-6 gap-y-2 text-sm tabular-nums">
+              <span>Receitas: {formatMoney(totalsQuery.data.income)}</span>
+              <span>Despesas: {formatMoney(totalsQuery.data.expense)}</span>
+              <span>Investimentos: {formatMoney(totalsQuery.data.investment)}</span>
+              <span>{totalsQuery.data.count} lançamentos</span>
+            </div>
+          )}
+        </section>
+      )}
+      {!period.error && (
         <TransactionPageSummary
           transactions={transactions}
           isLoading={isLoading}
@@ -201,14 +224,7 @@ export default function TransactionsPage() {
         <CsvImportButton />
         <CsvExportButton
           disabled={!!period.error}
-          filters={{
-            ...periodFilters,
-            type:
-              type === 'income' || type === 'expense' || type === 'investment'
-                ? type
-                : undefined,
-            categoryId: categoryId || undefined,
-          }}
+          filters={criteria}
           search={search}
         />
       </div>

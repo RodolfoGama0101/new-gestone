@@ -8,7 +8,7 @@ export function useBudget(month: string) {
   const uid = user?.uid || ''
   const query = useQuery({
     queryKey: ['budgets', uid, month],
-    queryFn: () => BudgetService.get(uid, month),
+    queryFn: ({ signal }) => BudgetService.get(uid, month, signal),
     enabled: !!uid && /^\d{4}-(0[1-9]|1[0-2])$/.test(month),
   })
   const mutation = useMutation({

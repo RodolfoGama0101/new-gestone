@@ -31,7 +31,8 @@ export function useTransactions(filters: Omit<GetTransactionsFilters, 'lastVisib
   const filtersKey = JSON.stringify([
     userId, filters.type ?? null, filters.categoryId ?? null,
     filters.creditCardId ?? null, filters.startDate?.getTime() ?? null,
-    filters.endDate?.getTime() ?? null, limitVal, search, revision,
+    filters.endDate?.getTime() ?? null, filters.dateBasis ?? null,
+    filters.minAmount ?? null, filters.maxAmount ?? null, filters.modality ?? null, limitVal, search, revision,
   ])
   const [pagination, dispatchPagination] = React.useReducer(
     (
@@ -70,13 +71,13 @@ export function useTransactions(filters: Omit<GetTransactionsFilters, 'lastVisib
 
   const transactionsQuery = useQuery({
     queryKey: ['transactions', userId, filtersKey, currentPage, pageCursors[currentPage]?.id ?? null],
-    queryFn: () =>
+    queryFn: ({ signal }) =>
       TransactionService.getPaged(userId, {
         ...filters,
         search,
         limitCount: limitVal,
         lastVisible: pageCursors[currentPage] ?? undefined,
-      }),
+      }, { signal }),
     enabled: enabled && !!userId && search === settledSearch,
   })
 

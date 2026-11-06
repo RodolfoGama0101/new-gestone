@@ -4,21 +4,22 @@ import { CreditCardService } from './credit-card.service'
 import { AnalyticsService } from './analytics.service'
 
 export const AnalyticsDataService = {
-  async getSummary(userId: string, month: Date, reference: Date) {
+  async getSummary(userId: string, month: Date, reference: Date, signal?: AbortSignal) {
     const start = startOfMonth(month)
     const end = endOfMonth(month)
     const cutoff = new Date(Math.min(endOfDay(reference).getTime(), end.getTime()))
-    const [transactions, cards, reservations] = await Promise.all([
-      TransactionService.getAll(userId, { startDate: subMonths(start, 2), endDate: end }),
-      CreditCardService.getAll(userId),
-      cutoff < start ? Promise.resolve([]) : TransactionService.getAll(userId, { type: 'expense', startDate: start, endDate: cutoff }),
+    const cards = await CreditCardService.getAll(userId)
+    const [transactions, reservations] = await Promise.all([
+      TransactionService.getAll(userId, { dateBasis: 'competence', startDate: subMonths(start, 1), endDate: end }, { cards, signal }),
+      cutoff < start ? Promise.resolve([]) : TransactionService.getAll(userId, { type: 'expense', startDate: start, endDate: cutoff }, { signal }),
     ])
     return AnalyticsService.calculateSummary(transactions, month, cards, reference, reservations)
   },
-  getHistory(userId: string, months: number, reference: Date) {
+  getHistory(userId: string, months: number, reference: Date, signal?: AbortSignal) {
     return TransactionService.getAll(userId, {
-      startDate: subMonths(startOfMonth(reference), months),
+      dateBasis: 'competence',
+      startDate: subMonths(startOfMonth(reference), months - 1),
       endDate: endOfMonth(reference),
-    })
+    }, { signal })
   },
 }
