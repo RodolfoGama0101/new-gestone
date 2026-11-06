@@ -15,25 +15,31 @@ jest.mock('recharts', () => ({
   AreaChart: () => null,
 }))
 
-it('expõe todas as 20 categorias, valores e percentuais sem hover', () => {
-  const data = Array.from({ length: 20 }, (_, i) => ({
-    name: `Categoria longa ${i} com descrição completa`,
-    value: 101,
-    color: '#777777',
-  }))
-  render(<CategoryDonutChart data={data} />)
-  const list = screen.getByRole('list', { name: 'Despesas por categoria' })
-  expect(within(list).getAllByRole('listitem')).toHaveLength(20)
-  for (const entry of data)
-    expect(within(list).getByText(entry.name)).toBeVisible()
-  expect(within(list).getAllByText('5%')).toHaveLength(20)
-  expect(
-    within(list).getAllByText(formatMoney(101).replaceAll('\u00a0', ' ')),
-  ).toHaveLength(20)
-  expect(
-    screen.getByText(formatMoney(2020).replaceAll('\u00a0', ' ')),
-  ).toBeVisible()
-})
+it.each(['expense', 'income'] as const)(
+  'expõe todas as 20 categorias, valores e percentuais de %s sem hover',
+  (type) => {
+    const data = Array.from({ length: 20 }, (_, i) => ({
+      name: `Categoria longa ${i} com descrição completa`,
+      value: 101,
+      color: '#777777',
+    }))
+    render(<CategoryDonutChart data={data} type={type} />)
+    const list = screen.getByRole('list', {
+      name:
+        type === 'income' ? 'Receitas por categoria' : 'Despesas por categoria',
+    })
+    expect(within(list).getAllByRole('listitem')).toHaveLength(20)
+    for (const entry of data)
+      expect(within(list).getByText(entry.name)).toBeVisible()
+    expect(within(list).getAllByText('5%')).toHaveLength(20)
+    expect(
+      within(list).getAllByText(formatMoney(101).replaceAll('\u00a0', ' ')),
+    ).toHaveLength(20)
+    expect(
+      screen.getByText(formatMoney(2020).replaceAll('\u00a0', ' ')),
+    ).toBeVisible()
+  },
+)
 
 it('expõe as séries e o saldo acumulado a partir dos mesmos centavos dos gráficos', () => {
   const data = [
@@ -68,21 +74,39 @@ it('mantém estados vazios sem dados inventados', () => {
   expect(screen.queryByRole('list')).not.toBeInTheDocument()
 })
 
-it('apresenta aportes com centavos, categoria única e estado vazio', () => {
-  const { rerender } = render(
-    <CategoryDonutChart
-      type="investment"
-      data={[{ name: 'Reserva', value: 101, color: '#777' }]}
-      description="Resultados filtrados · janeiro"
-    />,
-  )
-  expect(screen.getByText('Resultados filtrados · janeiro')).toBeVisible()
-  const list = screen.getByRole('list', { name: 'Aportes por categoria' })
-  expect(within(list).getByText('Reserva')).toBeVisible()
-  expect(within(list).getByText('100%')).toBeVisible()
-  expect(
-    within(list).getByText(formatMoney(101).replaceAll('\u00a0', ' ')),
-  ).toBeVisible()
-  rerender(<CategoryDonutChart type="investment" data={[]} />)
-  expect(screen.getByText('Sem aportes no período selecionado.')).toBeVisible()
-})
+it.each(['investment', 'income'] as const)(
+  'apresenta %s com centavos, categoria única e estado vazio',
+  (type) => {
+    const { rerender } = render(
+      <CategoryDonutChart
+        type={type}
+        data={[{ name: 'Reserva', value: 101, color: '#777' }]}
+        description="Resultados filtrados · janeiro"
+      />,
+    )
+    expect(screen.getByText('Resultados filtrados · janeiro')).toBeVisible()
+    const list = screen.getByRole('list', {
+      name:
+        type === 'income' ? 'Receitas por categoria' : 'Aportes por categoria',
+    })
+    expect(within(list).getByText('Reserva')).toBeVisible()
+    expect(within(list).getByText('100%')).toBeVisible()
+    expect(
+      within(list).getByText(formatMoney(101).replaceAll('\u00a0', ' ')),
+    ).toBeVisible()
+    const empty =
+      type === 'income'
+        ? 'Sem receitas no período selecionado.'
+        : 'Sem aportes no período selecionado.'
+    rerender(<CategoryDonutChart type={type} data={[]} />)
+    expect(screen.getByText(empty)).toBeVisible()
+    rerender(
+      <CategoryDonutChart
+        type={type}
+        data={[{ name: 'Zero', value: 0, color: '#777' }]}
+      />,
+    )
+    expect(screen.getByText(empty)).toBeVisible()
+    expect(screen.queryByRole('list')).not.toBeInTheDocument()
+  },
+)

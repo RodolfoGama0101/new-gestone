@@ -16,12 +16,14 @@ import { LoadError } from '@/components/shared/load-error'
 
 type Criteria = Omit<GetTransactionsFilters, 'lastVisible' | 'limitCount'>
 
-export function InvestmentDistribution({
+export function TransactionDistribution({
   criteria,
   valid,
+  type,
 }: {
   criteria: Criteria
   valid: boolean
+  type: 'income' | 'investment'
 }) {
   const { user } = useAuth()
   const {
@@ -36,7 +38,7 @@ export function InvestmentDistribution({
     const timeout = setTimeout(() => setSettledSearch(search), 300)
     return () => clearTimeout(timeout)
   }, [search])
-  const filters = { ...criteria, search }
+  const filters = { ...criteria, type, search }
   const query = useQuery({
     queryKey: ['transactionDistribution', user?.uid, filters],
     queryFn: async ({ signal }) => {
@@ -63,7 +65,13 @@ export function InvestmentDistribution({
     search !== settledSearch ||
     categoriesLoading
   )
-    return <p role="status">Calculando distribuição dos aportes…</p>
+    return (
+      <p role="status">
+        {type === 'income'
+          ? 'Calculando distribuição das receitas…'
+          : 'Calculando distribuição dos aportes…'}
+      </p>
+    )
   if (query.error || categoriesError)
     return (
       <LoadError
@@ -82,11 +90,11 @@ export function InvestmentDistribution({
     criteria.dateBasis === 'purchase' ? 'data da compra' : 'competência'
   return (
     <CategoryDonutChart
-      type="investment"
+      type={type}
       data={AnalyticsHelper.getCategoryShare(
         query.data ?? [],
         categories,
-        'investment',
+        type,
       )}
       description={`Resultados filtrados · ${start} a ${end} · ${basis}`}
     />

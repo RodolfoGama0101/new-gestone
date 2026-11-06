@@ -75,14 +75,39 @@ describe('AnalyticsHelper', () => {
   })
 })
 
-test('agrupa aportes em centavos e preserva categorias arquivadas e indisponíveis', () => {
-  const tx = (categoryId: string, amount: number) => ({ type: 'investment', categoryId, amount }) as Transaction
-  const archived = { id: 'old', name: 'Antiga', archived: true, color: '#777' } as Category
-  const shares = AnalyticsHelper.getCategoryShare([tx('old', 101), tx('old', 2), tx('missing', 7)], [archived], 'investment')
-  expect(shares.map(({ name, value }) => ({ name, value }))).toEqual([
-    { name: 'Antiga (arquivada)', value: 103 },
-    { name: 'Categoria indisponível', value: 7 },
-  ])
-  expect(AnalyticsHelper.getCategoryShare([], [], 'investment')).toEqual([])
-  expect(() => AnalyticsHelper.getCategoryShare([tx('old', Number.MAX_SAFE_INTEGER), tx('old', 1)], [archived], 'investment')).toThrow(RangeError)
-})
+test.each(['investment', 'income'] as const)(
+  'agrupa %s em centavos e preserva categorias arquivadas e indisponíveis',
+  (type) => {
+    const tx = (categoryId: string, amount: number) =>
+      ({ type, categoryId, amount }) as Transaction
+    const archived = {
+      id: 'old',
+      name: 'Antiga',
+      archived: true,
+      color: '#777',
+    } as Category
+    const shares = AnalyticsHelper.getCategoryShare(
+      [
+        tx('old', 101),
+        tx('old', 2),
+        tx('missing', 7),
+        { ...tx('old', 999), type: 'expense' },
+      ],
+      [archived],
+      type,
+    )
+    expect(shares.map(({ name, value }) => ({ name, value }))).toEqual([
+      { name: 'Antiga (arquivada)', value: 103 },
+      { name: 'Categoria indisponível', value: 7 },
+    ])
+    expect(shares.reduce((sum, item) => sum + item.value, 0)).toBe(110)
+    expect(AnalyticsHelper.getCategoryShare([], [], type)).toEqual([])
+    expect(() =>
+      AnalyticsHelper.getCategoryShare(
+        [tx('old', Number.MAX_SAFE_INTEGER), tx('old', 1)],
+        [archived],
+        type,
+      ),
+    ).toThrow(RangeError)
+  },
+)

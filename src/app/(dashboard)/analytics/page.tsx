@@ -94,7 +94,13 @@ export default function AnalyticsPage() {
   }, [transactions, categories])
 
   const investmentData = React.useMemo(
-    () => AnalyticsHelper.getCategoryShare(transactions, categories, 'investment'),
+    () =>
+      AnalyticsHelper.getCategoryShare(transactions, categories, 'investment'),
+    [transactions, categories],
+  )
+
+  const incomeData = React.useMemo(
+    () => AnalyticsHelper.getCategoryShare(transactions, categories, 'income'),
     [transactions, categories],
   )
 
@@ -182,6 +188,11 @@ export default function AnalyticsPage() {
         <div className="space-y-6">
           <ReportSummary data={monthlyHistory} />
           <CategoryDonutChart data={investmentData} type="investment" />
+          <CategoryDonutChart
+            data={incomeData}
+            type="income"
+            description={`Receitas por competência · ${format(startDate, 'dd/MM/yyyy')} a ${format(endOfMonth(referenceDate), 'dd/MM/yyyy')}`}
+          />
           <div className="grid min-w-0 grid-cols-1 gap-6">
             {/* Fluxo de Caixa — ocupa toda a largura */}
             <div className="min-w-0">

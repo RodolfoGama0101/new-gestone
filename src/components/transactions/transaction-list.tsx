@@ -21,7 +21,7 @@ import { EmptyState } from '@/components/shared/empty-state'
 import { TransactionForm } from '@/components/transactions/transaction-form'
 import { TransactionNavigation } from '@/components/transactions/transaction-navigation'
 import { TransactionPageSummary } from '@/components/transactions/transaction-page-summary'
-import { InvestmentDistribution } from '@/components/transactions/investment-distribution'
+import { TransactionDistribution } from '@/components/transactions/transaction-distribution'
 import { TransactionTable } from '@/components/transactions/transaction-table'
 import { PageHeader } from '@/components/shared/page-header'
 import { Transaction } from '@/types/transaction'
@@ -188,8 +188,12 @@ export function TransactionList({
       />
       <TransactionNavigation />
       <TransactionFilters fixedType={type} />
-      {type === 'investment' && (
-        <InvestmentDistribution criteria={criteria} valid={valid} />
+      {(type === 'investment' || type === 'income') && (
+        <TransactionDistribution
+          criteria={criteria}
+          valid={valid}
+          type={type}
+        />
       )}
       {/* Lista de transações */}
       {!valid ? (
