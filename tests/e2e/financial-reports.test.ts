@@ -240,6 +240,7 @@ test('relatórios integram períodos, filtros, comparação, metas por mês, det
   }
   await page.getByRole('button', { name: '1 mês', exact: true }).click()
   await expect(metric('Receitas no período')).toContainText('1.000,00')
+  await page.getByRole('button', { name: /^Filtros de busca/ }).click()
   await page
     .getByRole('combobox', { name: 'Critério de data', exact: true })
     .click()

@@ -1,5 +1,9 @@
 # Período e cartão no extrato — ROD-121
 
+O painel começa recolhido. O botão Filtros de busca abre e fecha os campos
+e informa quantos filtros estão ativos. Recolher o painel mantém os critérios
+aplicados aos resultados.
+
 A busca e os campos de tipo, categoria e cartão ficam em Lançamentos. O
 critério de data, as duas datas e os atalhos ficam juntos em Período. Valores
 e modalidade ficam em Filtros avançados. O cabeçalho oferece Limpar filtros

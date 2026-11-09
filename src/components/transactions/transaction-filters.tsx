@@ -1,7 +1,7 @@
 'use client'
 
 import { endOfMonth, format, startOfMonth, subMonths } from 'date-fns'
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { ChevronDown, Search, SlidersHorizontal, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -34,6 +34,8 @@ export function TransactionFilters({
 }) {
   const { values, setValues, month, criteria, periodError, amountError } =
     useTransactionFilters(fixedType, reportPeriod)
+  const panelId = useId()
+  const [filtersOpen, setFiltersOpen] = useState(false)
   const [advancedOpen, setAdvancedOpen] = useState(
     () => !!values.minAmount || !!values.maxAmount || !!values.modality,
   )
@@ -127,13 +129,35 @@ export function TransactionFilters({
       aria-label="Filtros de busca"
       className="border-border bg-card min-w-0 rounded-lg border"
     >
-      <div className="border-border bg-muted flex flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-t-lg border-b px-4 py-2 min-[601px]:px-5">
-        <h2 className="flex min-h-11 items-center gap-2.5 text-base font-semibold tracking-tight">
-          <SlidersHorizontal
-            className="text-muted-foreground size-4 shrink-0"
-            aria-hidden="true"
-          />
-          Filtros de busca
+      <div className="bg-muted flex flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-lg px-4 py-2 min-[601px]:px-5">
+        <h2 className="min-w-0">
+          <Button
+            type="button"
+            variant="ghost"
+            aria-expanded={filtersOpen}
+            aria-controls={panelId}
+            onClick={() => setFiltersOpen((open) => !open)}
+            className="group h-auto min-h-11 max-w-full flex-wrap gap-2.5 px-2 text-left text-base font-semibold whitespace-normal"
+          >
+            <SlidersHorizontal
+              className="text-muted-foreground size-4 shrink-0"
+              aria-hidden="true"
+            />
+            Filtros de busca
+            {active.length > 0 && (
+              <span className="bg-chart-soft text-link rounded-full px-2 py-0.5 text-xs">
+                {active.length}
+                <span className="sr-only">
+                  {' '}
+                  {active.length === 1 ? 'filtro ativo' : 'filtros ativos'}
+                </span>
+              </span>
+            )}
+            <ChevronDown
+              aria-hidden="true"
+              className="text-muted-foreground size-4 shrink-0 transition-transform group-aria-expanded:rotate-180"
+            />
+          </Button>
         </h2>
         {active.length > 0 && (
           <Button
@@ -158,7 +182,11 @@ export function TransactionFilters({
           </Button>
         )}
       </div>
-      <div className="space-y-5 p-4 min-[601px]:p-5">
+      <div
+        id={panelId}
+        hidden={!filtersOpen}
+        className="border-border space-y-5 border-t p-4 min-[601px]:p-5"
+      >
         <fieldset className="@container min-w-0">
           <legend className="text-muted-foreground mb-3 text-xs font-medium">
             Lançamentos
