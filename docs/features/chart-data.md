@@ -1,5 +1,17 @@
 # Dados textuais dos gráficos
 
+Nas listas de receitas, despesas e investimentos, a tabela e a paginação
+precedem a distribuição. A rosca acompanha o total do recorte e o ranking
+associa cada categoria ao seu valor, percentual e barra. As despesas usam
+a mesma consulta completa por filtro das outras listas, com cancelamento
+quando os critérios mudam e cache por usuário. A paginação da tabela
+continua independente da distribuição.
+
+Nos relatórios, o fluxo de caixa e o resultado acumulado mostram a unidade
+em reais junto ao eixo. Os meses usam rótulos compactos no gráfico e ano
+completo nos detalhes. O resultado do período tem destaque no resumo e os
+dados por período seguem disponíveis pelo teclado.
+
 Gastos por Categoria mostra a lista integral de categorias, valores em BRL e percentuais calculados sobre os mesmos centavos enviados ao gráfico. O total está visível. Nomes não são abreviados; a lista cresce com as categorias em vez de depender de uma legenda de altura fixa.
 
 Fluxo de Caixa e Evolução de Saldo oferecem “Ver dados por período”, um controle nativo `details/summary` acessível por teclado. O primeiro expõe receitas, despesas e investimentos por mês; o segundo mostra o saldo acumulado de cada mês. As listas usam os mesmos objetos `MonthlySummary` das séries, sem recalcular o saldo.

@@ -23,7 +23,7 @@ export function TransactionDistribution({
 }: {
   criteria: Criteria
   valid: boolean
-  type: 'income' | 'investment'
+  type: 'income' | 'expense' | 'investment'
 }) {
   const { user } = useAuth()
   const {
@@ -65,13 +65,7 @@ export function TransactionDistribution({
     search !== settledSearch ||
     categoriesLoading
   )
-    return (
-      <p role="status">
-        {type === 'income'
-          ? 'Calculando distribuição das receitas…'
-          : 'Calculando distribuição dos aportes…'}
-      </p>
-    )
+    return <p role="status">Calculando distribuição por categoria…</p>
   if (query.error || categoriesError)
     return (
       <LoadError

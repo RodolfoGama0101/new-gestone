@@ -188,13 +188,6 @@ export function TransactionList({
         type={type}
       />
       <TransactionFilters fixedType={type} />
-      {(type === 'investment' || type === 'income') && (
-        <TransactionDistribution
-          criteria={criteria}
-          valid={valid}
-          type={type}
-        />
-      )}
       {/* Lista de transações */}
       {!valid ? (
         <p role="alert">Corrija os filtros para consultar os lançamentos.</p>
@@ -224,11 +217,13 @@ export function TransactionList({
       ) : (
         <div className="space-y-4">
           <Card>
-            <p className="sr-only">
-              {listTitle}. {listDescription}
-            </p>
+            <div className="border-border flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-b px-4 py-3 min-[601px]:px-5">
+              <h2 className="font-semibold tracking-tight">{listTitle}</h2>
+              <p className="text-muted-foreground text-xs">{transactions.length} nesta página</p>
+            </div>
             <CardContent className="p-0">
               <TransactionTable
+                label={listDescription}
                 showCardCompetence
                 creditCards={creditCards}
                 transactions={transactions}
@@ -278,6 +273,8 @@ export function TransactionList({
           </Button>
         </div>
       )}
+
+      <TransactionDistribution criteria={criteria} valid={valid} type={type} />
 
       {/* Modal de Edição */}
       <Dialog

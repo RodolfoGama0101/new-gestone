@@ -2,6 +2,7 @@
 
 import type { MonthlySummary } from '@/lib/utils/analytics-helper'
 import { formatMoney } from '@/lib/utils/format-money'
+import { formatChartMonth } from './chart-format'
 
 export function MonthlyChartData({
   data,
@@ -11,15 +12,17 @@ export function MonthlyChartData({
   balanceOnly?: boolean
 }) {
   return (
-    <details className="mt-4 text-sm">
-      <summary className="focus-visible:outline-ring min-h-11 cursor-pointer rounded-md py-3 font-medium focus-visible:outline-2">
+    <details className="border-border @container mt-4 border-t pt-2 text-sm">
+      <summary className="hover:bg-muted focus-visible:outline-ring min-h-11 cursor-pointer rounded-md px-2 py-3 font-medium focus-visible:outline-2">
         Ver dados por período
       </summary>
       <ul className="divide-border divide-y">
         {data.map((month, index) => (
           <li key={index} className="py-3">
-            <h4 className="font-medium">{month.monthLabel}</h4>
-            <dl className="mt-2 grid gap-2">
+            <p className="font-medium">
+              {formatChartMonth(month.monthLabel, true)}
+            </p>
+            <dl className="mt-2 grid gap-2 @min-[30rem]:grid-cols-[repeat(auto-fit,minmax(8rem,1fr))]">
               {(balanceOnly
                 ? ([['Resultado acumulado do período', month.balance]] as const)
                 : ([
@@ -30,10 +33,10 @@ export function MonthlyChartData({
               ).map(([label, value]) => (
                 <div
                   key={label}
-                  className="flex flex-wrap justify-between gap-x-4 gap-y-1"
+                  className="flex min-w-0 flex-wrap justify-between gap-x-4 gap-y-1 @min-[30rem]:block"
                 >
-                  <dt>{label}</dt>
-                  <dd className="font-mono break-all tabular-nums">
+                  <dt className="text-muted-foreground text-xs">{label}</dt>
+                  <dd className="font-medium [overflow-wrap:anywhere] tabular-nums">
                     {formatMoney(value)}
                   </dd>
                 </div>

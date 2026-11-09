@@ -161,9 +161,9 @@ test('cadastro, CRUD, busca, CSV, login e exclusão segura de conta', async ({
     (await db.doc(`users/${uid}/categories/${linked}`).get()).data()?.archived,
   ).toBe(true)
   await page.goto('/transactions')
-  await page.getByPlaceholder('Buscar por descrição...').fill('não existe')
+  await page.getByRole('textbox', { name: 'Buscar por descrição' }).fill('não existe')
   await expect(page.getByText('Nenhum lançamento encontrado')).toBeVisible()
-  await page.getByPlaceholder('Buscar por descrição...').fill('Compra editada')
+  await page.getByRole('textbox', { name: 'Buscar por descrição' }).fill('Compra editada')
   await expect(
     page.getByText('Compra editada E2E', { exact: true }),
   ).toBeVisible()
@@ -550,7 +550,7 @@ test('busca global do extrato, reinício da página, CSV e continuação de busc
   await initial.commit()
   await page.goto('/transactions')
   await expect(page.getByText('Registro 01', { exact: true })).toBeVisible()
-  const search = page.getByPlaceholder('Buscar por descrição...')
+  const search = page.getByRole('textbox', { name: 'Buscar por descrição' })
   await search.fill('  EXCLUSIVA árvore  ')
   await expect(page.getByText('Compra exclusiva ÁRVORE', { exact: true })).toBeVisible()
   await expect(page.getByText('Registro 01', { exact: true })).not.toBeVisible()

@@ -1,5 +1,11 @@
 # Período e cartão no extrato — ROD-121
 
+A busca e os campos de tipo, categoria e cartão ficam em Lançamentos. O
+critério de data, as duas datas e os atalhos ficam juntos em Período. Valores
+e modalidade ficam em Filtros avançados. O cabeçalho oferece Limpar filtros
+quando há critérios ativos, e cada filtro ativo também pode ser removido
+individualmente.
+
 O extrato persiste busca, tipo, categoria, `startDate`, `endDate` e `creditCardId` na URL. Datas civis são interpretadas no fuso local, do início do primeiro dia ao último milissegundo do último dia. Se ambos os campos estiverem ausentes, usa-se o mês de trabalho; em um intervalo personalizado, um campo ausente deixa esse lado aberto. Datas inexistentes e intervalos invertidos exibem erro junto aos campos e impedem consulta e exportação.
 
 Os atalhos selecionam este mês ou o mês anterior como intervalo personalizado. Na ausência de intervalo personalizado, o extrato usa o mês de trabalho compartilhado. Limpar filtros retorna a esse mês e remove o cartão. Trocar o mês de trabalho remove o intervalo personalizado. Listagem e CSV recebem o mesmo objeto de filtros; o CSV inclui todas as páginas. Qualquer alteração reinicia os cursores da paginação. Cartões arquivados continuam disponíveis para consultar o histórico.

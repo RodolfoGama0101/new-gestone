@@ -22,6 +22,7 @@ import type { MonthlySummary } from '@/lib/utils/analytics-helper'
 import { formatMoney } from '@/lib/utils/format-money'
 import { MonthlyChartData } from './monthly-chart-data'
 import { GeistChartTooltip } from './geist-chart-tooltip'
+import { formatChartAmount, formatChartMonth } from './chart-format'
 
 const SERIES = [
   { key: 'income', label: 'Receitas', color: 'var(--income)' },
@@ -38,8 +39,10 @@ export function CashFlowBarChart({ data }: { data: MonthlySummary[] }) {
   const visibleCount = Object.values(visible).filter(Boolean).length
   return (
     <Card className="h-full min-w-0">
-      <CardHeader>
-        <CardTitle>Fluxo de Caixa</CardTitle>
+      <CardHeader className="px-4 py-4 min-[601px]:px-6">
+        <CardTitle className="text-lg font-semibold tracking-tight">
+          Fluxo de Caixa
+        </CardTitle>
         <CardDescription>
           Receitas, despesas e investimentos, mês a mês.
         </CardDescription>
@@ -54,7 +57,7 @@ export function CashFlowBarChart({ data }: { data: MonthlySummary[] }) {
             <div
               role="group"
               aria-label="Séries do fluxo de caixa"
-              className="mb-6 flex flex-wrap gap-2"
+              className="mb-4 flex flex-wrap gap-2"
             >
               {SERIES.map(({ key, label, color }) => (
                 <button
@@ -68,7 +71,7 @@ export function CashFlowBarChart({ data }: { data: MonthlySummary[] }) {
                       [key]: !current[key],
                     }))
                   }
-                  className="hover:bg-muted focus-visible:ring-ring aria-pressed:border-foreground/30 aria-pressed:bg-muted flex min-h-10 max-w-full min-w-0 items-center gap-2 rounded-md border px-3 text-left text-xs font-medium [overflow-wrap:anywhere] whitespace-normal transition-colors outline-none focus-visible:ring-2 disabled:cursor-default"
+                  className="hover:bg-accent focus-visible:ring-ring aria-pressed:bg-muted aria-pressed:text-foreground text-muted-foreground flex min-h-11 max-w-full min-w-0 items-center gap-2 rounded-md border px-3 text-left text-sm font-medium [overflow-wrap:anywhere] whitespace-normal transition-colors outline-none focus-visible:ring-2 disabled:cursor-default"
                 >
                   <span
                     className="flex size-4 items-center justify-center rounded-sm border"
@@ -88,71 +91,71 @@ export function CashFlowBarChart({ data }: { data: MonthlySummary[] }) {
                 </button>
               ))}
             </div>
-            <div
-              className="h-72 min-w-0 sm:h-80"
-              aria-hidden="true"
-              data-slot="cash-flow-plot"
-            >
-              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                <BarChart
-                  data={data}
-                  accessibilityLayer={false}
-                  barCategoryGap="24%"
-                  barGap={3}
-                  margin={{ top: 12, right: 4, left: 0, bottom: 0 }}
-                >
-                  <CartesianGrid
-                    vertical={false}
-                    stroke="var(--border)"
-                    strokeDasharray="3 5"
-                  />
-                  <XAxis
-                    dataKey="monthLabel"
-                    stroke="var(--muted-foreground)"
-                    fontSize={12}
-                    tickMargin={12}
-                    minTickGap={18}
-                    tickLine={false}
-                    axisLine={false}
-                  />
-                  <YAxis
-                    width={52}
-                    stroke="var(--muted-foreground)"
-                    fontSize={12}
-                    tickLine={false}
-                    axisLine={false}
-                    tickCount={5}
-                    tickFormatter={(value: number) =>
-                      (value / 100).toLocaleString('pt-BR', {
-                        notation: 'compact',
-                        maximumFractionDigits: 1,
-                      })
-                    }
-                  />
-                  <Tooltip
-                    cursor={{ fill: 'var(--muted)', opacity: 0.7 }}
-                    content={<GeistChartTooltip valueFormatter={formatMoney} />}
-                  />
-                  {SERIES.map(
-                    ({ key, label, color }) =>
-                      visible[key] && (
-                        <Bar
-                          key={key}
-                          dataKey={key}
-                          name={label}
-                          fill={color}
-                          radius={[4, 4, 0, 0]}
-                          maxBarSize={32}
-                          isAnimationActive={false}
+            <div className="border-border bg-muted/60 rounded-lg border px-2 pt-3 min-[601px]:px-4">
+              <p className="text-muted-foreground px-2 text-xs font-medium">
+                Valores em R$
+              </p>
+              <div
+                className="h-60 min-w-0 min-[601px]:h-72"
+                aria-hidden="true"
+                data-slot="cash-flow-plot"
+              >
+                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                  <BarChart
+                    data={data}
+                    accessibilityLayer={false}
+                    barCategoryGap="21%"
+                    barGap={4}
+                    margin={{ top: 12, right: 8, left: 0, bottom: 4 }}
+                  >
+                    <CartesianGrid vertical={false} stroke="var(--border)" />
+                    <XAxis
+                      dataKey="monthLabel"
+                      tickFormatter={(value: string) => formatChartMonth(value)}
+                      stroke="var(--muted-foreground)"
+                      fontSize={12}
+                      tickMargin={12}
+                      minTickGap={12}
+                      interval="preserveStartEnd"
+                      tickLine={false}
+                      axisLine={false}
+                    />
+                    <YAxis
+                      width={48}
+                      stroke="var(--muted-foreground)"
+                      fontSize={12}
+                      tickLine={false}
+                      axisLine={false}
+                      tickCount={5}
+                      tickFormatter={formatChartAmount}
+                    />
+                    <Tooltip
+                      cursor={{ fill: 'var(--accent)' }}
+                      content={
+                        <GeistChartTooltip
+                          valueFormatter={formatMoney}
+                          monthLabel
                         />
-                      ),
-                  )}
-                </BarChart>
-              </ResponsiveContainer>
+                      }
+                    />
+                    {SERIES.map(
+                      ({ key, label, color }) =>
+                        visible[key] && (
+                          <Bar
+                            key={key}
+                            dataKey={key}
+                            name={label}
+                            fill={color}
+                            radius={[3, 3, 0, 0]}
+                            maxBarSize={32}
+                            isAnimationActive={false}
+                          />
+                        ),
+                    )}
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
-            <p className="text-muted-foreground mt-3 text-xs">
-              Valores em R$. Selecione as séries acima para comparar.
-            </p>
             <MonthlyChartData data={data} />
           </>
         )}

@@ -1,6 +1,12 @@
 # Apresentação dos lançamentos
 
-O extrato, os lançamentos recentes, as listas por tipo e a fatura reutilizam `TransactionRow`. O extrato mantém seus agrupamentos por data e oculta a data redundante na linha. O painel usa a mesma apresentação sem ações de edição/exclusão.
+O extrato, os lançamentos recentes, as listas por tipo e a fatura reutilizam
+`TransactionTable`. Extrato e listas exibem o título e a quantidade de
+lançamentos na página antes da tabela. Em telas largas, as colunas separam
+data, descrição, categoria, valor e ações. Nas estreitas, a descrição abre
+a linha e os metadados refluem em uma ou duas colunas, conforme a largura da
+tabela. Os valores ganham peso e as linhas têm faixas alternadas. O painel
+usa a mesma apresentação sem ações de edição e exclusão.
 
 Os metadados ficam em `src/lib/utils/transaction-presentation.ts`: receita usa seta de entrada, rótulo Receita e sinal +; despesa usa seta de saída, rótulo Despesa e sinal −; investimento usa moedas, rótulo Investimento e sinal −. Os tipos permanecem identificáveis sem distinguir cores. As classes usam escalas Tailwind válidas nos dois temas.
 

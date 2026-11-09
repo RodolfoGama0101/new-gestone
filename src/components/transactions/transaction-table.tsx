@@ -17,6 +17,7 @@ import type { Transaction } from '@/types/transaction'
 interface TransactionTableProps {
   transactions: Transaction[]
   categoryMap: Map<string, Category>
+  label?: string
   showDate?: boolean
   describeActions?: boolean
   showCardCompetence?: boolean
@@ -29,6 +30,7 @@ interface TransactionTableProps {
 export function TransactionTable({
   transactions,
   categoryMap,
+  label,
   showDate = true,
   describeActions = false,
   showCardCompetence = false,
@@ -41,16 +43,20 @@ export function TransactionTable({
 
   return (
     <div className="transaction-table-container">
-      <table className="financial-table w-full text-left text-[13px]">
-        <thead>
-          <tr>
+      <table
+        aria-label={label}
+        role="table"
+        className="financial-table transaction-table w-full text-left text-sm"
+      >
+        <thead role="rowgroup">
+          <tr role="row">
             {showDate && (
-              <th scope="col" className="@min-[640px]:w-1/5">
+              <th scope="col" className="@min-[640px]:w-[17%]">
                 Data
               </th>
             )}
             <th scope="col">Descrição</th>
-            <th scope="col" className="@min-[640px]:w-1/5">
+            <th scope="col" className="@min-[640px]:w-[20%]">
               Categoria
             </th>
             <th scope="col" className="text-right @min-[640px]:w-[18%]">
@@ -63,15 +69,19 @@ export function TransactionTable({
             )}
           </tr>
         </thead>
-        <tbody>
+        <tbody role="rowgroup">
           {transactions.map((tx) => {
             const presentation = transactionPresentation[tx.type]
             const Icon = presentation.icon
             const category = categoryMap.get(tx.categoryId)
             return (
-              <tr key={tx.id}>
+              <tr key={tx.id} role="row">
                 {showDate && (
-                  <td data-label="Data" className="text-muted-foreground">
+                  <td
+                    role="cell"
+                    data-label="Data"
+                    className="text-muted-foreground text-[13px] leading-5"
+                  >
                     {formatTransactionDate(tx.date, today)}
                     {showCardCompetence &&
                       tx.type === 'expense' &&
@@ -86,14 +96,14 @@ export function TransactionTable({
                       )}
                   </td>
                 )}
-                <td data-label="Descrição">
-                  <div className="flex min-w-0 items-center gap-2.5">
-                    <span className="border-border bg-muted text-muted-foreground flex size-8 shrink-0 items-center justify-center rounded-md border">
+                <td role="cell" data-label="Descrição">
+                  <div className="flex min-w-0 items-start gap-2.5">
+                    <span className="bg-accent text-muted-foreground flex size-8 max-w-full shrink-0 items-center justify-center rounded-md">
                       <Icon className="size-4" aria-hidden="true" />
                     </span>
                     <div className="min-w-0 [overflow-wrap:anywhere]">
-                      <span>{tx.description}</span>
-                      <p className="text-muted-foreground text-xs">
+                      <span className="font-medium">{tx.description}</span>
+                      <p className="text-muted-foreground mt-0.5 text-xs">
                         {presentation.label}
                         {tx.installmentTotal
                           ? ` · Parcela ${(tx.occurrenceIndex ?? 0) + 1}/${tx.installmentTotal}`
@@ -102,27 +112,28 @@ export function TransactionTable({
                             : ''}
                       </p>
                       {tx.notes && (
-                        <p className="text-muted-foreground text-xs">
+                        <p className="text-muted-foreground mt-1 text-[13px] leading-5">
                           {tx.notes}
                         </p>
                       )}
                     </div>
                   </div>
                 </td>
-                <td data-label="Categoria">
-                  <span className="text-muted-foreground block max-w-full text-xs leading-5 [overflow-wrap:anywhere]">
+                <td role="cell" data-label="Categoria">
+                  <span className="text-muted-foreground block max-w-full text-[13px] leading-5 [overflow-wrap:anywhere]">
                     {category?.name ?? 'Sem categoria'}
                   </span>
                 </td>
                 <td
+                  role="cell"
                   data-label="Valor"
-                  className={`text-right [overflow-wrap:anywhere] tabular-nums ${tx.type === 'income' ? 'text-income' : 'text-foreground'}`}
+                  className={`font-semibold [overflow-wrap:anywhere] tabular-nums ${tx.type === 'income' ? 'text-income' : 'text-foreground'}`}
                 >
                   {formatTransactionAmount(tx.type, tx.amount)}
                 </td>
                 {hasActions && (
-                  <td data-label="Ações">
-                    <div className="flex justify-end gap-1">
+                  <td role="cell" data-label="Ações">
+                    <div className="flex flex-wrap justify-end gap-1">
                       {onEdit && (
                         <Button
                           variant="ghost"

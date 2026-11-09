@@ -101,4 +101,16 @@ test('gráficos expõem 20 categorias e séries sem hover em 320px nos dois tema
       fullPage: true,
     })
   }
+
+  await page.goto('/expenses')
+  await expect(list.getByRole('listitem')).toHaveCount(20)
+  const filters = page.getByRole('region', { name: 'Filtros de busca' })
+  const search = filters.getByRole('textbox', { name: 'Buscar por descrição' })
+  await search.fill('Revisão 19')
+  await expect(list.getByRole('listitem')).toHaveCount(1)
+  await expect(list).toContainText('Categoria extensa para revisão de legendas 19')
+  await expect(page.getByRole('table', { name: 'Lista cronológica de despesas cadastradas' })).toContainText('Revisão 19')
+  await filters.getByRole('button', { name: 'Limpar filtros' }).click()
+  await expect(search).toHaveValue('')
+  await expect(list.getByRole('listitem')).toHaveCount(20)
 })

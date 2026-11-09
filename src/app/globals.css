@@ -442,6 +442,21 @@
     min-width: 0;
     width: 100%;
   }
+  .transaction-table th {
+    font-weight: 500;
+  }
+  .transaction-table tbody tr:nth-child(even) {
+    background-color: var(--muted);
+  }
+  .transaction-table tbody tr:focus-within {
+    background-color: var(--chart-soft);
+  }
+  .transaction-table td {
+    vertical-align: top;
+  }
+  .transaction-table td[data-label='Valor'] {
+    text-align: right;
+  }
   @container (max-width: 639px) {
     .financial-table,
     .financial-table tbody,
@@ -475,6 +490,54 @@
     .financial-table td[data-label='Ações'] > div {
       justify-content: flex-start;
       flex-wrap: wrap;
+    }
+  }
+  @container (max-width: 639px) {
+    .transaction-table tbody tr {
+      display: grid;
+      gap: 6px;
+      padding: 14px 16px;
+    }
+    .transaction-table tbody td {
+      min-width: 0;
+      padding: 0;
+    }
+    .transaction-table td[data-label='Valor'] {
+      font-weight: 600;
+      text-align: left;
+    }
+    .transaction-table td[data-label='Descrição'] {
+      grid-row: 1;
+    }
+  }
+  @container (320px <= width < 640px) {
+    .transaction-table tbody tr {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 8px 12px;
+      align-items: start;
+    }
+    .transaction-table td[data-label='Descrição'] {
+      grid-column: 1 / -1;
+    }
+    .transaction-table td[data-label='Data'] {
+      grid-column: 1;
+      grid-row: 2;
+    }
+    .transaction-table td[data-label='Valor'] {
+      grid-column: 2;
+      grid-row: 2;
+      text-align: right;
+    }
+    .transaction-table td[data-label='Categoria'] {
+      grid-column: 1;
+      grid-row: 3;
+    }
+    .transaction-table td[data-label='Ações'] {
+      grid-column: 2;
+      grid-row: 3;
+    }
+    .transaction-table td[data-label='Ações'] > div {
+      justify-content: flex-end;
     }
   }
 }

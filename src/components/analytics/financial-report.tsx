@@ -49,7 +49,7 @@ export function ReportIndicators({
     <div>
       <dl
         aria-label="Resumo do período"
-        className="grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-3"
+        className="border-border bg-border grid min-w-0 gap-px overflow-hidden rounded-lg border min-[601px]:grid-cols-2 min-[1200px]:grid-cols-3"
       >
         {metrics.map((metric) => {
           const change = previous
@@ -58,9 +58,9 @@ export function ReportIndicators({
           return (
             <div
               key={metric.key}
-              className="bg-card min-w-0 rounded-lg border p-4 sm:p-5"
+              className={`min-w-0 p-4 min-[601px]:p-5 ${metric.key === 'result' ? 'bg-chart-soft' : 'bg-card'}`}
             >
-              <dt className="text-muted-foreground text-xs">
+              <dt className="text-muted-foreground flex min-h-11 items-center text-sm font-medium">
                 {'type' in metric &&
                 selectedType &&
                 selectedType !== metric.type ? (
@@ -76,7 +76,7 @@ export function ReportIndicators({
                   </Link>
                 )}
               </dt>
-              <dd className="mt-1 text-lg font-semibold tracking-tight tabular-nums sm:text-2xl">
+              <dd className="mt-1 text-xl font-semibold tracking-tight [overflow-wrap:anywhere] tabular-nums min-[601px]:text-2xl">
                 {formatMoney(totals[metric.key])}
               </dd>
               <dd className="text-muted-foreground mt-2 text-xs">
@@ -113,11 +113,11 @@ export function ReportIndicators({
             </div>
           )
         })}
-        <div className="bg-card min-w-0 rounded-lg border p-4 sm:p-5">
-          <dt className="text-muted-foreground text-xs">
+        <div className="bg-card min-w-0 p-4 min-[601px]:p-5">
+          <dt className="text-muted-foreground flex min-h-11 items-center text-sm font-medium">
             Percentual de aportes sobre receitas
           </dt>
-          <dd className="mt-3 text-lg font-semibold tabular-nums">
+          <dd className="mt-1 text-xl font-semibold tracking-tight tabular-nums">
             {totals.investmentRate === null
               ? noBase
               : percent(totals.investmentRate)}
@@ -170,7 +170,7 @@ export function ReportDistributions({
       ) : isLoading ? (
         <p role="status">Carregando categorias…</p>
       ) : (
-        <div className="grid min-w-0 gap-6 lg:grid-cols-2">
+        <div className="grid min-w-0 gap-6 min-[1200px]:grid-cols-2">
           {(['expense', 'income', 'investment'] as const).map((type) => {
             const shares = AnalyticsHelper.getCategoryShare(
               transactions,
@@ -183,7 +183,7 @@ export function ReportDistributions({
               .slice(0, 5)
               .reduce((sum, item) => sum + item.value, 0)
             return (
-              <div key={type} className="min-w-0 space-y-2">
+              <div key={type} className={`min-w-0 space-y-2 ${type === 'expense' ? 'col-span-full' : ''}`}>
                 <CategoryDonutChart
                   data={shares}
                   type={type}

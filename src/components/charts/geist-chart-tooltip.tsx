@@ -1,5 +1,7 @@
 'use client'
 
+import { formatChartMonth } from './chart-format'
+
 interface TooltipPayloadItem {
   name?: string
   value?: number | string
@@ -10,6 +12,7 @@ interface GeistChartTooltipProps {
   active?: boolean
   payload?: TooltipPayloadItem[]
   label?: string
+  monthLabel?: boolean
   valueFormatter?: (value: number) => string
 }
 
@@ -24,13 +27,16 @@ export function GeistChartTooltip({
   active,
   payload,
   label,
+  monthLabel = false,
   valueFormatter,
 }: GeistChartTooltipProps) {
   if (!active || !payload?.length) return null
   return (
-    <div className="bg-popover text-popover-foreground max-w-[min(280px,calc(100vw-2rem))] rounded-lg border p-3 text-xs shadow-sm">
+    <div className="bg-popover text-popover-foreground max-w-[min(280px,calc(100vw-2rem))] rounded-xl border p-3 text-xs shadow-(--shadow-elevated)">
       {label && (
-        <p className="mb-3 border-b pb-2 font-medium capitalize">{label}</p>
+        <p className="mb-2 border-b pb-2 font-medium">
+          {monthLabel ? formatChartMonth(label, true) : label}
+        </p>
       )}
       <dl className="space-y-2">
         {payload.map((item, index) => {
