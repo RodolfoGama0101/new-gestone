@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 import {
   Popover,
   PopoverContent,
@@ -29,11 +30,13 @@ export function MonthPicker({
   onChange,
   disabled,
   id,
+  className,
 }: {
   value: string
   onChange: (month: string) => void
   disabled?: boolean
   id?: string
+  className?: string
 }) {
   const [open, setOpen] = useState(false)
   const [year, setYear] = useState(Number(value.slice(0, 4)))
@@ -52,7 +55,10 @@ export function MonthPicker({
       <PopoverTrigger
         id={id}
         disabled={disabled}
-        className="border-input bg-background focus-visible:ring-ring flex h-11 w-full min-w-0 items-center gap-2 rounded-lg border px-3 text-left text-sm outline-none focus-visible:ring-2 disabled:opacity-50"
+        className={cn(
+          'border-input bg-background focus-visible:ring-ring flex h-11 w-full min-w-0 items-center gap-2 rounded-md border px-3 text-left text-sm outline-none focus-visible:ring-2 disabled:opacity-50',
+          className,
+        )}
       >
         <CalendarDays
           className="text-muted-foreground hidden size-4 shrink-0 min-[240px]:block"

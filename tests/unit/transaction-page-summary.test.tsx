@@ -43,10 +43,18 @@ test('mostra o resultado mensal e não duplica o resumo sem filtros', () => {
   const region = screen.getByRole('region', {
     name: 'Mês completo por competência — 2026-10',
   })
-  expect(region).toHaveTextContent('Receitas: R$ 100,01')
-  expect(region).toHaveTextContent('Despesas: R$ 30,02')
-  expect(region).toHaveTextContent('Aportes: R$ 10,03')
-  expect(region).toHaveTextContent('Resultado: R$ 59,96')
+  expect(
+    within(region).getByText('Receitas').nextElementSibling,
+  ).toHaveTextContent('R$ 100,01')
+  expect(
+    within(region).getByText('Despesas').nextElementSibling,
+  ).toHaveTextContent('R$ 30,02')
+  expect(
+    within(region).getByText('Aportes').nextElementSibling,
+  ).toHaveTextContent('R$ 10,03')
+  expect(
+    within(region).getByText('Resultado').nextElementSibling,
+  ).toHaveTextContent('R$ 59,96')
   expect(region).toHaveTextContent('13 lançamentos')
   expect(
     screen.queryByRole('region', { name: 'Totais dos resultados filtrados' }),
@@ -69,7 +77,7 @@ test('mantém o mês separado da consulta filtrada e de critérios inválidos', 
   ).toHaveTextContent('13 lançamentos')
   expect(
     screen.getByRole('region', { name: 'Totais dos resultados filtrados' }),
-  ).toHaveTextContent('1 lançamentos')
+  ).toHaveTextContent('1 lançamento')
   useTotals
     .mockReturnValueOnce(query(monthly))
     .mockReturnValueOnce(query(undefined, { isPending: true }))
@@ -134,7 +142,9 @@ test('página específica mostra o valor e quantidade completos do tipo', () => 
     />,
   )
   const region = screen.getByRole('region', { name: /Mês completo/ })
-  expect(region).toHaveTextContent('Total: R$ 30,02')
+  expect(
+    within(region).getByText('Total').nextElementSibling,
+  ).toHaveTextContent('R$ 30,02')
   expect(region).toHaveTextContent('13 lançamentos')
   expect(
     screen.queryByRole('region', { name: 'Totais dos resultados filtrados' }),

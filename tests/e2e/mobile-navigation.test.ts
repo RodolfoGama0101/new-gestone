@@ -15,7 +15,10 @@ test('painel móvel mantém mês, ação e navegação acessíveis', async ({
   await page
     .getByRole('button', { name: 'Criar conta grátis', exact: true })
     .click()
-  await expect(page).toHaveURL(/^http:\/\/localhost:3102\/(?:\?month=\d{4}-\d{2})?$/, { timeout: 90000 })
+  await expect(page).toHaveURL(
+    /^http:\/\/localhost:3102\/(?:\?month=\d{4}-\d{2})?$/,
+    { timeout: 90000 },
+  )
 
   for (const width of [320, 390]) {
     await page.setViewportSize({ width, height: 740 })
@@ -74,7 +77,7 @@ test('painel móvel mantém mês, ação e navegação acessíveis', async ({
 
   await page.setViewportSize({ width: 320, height: 740 })
   await page.getByRole('button', { name: 'Mais opções de navegação' }).click()
-  await page.getByRole('link', { name: 'Config.', exact: true }).click()
+  await page.getByRole('link', { name: 'Configurações', exact: true }).click()
   const sections = page.getByRole('group', { name: 'Seções de configurações' })
   for (const name of ['Perfil', 'Preferências', 'Segurança', 'Excluir conta']) {
     await expect(

@@ -11,7 +11,7 @@ export function TransactionNavigation() {
   return (
     <nav
       aria-label="Lançamentos por tipo"
-      className="border-border flex gap-6 overflow-auto border-b"
+      className="border-border flex flex-wrap gap-x-1 border-b min-[601px]:gap-x-3"
     >
       {[
         ['/transactions', 'Todos'],
@@ -23,7 +23,7 @@ export function TransactionNavigation() {
           key={href}
           href={workMonthHref(href, month)}
           aria-current={pathname === href ? 'page' : undefined}
-          className={`shrink-0 border-b-2 pb-3.5 text-sm ${pathname === href ? 'border-foreground text-foreground font-medium' : 'text-muted-foreground hover:text-foreground border-transparent'}`}
+          className="text-muted-foreground hover:text-foreground hover:bg-muted aria-[current=page]:border-link aria-[current=page]:text-link -mb-px flex min-h-11 min-w-0 items-center rounded-t-md border-b-2 border-transparent px-2 text-sm [overflow-wrap:anywhere] transition-colors aria-[current=page]:font-medium min-[601px]:px-3"
         >
           {label}
         </Link>

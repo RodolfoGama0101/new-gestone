@@ -43,24 +43,20 @@ export function DashboardClientLayout({
 
   return (
     <WorkMonthProvider key={user.uid} uid={user.uid}>
-      <div className="bg-background text-foreground min-h-screen transition-colors duration-200">
+      <div className="bg-background text-foreground min-h-dvh">
         <SkipLink />
         {mcpEnabled && <McpFocusSync />}
         <Sidebar />
-        <div className="flex min-h-screen flex-col pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-0 md:pl-[200px]">
+        <div className="flex min-h-dvh flex-col pb-[calc(4.5rem+env(safe-area-inset-bottom))] min-[961px]:pb-0 min-[961px]:pl-(--sidebar-width)">
           <Header />
           <SeriesGeneration />
           <main
             id="main-content"
             tabIndex={-1}
-            className="mx-auto w-full max-w-[1200px] min-w-0 flex-1 p-4 sm:p-6 lg:p-8"
+            className="mx-auto w-full max-w-[1200px] min-w-0 flex-1 scroll-mt-28 px-4 py-6 min-[601px]:scroll-mt-16 min-[601px]:px-6 min-[961px]:px-8 min-[961px]:py-8"
           >
             {children}
           </main>
-          <footer className="border-border text-muted-foreground hidden h-16 shrink-0 items-center justify-between gap-4 border-t px-8 text-xs md:flex">
-            <span>GestOne</span>
-            <span>Valores em reais · BRL</span>
-          </footer>
         </div>
         <BottomNav />
       </div>

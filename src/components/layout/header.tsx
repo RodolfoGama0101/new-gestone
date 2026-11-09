@@ -19,27 +19,20 @@ import { addMonths, format } from 'date-fns'
 import { MonthPicker } from '@/components/shared/month-picker'
 import { Button } from '@/components/ui/button'
 import { useWorkMonth } from '@/providers/work-month-provider'
-
-const PAGE_TITLES: Record<string, string> = {
-  '/': 'Painel',
-  '/transactions': 'Extrato',
-  '/income': 'Receitas',
-  '/expenses': 'Despesas',
-  '/investments': 'Investimentos',
-  '/credit-cards': 'Cartões',
-  '/series': 'Séries',
-  '/budgets': 'Orçamentos e metas',
-  '/analytics': 'Relatórios',
-  '/categories': 'Categorias',
-  '/settings': 'Configurações',
-}
+import { workMonthHref } from '@/lib/utils/work-month'
+import { navigationGroups } from './navigation'
 
 export function Header() {
   const pathname = usePathname()
   const { user, signOutUser } = useAuth()
   const { month, date, setMonth } = useWorkMonth()
 
-  const pageTitle = PAGE_TITLES[pathname] ?? 'GestOne'
+  const activeGroup = navigationGroups.find(({ items }) =>
+    items.some(({ href }) => href === pathname),
+  )
+  const pageTitle = activeGroup?.items.find(
+    ({ href }) => href === pathname,
+  )?.label
 
   const getInitials = () => {
     if (user?.displayName) {
@@ -59,118 +52,114 @@ export function Header() {
     user?.displayName || user?.email?.split('@')[0] || 'Usuário'
 
   return (
-    <header className="border-border bg-background sticky top-0 z-10 flex min-h-16 shrink-0 flex-wrap items-center justify-between gap-x-2 border-b px-4 sm:px-6">
-      {/* Left: Logo (mobile) + Breadcrumbs */}
-      <div className="flex min-w-0 items-center gap-2.5">
-        {/* Logo visível apenas em mobile */}
-        <div className="shrink-0 md:hidden">
-          <Logo variant="icon-only" size="sm" />
-        </div>
-
-        <div className="hidden items-center gap-2 text-sm select-none md:flex">
-          <span className="text-muted-foreground text-sm">
-            Finanças pessoais
-          </span>
-          <span
-            aria-hidden="true"
-            className="text-muted-foreground text-xs font-light"
-          >
-            /
-          </span>
-          <span className="text-foreground text-sm font-medium">
-            {pageTitle}
-          </span>
-        </div>
-
-        <h2 className="text-foreground truncate text-sm font-semibold md:hidden">
-          {pageTitle}
-        </h2>
-      </div>
-
-      <div
-        role="group"
-        aria-label="Mês de trabalho"
-        className="order-last flex w-full items-center justify-center gap-1 pb-2 md:order-none md:w-auto md:pb-0"
-      >
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label="Mês anterior"
-          className="size-11"
-          disabled={month === '0001-01'}
-          onClick={() => setMonth(format(addMonths(date, -1), 'yyyy-MM'))}
-        >
-          <ChevronLeft />
-        </Button>
-        <div className="w-44 min-w-0 max-w-44 flex-1">
-          <MonthPicker value={month} onChange={setMonth} />
-        </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label="Próximo mês"
-          className="size-11"
-          disabled={month === '9999-12'}
-          onClick={() => setMonth(format(addMonths(date, 1), 'yyyy-MM'))}
-        >
-          <ChevronRight />
-        </Button>
-      </div>
-      {/* Right: Theme toggle + User menu */}
-      <div className="flex shrink-0 items-center gap-2">
-        {/* ThemeToggle visível no header em mobile (sidebar não aparece) */}
-        <div className="md:hidden">
-          <ThemeToggle />
-        </div>
-
-        {user && (
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              aria-label="Abrir menu da conta"
-              className="hover:bg-accent focus-visible:ring-ring group flex min-h-11 min-w-11 cursor-pointer items-center justify-center gap-1.5 rounded-md px-2 py-1 transition-colors outline-none focus-visible:ring-1"
-            >
-              <Avatar className="size-8 shrink-0">
-                <AvatarFallback className="bg-muted text-foreground text-xs font-bold">
-                  {getInitials()}
-                </AvatarFallback>
-              </Avatar>
-              <span className="text-foreground hidden max-w-[120px] truncate text-sm font-medium sm:block">
-                {displayName}
+    <header className="border-border bg-background sticky top-0 z-10 shrink-0 border-b">
+      <div className="mx-auto grid min-h-16 w-full max-w-[1200px] grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 px-4 min-[601px]:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] min-[601px]:px-6 min-[961px]:px-8">
+        <div className="min-w-0">
+          <div className="min-[961px]:hidden">
+            <Logo
+              size="sm"
+              href={workMonthHref('/', month)}
+              className="[&>span]:hidden min-[240px]:[&>span]:inline"
+            />
+          </div>
+          {activeGroup && (
+            <p className="text-muted-foreground hidden truncate text-sm min-[961px]:block">
+              {activeGroup.label}
+              <span aria-hidden="true" className="mx-2">
+                /
               </span>
-              <ChevronDown className="text-muted-foreground hidden size-3 transition-transform duration-100 group-data-[state=open]:rotate-180 sm:block" />
-            </DropdownMenuTrigger>
+              <span className="text-foreground font-medium">{pageTitle}</span>
+            </p>
+          )}
+        </div>
 
-            <DropdownMenuContent align="end" className="w-56 rounded-md">
-              <DropdownMenuGroup>
-                <DropdownMenuLabel className="p-2 font-normal">
-                  <div className="flex items-center gap-2">
-                    <Avatar className="size-7 shrink-0">
-                      <AvatarFallback className="bg-muted text-foreground text-xs font-bold">
-                        {getInitials()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex min-w-0 flex-col">
-                      <p className="truncate text-xs leading-none font-semibold">
-                        {displayName}
-                      </p>
-                      <p className="text-muted-foreground mt-0.5 truncate text-xs leading-none">
-                        {user.email}
-                      </p>
-                    </div>
-                  </div>
-                </DropdownMenuLabel>
-              </DropdownMenuGroup>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={signOutUser}
-                className="text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer gap-2 rounded-md text-xs"
+        <div
+          role="group"
+          aria-label="Mês de trabalho"
+          className="border-border bg-muted col-span-2 col-start-1 row-start-2 mb-2 flex min-w-0 items-center justify-center gap-0.5 rounded-lg border px-0.5 min-[601px]:col-span-1 min-[601px]:col-start-2 min-[601px]:row-start-1 min-[601px]:mb-0"
+        >
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="Mês anterior"
+            className="size-11"
+            disabled={month === '0001-01'}
+            onClick={() => setMonth(format(addMonths(date, -1), 'yyyy-MM'))}
+          >
+            <ChevronLeft />
+          </Button>
+          <div className="w-44 min-w-0 flex-1">
+            <MonthPicker
+              value={month}
+              onChange={setMonth}
+              className="hover:bg-accent justify-center border-0 bg-transparent px-1.5 font-medium"
+            />
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="Próximo mês"
+            className="size-11"
+            disabled={month === '9999-12'}
+            onClick={() => setMonth(format(addMonths(date, 1), 'yyyy-MM'))}
+          >
+            <ChevronRight />
+          </Button>
+        </div>
+        <div className="col-start-2 row-start-1 flex min-h-14 min-w-0 items-center justify-end gap-1 min-[601px]:col-start-3">
+          <ThemeToggle />
+          {user && (
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                aria-label="Abrir menu da conta"
+                className="hover:bg-accent focus-visible:ring-ring group flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-md px-1.5 py-1 transition-colors outline-none focus-visible:ring-2"
               >
-                <LogOut className="size-3.5" />
-                <span>Sair da conta</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
+                <Avatar className="size-8 shrink-0">
+                  <AvatarFallback className="bg-muted text-foreground text-xs font-bold">
+                    {getInitials()}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="text-foreground hidden max-w-24 truncate text-sm font-medium min-[1200px]:block">
+                  {displayName}
+                </span>
+                <ChevronDown
+                  aria-hidden="true"
+                  className="text-muted-foreground hidden size-3 transition-transform duration-150 group-data-popup-open:rotate-180 min-[1200px]:block"
+                />
+              </DropdownMenuTrigger>
+
+              <DropdownMenuContent align="end" className="w-56 rounded-md">
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel className="p-2 font-normal">
+                    <div className="flex items-center gap-2">
+                      <Avatar className="size-7 shrink-0">
+                        <AvatarFallback className="bg-muted text-foreground text-xs font-bold">
+                          {getInitials()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex min-w-0 flex-col">
+                        <p className="truncate text-xs leading-none font-semibold">
+                          {displayName}
+                        </p>
+                        <p className="text-muted-foreground mt-0.5 truncate text-xs leading-none">
+                          {user.email}
+                        </p>
+                      </div>
+                    </div>
+                  </DropdownMenuLabel>
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={signOutUser}
+                  className="text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer gap-2 rounded-md text-xs"
+                >
+                  <LogOut className="size-3.5" />
+                  <span>Sair da conta</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
       </div>
     </header>
   )

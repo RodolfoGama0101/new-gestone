@@ -1,6 +1,6 @@
 # Dashboard mensal
 
-O painel usa o mês de trabalho do cabeçalho e a competência financeira. Receitas, despesas e aportes aparecem antes do resultado projetado; os links abrem as respectivas listas no mesmo mês. Compras no cartão entram na competência da fatura, usando os metadados registrados e os mesmos utilitários das listas e faturas.
+O painel usa o mês de trabalho do cabeçalho e a competência financeira. O resultado projetado e a evolução diária abrem a página. Receitas, despesas e aportes ficam na faixa abaixo da projeção, com links para as listas no mesmo mês. Metas e cartões ficam na lateral a partir de 1.200 px e abaixo dos indicadores nas demais larguras. Os lançamentos recentes ocupam a largura do conteúdo, seguidos pelos gráficos de detalhamento. Compras no cartão entram na competência da fatura, usando os metadados registrados e os mesmos utilitários das listas e faturas.
 
 - Resultado projetado = receitas − despesas − aportes.
 - Reserva = compras realizadas no mês selecionado, até a menor data entre hoje e o fim desse mês, cuja competência é posterior ao mês. A regra existente não incorpora compras feitas depois dessa referência nem antecipa compras de meses futuros.

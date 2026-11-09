@@ -44,14 +44,20 @@ export function TransactionTable({
       <table className="financial-table w-full text-left text-[13px]">
         <thead>
           <tr>
-            {showDate && <th scope="col">Data</th>}
+            {showDate && (
+              <th scope="col" className="@min-[640px]:w-1/5">
+                Data
+              </th>
+            )}
             <th scope="col">Descrição</th>
-            <th scope="col">Categoria</th>
-            <th scope="col" className="text-right">
+            <th scope="col" className="@min-[640px]:w-1/5">
+              Categoria
+            </th>
+            <th scope="col" className="text-right @min-[640px]:w-[18%]">
               Valor
             </th>
             {hasActions && (
-              <th scope="col" className="text-right">
+              <th scope="col" className="text-right @min-[640px]:w-32">
                 Ações
               </th>
             )}

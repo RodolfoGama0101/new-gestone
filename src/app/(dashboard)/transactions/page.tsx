@@ -95,7 +95,7 @@ export default function TransactionsPage() {
       {isFetching && <p role="status">Atualizando lançamentos…</p>}
       <PageHeader
         title="Extrato"
-        description="Consulte seu histórico completo de lançamentos financeiros."
+        description="Consulte os totais e filtre os lançamentos por período."
         action={
           <div className="flex flex-wrap items-center gap-2">
             <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
@@ -121,8 +121,8 @@ export default function TransactionsPage() {
         }
       />
 
-      <TransactionPageSummary criteria={criteria} month={month} valid={valid} />
       <TransactionNavigation />
+      <TransactionPageSummary criteria={criteria} month={month} valid={valid} />
       {/* Painel de Filtros URL */}
       <TransactionFilters />
 

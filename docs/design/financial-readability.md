@@ -2,12 +2,15 @@
 
 Painel, extrato, listas e faturas usam texto secundário de pelo menos 12 px e descrições com quebra de linha. Nas tabelas, categorias são texto secundário sem cápsula, com quebra de linha e nome integral. Valores usam numerais tabulares; o armazenamento em centavos não muda.
 
-Ações de lançamentos têm alvos de 40 px, sem ocultação por hover. Cabeçalhos e paginação quebram ações em linhas. O resumo mensal usa três colunas somente em telas largas. A navegação móvel reserva `safe-area-inset-bottom`.
+Ações de lançamentos têm alvos de 40 px, sem ocultação por hover. Cabeçalhos e paginação quebram ações em linhas. No painel, os indicadores usam três colunas a partir de 601 px. A navegação móvel reserva `safe-area-inset-bottom`.
 
-No redesign Geist (ROD-127), os resumos precedem o saldo projetado e o histórico
-ocupa a largura do conteúdo abaixo da projeção. Os valores dos resumos usam
+O resultado projetado precede os indicadores mensais e o histórico ocupa a
+largura do conteúdo. Os valores dos resumos usam
 texto neutro e numerais tabulares; rótulos e ícones continuam identificando os
 tipos. O saldo conserva as definições de competência, reservas e disponível.
+No extrato e nas listas por tipo, a navegação por tipo vem antes dos totais. O
+resumo mensal e o resumo filtrado usam rótulos acima dos valores e mostram a
+quantidade de lançamentos no cabeçalho. Os filtros ficam antes dos resultados.
 O extrato e as listas por tipo usam tabelas com cabeçalhos explícitos e reflow
 em telas estreitas. No formulário, o tipo é selecionado em um controle nativo
 com rótulo associado e suporte a teclado.

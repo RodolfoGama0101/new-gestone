@@ -1,23 +1,12 @@
 'use client'
 
-import * as React from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { MoreHorizontal } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useWorkMonth } from '@/providers/work-month-provider'
 import { workMonthHref } from '@/lib/utils/work-month'
-import {
-  LayoutDashboard,
-  Receipt,
-  CreditCard,
-  Coins,
-  MoreHorizontal,
-  ArrowUpCircle,
-  ArrowDownCircle,
-  BarChart3,
-  Tag,
-  Settings,
-} from 'lucide-react'
 import {
   Sheet,
   SheetContent,
@@ -25,101 +14,100 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet'
+import { navigationGroups, navigationItems } from './navigation'
 
-const mainItems = [
-  { label: 'Painel', href: '/', icon: LayoutDashboard },
-  { label: 'Extrato', href: '/transactions', icon: Receipt },
-  { label: 'Cartões', href: '/credit-cards', icon: CreditCard },
-  { label: 'Investir', href: '/investments', icon: Coins },
-]
+const primaryPaths = ['/', '/transactions', '/credit-cards']
+const primaryItems = navigationItems.filter(({ href }) =>
+  primaryPaths.includes(href),
+)
+const moreGroups = navigationGroups
+  .map((group) => ({
+    ...group,
+    items: group.items.filter(({ href }) => !primaryPaths.includes(href)),
+  }))
+  .filter(({ items }) => items.length > 0)
 
-const extraItems = [
-  { label: 'Receitas', href: '/income', icon: ArrowUpCircle },
-  { label: 'Despesas', href: '/expenses', icon: ArrowDownCircle },
-  { label: 'Séries', href: '/series', icon: Coins },
-  { label: 'Orçamentos', href: '/budgets', icon: Coins },
-  { label: 'Relatórios', href: '/analytics', icon: BarChart3 },
-  { label: 'Categorias', href: '/categories', icon: Tag },
-  { label: 'Config.', href: '/settings', icon: Settings },
-]
+const tabClass =
+  'text-muted-foreground hover:text-foreground data-[active=true]:text-link focus-visible:outline-offset-[-2px] flex min-h-14 min-w-0 flex-col items-center justify-center gap-1 px-0.5 text-xs transition-colors duration-150 data-[active=true]:font-medium [overflow-wrap:anywhere]'
+const tabIconClass =
+  'flex h-6 w-9 max-w-full items-center justify-center rounded-full group-data-[active=true]:bg-chart-soft'
 
 export function BottomNav() {
   const pathname = usePathname()
   const { month } = useWorkMonth()
-  const [isOpen, setIsOpen] = React.useState(false)
-
-  const isExtraActive = extraItems.some((item) => pathname === item.href)
+  const [isOpen, setIsOpen] = useState(false)
+  const moreActive = !primaryPaths.includes(pathname)
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-20 flex h-[calc(3.5rem+env(safe-area-inset-bottom))] items-center justify-around border-t border-border/80 bg-background pb-[env(safe-area-inset-bottom)] md:hidden" aria-label="Navegação principal">
-      {mainItems.map((item) => {
+    <nav
+      className="border-border bg-background fixed inset-x-0 bottom-0 z-20 grid grid-cols-4 border-t pb-[env(safe-area-inset-bottom)] min-[961px]:hidden"
+      aria-label="Navegação principal"
+    >
+      {primaryItems.map((item) => {
         const isActive = pathname === item.href
         return (
           <Link
             key={item.href}
             href={workMonthHref(item.href, month)}
-              aria-current={isActive ? 'page' : undefined}
-            className={cn(
-              'flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 text-muted-foreground transition-colors relative cursor-pointer h-full',
-              isActive && 'text-foreground dark:text-white font-semibold'
-            )}
+            aria-current={isActive ? 'page' : undefined}
+            data-active={isActive}
+            className={cn('group', tabClass)}
           >
-            <item.icon className="size-4 shrink-0" />
-            <span className={cn("max-w-full break-all text-xs font-medium leading-tight", isActive && "font-semibold")}>
-              {item.label}
+            <span className={tabIconClass}>
+              <item.icon aria-hidden="true" className="size-4" />
             </span>
+            <span className="max-w-full">{item.label}</span>
           </Link>
         )
       })}
-
-      {/* Botão Mais */}
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
-        <SheetTrigger render={
-          <button
-            className={cn(
-              'flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 text-muted-foreground transition-colors relative cursor-pointer h-full border-none bg-transparent outline-hidden focus-visible:ring-2 focus-visible:ring-ring',
-              isExtraActive && 'text-foreground dark:text-white'
-            )}
-            aria-label="Mais opções de navegação"
-          >
-            <MoreHorizontal className="size-4 shrink-0" />
-            <span className={cn("max-w-full break-all text-xs font-medium leading-tight", isExtraActive && "font-semibold")}>
-              Mais
-            </span>
-          </button>
-        } />
-        <SheetContent side="bottom" className="rounded-t-2xl pb-6 max-h-[80dvh] overflow-y-auto border-t border-border">
-          <SheetHeader className="pb-2 border-b border-border/40">
-            <SheetTitle className="text-center text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              Mais Opções
-            </SheetTitle>
+        <SheetTrigger
+          data-active={moreActive}
+          className={cn('group', tabClass)}
+          aria-label="Mais opções de navegação"
+        >
+          <span className={tabIconClass}>
+            <MoreHorizontal aria-hidden="true" className="size-4" />
+          </span>
+          <span>Mais</span>
+        </SheetTrigger>
+        <SheetContent
+          side="bottom"
+          className="max-h-[80dvh] gap-0 rounded-t-xl"
+        >
+          <SheetHeader className="border-border shrink-0 border-b px-5 py-5">
+            <SheetTitle>Mais opções</SheetTitle>
           </SheetHeader>
-          <div className="grid grid-cols-3 gap-y-6 pt-6 px-4 justify-items-center">
-            {extraItems.map((item) => {
-              const isActive = pathname === item.href
-              return (
-                <Link
-                  key={item.href}
-                  href={workMonthHref(item.href, month)}
-              aria-current={isActive ? 'page' : undefined}
-                  onClick={() => setIsOpen(false)}
-                  className={cn(
-                    'flex flex-col items-center justify-center gap-1.5 p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-all w-full cursor-pointer',
-                    isActive && 'text-foreground dark:text-white bg-muted/30'
-                  )}
-                >
-                  <div className={cn(
-                    'size-9 rounded-lg flex items-center justify-center bg-muted/40 border border-border/40',
-                    isActive && 'bg-primary/10 border-primary/20 text-primary'
-                  )}>
-                    <item.icon className="size-5" />
-                  </div>
-                  <span className="text-xs font-medium text-center truncate w-full">
-                    {item.label}
-                  </span>
-                </Link>
-              )
-            })}
+          <div className="space-y-4 overflow-y-auto px-5 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+            {moreGroups.map(({ label, items }) => (
+              <div key={label}>
+                <p className="text-muted-foreground px-2 pb-1 text-xs font-medium">
+                  {label}
+                </p>
+                <ul className="divide-border divide-y">
+                  {items.map((item) => (
+                    <li key={item.href}>
+                      <Link
+                        href={workMonthHref(item.href, month)}
+                        aria-current={
+                          pathname === item.href ? 'page' : undefined
+                        }
+                        onClick={() => setIsOpen(false)}
+                        className="hover:bg-accent aria-[current=page]:text-link flex min-h-11 items-center gap-3 rounded-md px-2 py-2 text-sm transition-colors duration-150 aria-[current=page]:font-medium"
+                      >
+                        <item.icon
+                          aria-hidden="true"
+                          className="size-4 shrink-0"
+                        />
+                        <span className="min-w-0 [overflow-wrap:anywhere]">
+                          {item.label}
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </div>
         </SheetContent>
       </Sheet>

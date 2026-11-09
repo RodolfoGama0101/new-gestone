@@ -120,13 +120,13 @@ export function TransactionFilters({
   return (
     <section
       aria-label="Filtros de busca"
-      className="border-border bg-card flex min-w-0 flex-col gap-5 rounded-md border p-4 sm:p-6"
+      className="border-border bg-muted flex min-w-0 flex-col gap-4 rounded-lg border p-4 min-[601px]:p-5"
     >
       <h2 className="flex items-center gap-2 text-sm font-medium">
         <Filter className="text-muted-foreground size-4" aria-hidden="true" />
         Filtros de busca
       </h2>
-      <div className="grid min-w-0 gap-4 sm:grid-cols-2 lg:grid-cols-3 [&>*]:min-w-0">
+      <div className="grid min-w-0 gap-4 min-[601px]:grid-cols-2 min-[1200px]:grid-cols-3 [&>*]:min-w-0">
         <label className="space-y-1 text-sm">
           Descrição
           <Input

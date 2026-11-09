@@ -21,18 +21,18 @@ export function PageHeader({
   actionClassName,
 }: PageHeaderProps) {
   return (
-    <div
+    <header
       className={cn(
-        'flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between',
+        'flex flex-col gap-4 min-[961px]:flex-row min-[961px]:items-center min-[961px]:justify-between',
         className,
       )}
     >
-      <div className="min-w-0 space-y-2">
-        <h1 className="text-foreground text-2xl font-semibold tracking-tight sm:text-[28px] sm:leading-9">
+      <div className="min-w-0 space-y-1.5 [overflow-wrap:anywhere]">
+        <h1 className="text-foreground text-2xl leading-8 font-semibold tracking-[-0.04em] min-[601px]:text-[32px] min-[601px]:leading-10">
           {title}
         </h1>
         {description && (
-          <p className="text-muted-foreground max-w-[470px] text-sm leading-relaxed">
+          <p className="text-muted-foreground max-w-prose text-sm leading-5">
             {description}
           </p>
         )}
@@ -41,13 +41,13 @@ export function PageHeader({
       {action && (
         <div
           className={cn(
-            'flex max-w-full min-w-0 flex-wrap items-center gap-2 self-start [&_button]:h-auto [&_button]:min-h-10 [&_button]:max-w-full [&_button]:py-2 [&_button]:whitespace-normal [&>div]:flex-wrap',
+            'flex max-w-full min-w-0 flex-wrap items-center gap-2 [&_button]:h-auto [&_button]:min-h-10 [&_button]:max-w-full [&_button]:py-2 [&_button]:whitespace-normal [&>div]:flex-wrap',
             actionClassName,
           )}
         >
           {action}
         </div>
       )}
-    </div>
+    </header>
   )
 }

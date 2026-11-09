@@ -54,6 +54,7 @@
   --color-expense-foreground: var(--expense-foreground);
 
   --color-chart-1: var(--chart-1);
+  --color-chart-soft: var(--chart-soft);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
@@ -181,6 +182,7 @@
     --space-page: 2rem;
     --space-card: 1.5rem;
     --header-height: 4rem; /* 64px */
+    --sidebar-width: 14rem;
 
     /* Sidebar */
     --sidebar: #ffffff;

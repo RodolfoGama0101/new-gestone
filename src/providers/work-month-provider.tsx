@@ -66,11 +66,7 @@ export function WorkMonthProvider({
 
   const setMonth = (value: string) => {
     if (!isWorkMonth(value)) return
-    try {
-      localStorage.setItem(key, value)
-    } catch {
-      /* A URL mantém a seleção. */
-    }
+    // A preferência acompanha o mês confirmado pela URL no efeito acima.
     const url = new URL(window.location.href)
     url.searchParams.set('month', value)
     url.searchParams.delete('startDate')

@@ -9,7 +9,7 @@ import { formatMoney } from '@/lib/utils/format-money'
 import { AnalyticsHelper } from '@/lib/utils/analytics-helper'
 import type { PeriodSummary } from '@/services/analytics.service'
 import type { Transaction } from '@/types/transaction'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { ArrowRight } from 'lucide-react'
 import { LoadError } from '@/components/shared/load-error'
 import { CategoryDonutChart } from '@/components/charts/category-donut-chart'
 import { CashFlowBarChart } from '@/components/charts/cash-flow-bar-chart'
@@ -20,48 +20,49 @@ export function MonthlyGoal() {
   const goal = budget.data?.goal
   const savings = budget.data?.savings ?? 0
   return (
-    <Card className="min-w-0">
-      <CardHeader>
-        <CardTitle>Meta de economia do mês</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3 text-sm [overflow-wrap:anywhere]">
-        {budget.error ? (
-          <LoadError error={budget.error} retry={budget.refetch} />
-        ) : budget.isPending ? (
-          <p role="status">Carregando meta…</p>
-        ) : goal === undefined ? (
-          <p>Meta não cadastrada para este mês.</p>
-        ) : (
-          <>
-            <p className="tabular-nums">
-              Realizado: {formatMoney(savings)} · Meta: {formatMoney(goal)}
+    <section className="min-w-0 space-y-3 p-4 text-sm [overflow-wrap:anywhere] min-[601px]:p-5">
+      <h2 className="font-medium">Meta de economia do mês</h2>
+      {budget.error ? (
+        <LoadError error={budget.error} retry={budget.refetch} />
+      ) : budget.isPending ? (
+        <p role="status">Carregando meta…</p>
+      ) : goal === undefined ? (
+        <p>Meta não cadastrada para este mês.</p>
+      ) : (
+        <>
+          <div className="tabular-nums">
+            <p className="text-xl font-semibold tracking-tight">
+              {formatMoney(savings)}
             </p>
-            <progress
-              className="h-2 w-full"
-              max={goal}
-              value={Math.max(0, Math.min(savings, goal))}
-              aria-label="Progresso da meta de economia"
-              aria-valuetext={`${formatMoney(savings)} de ${formatMoney(goal)}`}
-            />
-            <p>
-              {savings >= goal
-                ? 'Meta atingida'
-                : `Faltam ${formatMoney(goal - savings)} para a meta.`}
+            <p className="text-muted-foreground text-xs">
+              Meta de {formatMoney(goal)}
             </p>
-          </>
-        )}
-        <p className="text-muted-foreground">
-          Economia = receitas − despesas. Inclui os aportes; reservas não são
-          outra despesa.
-        </p>
-        <Link
-          className="text-link inline-block py-2 underline"
-          href={workMonthHref('/budgets', month)}
-        >
-          Ver orçamentos e metas
-        </Link>
-      </CardContent>
-    </Card>
+          </div>
+          <progress
+            className="bg-accent [&::-moz-progress-bar]:bg-link [&::-webkit-progress-bar]:bg-accent [&::-webkit-progress-value]:bg-link h-2 w-full appearance-none overflow-hidden rounded-full"
+            max={goal}
+            value={Math.max(0, Math.min(savings, goal))}
+            aria-label="Progresso da meta de economia"
+            aria-valuetext={`${formatMoney(savings)} de ${formatMoney(goal)}`}
+          />
+          <p className="text-muted-foreground text-xs">
+            {savings >= goal
+              ? 'Meta atingida'
+              : `Faltam ${formatMoney(goal - savings)} para a meta.`}
+          </p>
+        </>
+      )}
+      <p className="text-muted-foreground text-xs">
+        Economia = receitas − despesas. Inclui os aportes.
+      </p>
+      <Link
+        className="text-link inline-flex min-h-10 items-center gap-2 rounded-md text-sm font-medium underline-offset-4 hover:underline"
+        href={workMonthHref('/budgets', month)}
+      >
+        Ver orçamentos e metas
+        <ArrowRight aria-hidden="true" className="size-3.5 shrink-0" />
+      </Link>
+    </section>
   )
 }
 

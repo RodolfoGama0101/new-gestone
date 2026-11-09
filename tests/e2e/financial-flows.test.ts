@@ -1006,7 +1006,7 @@ test('totais completos preservam competência, filtros, paginação e exclusão'
   await expect(monthly).toContainText('104 lançamentos')
   await page.goto('/expenses?month=2026-10&dateBasis=purchase&startDate=2026-10-20&endDate=2026-10-20')
   await expect(monthly).toContainText('104 lançamentos')
-  await expect(filtered).toContainText('1 lançamentos')
+  await expect(filtered).toContainText('1 lançamento')
   await expect(filtered).toContainText('2,50')
   await page.goto('/expenses?month=2026-11')
   await expect(page.getByRole('region', { name: 'Mês completo por competência — 2026-11' })).toContainText('2,50')

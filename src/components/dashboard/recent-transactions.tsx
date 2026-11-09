@@ -68,9 +68,9 @@ export function RecentTransactions({
 
   return (
     <Card className="h-full">
-      <CardHeader className="border-border flex flex-row flex-wrap items-center justify-between gap-4 space-y-0 border-b pb-6">
+      <CardHeader className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-4 py-3 min-[601px]:px-6">
         <div className="min-w-0 space-y-0.5 [overflow-wrap:anywhere]">
-          <CardTitle className="text-foreground text-base font-medium">
+          <CardTitle className="text-foreground text-xl font-semibold tracking-[-0.02em]">
             Lançamentos recentes
           </CardTitle>
         </div>

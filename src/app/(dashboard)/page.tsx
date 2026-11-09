@@ -3,6 +3,7 @@
 import { LoadError } from '@/components/shared/load-error'
 
 import * as React from 'react'
+import { Plus } from 'lucide-react'
 import { useAnalytics } from '@/hooks/use-analytics'
 import { BalanceCard } from '@/components/dashboard/balance-card'
 import { SummaryCards } from '@/components/dashboard/summary-cards'
@@ -32,37 +33,47 @@ export default function DashboardPage() {
   const { summary, isLoading, error, refetch } = useAnalytics(selectedDate)
 
   return (
-    <div className="space-y-8">
-      {/* Header com saudação e seletor de mês */}
+    <div className="space-y-6 min-[961px]:space-y-8">
       <PageHeader
         title="Visão geral"
-        description="Receitas, despesas, aportes e decisões do mês por competência."
-        actionClassName="w-full flex-col items-stretch sm:w-auto sm:flex-row [&_button]:min-h-11"
+        description="Acompanhe seus lançamentos e o resultado do mês por competência."
+        actionClassName="w-full min-[601px]:w-auto [&_button]:min-h-[46px]"
         action={
-          <>
-            <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-              <DialogTrigger
-                render={<Button className="min-h-11">Novo lançamento</Button>}
-              />
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Novo lançamento</DialogTitle>
-                </DialogHeader>
-                <TransactionForm onSuccess={() => setIsAddOpen(false)} />
-              </DialogContent>
-            </Dialog>
-          </>
+          <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+            <DialogTrigger
+              render={
+                <Button className="w-full min-[601px]:w-auto">
+                  <Plus aria-hidden="true" />
+                  Novo lançamento
+                </Button>
+              }
+            />
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Novo lançamento</DialogTitle>
+              </DialogHeader>
+              <TransactionForm onSuccess={() => setIsAddOpen(false)} />
+            </DialogContent>
+          </Dialog>
         }
       />
 
-      {/* Grid Principal */}
-      <div className="flex flex-col gap-6">
-        {/* Coluna principal: Saldo + Cards de Receita/Despesa */}
-        <div className="flex min-w-0 flex-col gap-6">
+      <div className="grid min-w-0 gap-6 min-[1200px]:grid-cols-[minmax(0,1fr)_minmax(0,17rem)]">
+        <div className="min-w-0 space-y-4">
           {error ? (
             <LoadError error={error} retry={refetch} />
           ) : (
             <>
+              <BalanceCard
+                selectedMonth={selectedDate}
+                balance={summary?.balance ?? 0}
+                changePercent={summary?.balanceChangePercent ?? null}
+                data={summary?.dailyBalance ?? []}
+                isLoading={isLoading}
+                futureCardExpenses={summary?.futureCardExpenses ?? 0}
+                availableBalance={summary?.availableBalance ?? 0}
+                referenceDate={summary?.reservationReferenceDate}
+              />
               <SummaryCards
                 income={summary?.income ?? 0}
                 incomeChange={summary?.incomeChangePercent ?? null}
@@ -75,38 +86,29 @@ export default function DashboardPage() {
                 investmentCount={summary?.investmentCount ?? 0}
                 isLoading={isLoading}
               />
-              <BalanceCard
-                selectedMonth={selectedDate}
-                balance={summary?.balance ?? 0}
-                changePercent={summary?.balanceChangePercent ?? null}
-                data={summary?.dailyBalance ?? []}
-                isLoading={isLoading}
-                futureCardExpenses={summary?.futureCardExpenses ?? 0}
-                availableBalance={summary?.availableBalance ?? 0}
-                referenceDate={summary?.reservationReferenceDate}
-              />
             </>
           )}
+        </div>
+        <aside
+          aria-label="Planejamento do mês"
+          className="divide-border border-border min-w-0 divide-y self-start rounded-lg border min-[601px]:grid min-[601px]:grid-cols-2 min-[601px]:divide-x min-[601px]:divide-y-0 min-[1200px]:block min-[1200px]:divide-x-0 min-[1200px]:divide-y"
+        >
           <MonthlyGoal />
-          {summary && !error && (
-            <div className="grid min-w-0 gap-6 xl:grid-cols-2">
-              <MonthlyFlow summary={summary} />
-              <MonthlyExpenseCategories summary={summary} />
-            </div>
-          )}
           <CardConsolidated month={selectedDate} compact />
-        </div>
-
-        {/* Histórico após os resumos e a projeção. */}
-        <div className="min-w-0">
-          {!error && (
-            <RecentTransactions
-              transactions={summary?.currentTransactions ?? []}
-              isLoading={isLoading}
-            />
-          )}
-        </div>
+        </aside>
       </div>
+      {!error && (
+        <RecentTransactions
+          transactions={summary?.currentTransactions ?? []}
+          isLoading={isLoading}
+        />
+      )}
+      {summary && !error && (
+        <div className="grid min-w-0 gap-6 min-[1200px]:grid-cols-2">
+          <MonthlyFlow summary={summary} />
+          <MonthlyExpenseCategories summary={summary} />
+        </div>
+      )}
     </div>
   )
 }

@@ -180,13 +180,13 @@ export function TransactionList({
         }
       />
 
+      <TransactionNavigation />
       <TransactionPageSummary
         criteria={criteria}
         month={month}
         valid={valid}
         type={type}
       />
-      <TransactionNavigation />
       <TransactionFilters fixedType={type} />
       {(type === 'investment' || type === 'income') && (
         <TransactionDistribution

@@ -10,10 +10,8 @@ Os tokens de erro no tema claro, o breadcrumb e os rótulos da navegação móve
 
 Veja a [auditoria e seus limites](../audits/2026-10-22/accessibility.md). Os testes Playwright verificam teclado, foco, temas, mensagens e reflow. npm run test:e2e usa somente projetos fictícios.
 
-No painel, mês e novo lançamento ocupam linhas próprias abaixo de 640 px. O mês mantém as setas na mesma linha e anuncia sua alteração. O menu da conta tem nome acessível explícito, os botões de fechar diálogos e menus têm alvos de 48 px e as seções de configurações quebram linha. O indicador de desenvolvimento do Next.js fica desativado para não cobrir a navegação inferior; os erros de compilação e execução continuam disponíveis.
+No painel, o mês fica no cabeçalho e o botão de novo lançamento fica junto ao título. Abaixo de 601 px, o botão ocupa a largura disponível. O mês mantém as setas na mesma linha e anuncia sua alteração. O menu da conta tem nome acessível explícito, os botões de fechar diálogos e menus têm alvos de 48 px e as seções de configurações quebram linha. O indicador de desenvolvimento do Next.js fica desativado para não cobrir a navegação inferior. Os erros de compilação e execução continuam disponíveis.
 
-A partir de 640 px, seletor de mês e botão de novo lançamento compartilham a mesma altura por alinhamento stretch, mantendo suas larguras conforme o conteúdo. A regressão está em `tests/e2e/mobile-navigation.test.ts`.
-
-O rodapé com marca e moeda aparece somente no desktop (a partir de 768 px), com 64 px de altura, igual à seção Aparência da barra lateral. No mobile, a navegação inferior permanece e o rodapé informativo é ocultado.
+A partir de 961 px, a navegação lateral agrupa rotas por finalidade e informa a moeda. Em larguras menores, a barra inferior oferece Painel, Extrato, Cartões e Mais. Mais abre uma lista agrupada e rolável, com foco contido e indicação da rota atual. A preferência de tema fica no cabeçalho em todas as larguras. A regressão de navegação e alvos de toque está em `tests/e2e/mobile-navigation.test.ts`.
 
 Validação da correção em 23/10/2026: tipos, lint dos arquivos alterados e build passaram; a suíte com `npm test -- --runInBand --roots tests/unit` passou em 43 suítes/226 testes. O lint global encontrou erros em artefatos locais de `dogfood-output`; o Jest sem raiz explícita incluiu outros worktrees e apresentou colisões. O E2E não iniciou porque a porta 8081 estava ocupada. O novo teste de layout e a conferência visual permanecem pendentes.

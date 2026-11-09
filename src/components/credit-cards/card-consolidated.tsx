@@ -3,6 +3,8 @@
 import { useQueries } from '@tanstack/react-query'
 import { format } from 'date-fns'
 import Link from 'next/link'
+import { ArrowRight } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { useAuth } from '@/contexts/auth-context'
 import { useCreditCards } from '@/hooks/use-credit-cards'
 import { useCurrentDate } from '@/hooks/use-current-date'
@@ -39,7 +41,8 @@ export function CardConsolidated({
         monthKey,
         card.closingDay,
       ],
-      queryFn: ({ signal }) => TransactionService.getInvoice(user!.uid, card, month, signal),
+      queryFn: ({ signal }) =>
+        TransactionService.getInvoice(user!.uid, card, month, signal),
       enabled: !!user,
     })),
   })
@@ -65,7 +68,12 @@ export function CardConsolidated({
   return (
     <section
       aria-label="Consolidado dos cartões"
-      className="border-border rounded-md border p-5 sm:p-6"
+      className={cn(
+        'min-w-0',
+        compact
+          ? 'p-4 min-[601px]:p-5'
+          : 'border-border rounded-md border p-5 sm:p-6',
+      )}
     >
       <h2 className="font-medium">Gastos em cartões · {monthKey}</h2>
       {waiting ? (
@@ -103,9 +111,10 @@ export function CardConsolidated({
           {compact ? (
             <Link
               href={`/credit-cards?month=${monthKey}`}
-              className="text-primary mt-3 inline-block underline"
+              className="text-link mt-2 inline-flex min-h-10 items-center gap-2 rounded-md text-sm font-medium underline-offset-4 hover:underline"
             >
               Ver cartões
+              <ArrowRight aria-hidden="true" className="size-3.5 shrink-0" />
             </Link>
           ) : (
             <div className="divide-border mt-4 divide-y">
@@ -181,7 +190,9 @@ function CardRow({
         )}
       </div>
       <div className="flex flex-wrap items-center gap-3">
-        <span className="min-w-0 font-medium [overflow-wrap:anywhere] tabular-nums">{formatMoney(total)}</span>
+        <span className="min-w-0 font-medium [overflow-wrap:anywhere] tabular-nums">
+          {formatMoney(total)}
+        </span>
         <Button
           variant="outline"
           aria-label={`Abrir fatura de ${card.name} · ${card.bankName}`}
